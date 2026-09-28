@@ -5,137 +5,137 @@
 @banca: VUNESP
 
 // Língua Portuguesa: 16 questões na prova 2025 · 1079 questões no caderno TEC
-Língua Portuguesa | 5 | 3
-- Interpretação de textos e tipologia textual *3
-- Reescrita de frases, substituição de trechos, clareza e correção *2
-- Semântica: sinônimos, antônimos, sentido próprio e figurado, significação contextual *3
-- Pronomes e colocação pronominal *3
-- Verbos: tempos, modos, correlação verbal e vozes *3
-- Substantivo, adjetivo, artigo, numeral e advérbio *2
-- Preposição e conjunção *2
-- Concordância verbal e nominal *2
-- Partícula SE e vocábulos QUE e COMO *2
-- Pontuação *2
-- Coesão e coerência: conectores e referenciação *2
-- Crase *2
-- Regência verbal e nominal *2
-- Tipos de discurso: direto, indireto e indireto livre *1
+Língua Portuguesa | 5 | 3 | Pré-Edital TJ-SP (Escrevente) Língua Portuguesa
+- Interpretação de textos e tipologia textual *3 [Aula 09]
+- Reescrita de frases, substituição de trechos, clareza e correção *2 [Aulas 07 e 09]
+- Semântica: sinônimos, antônimos, sentido próprio e figurado, significação contextual *3 [Aula 08]
+- Pronomes e colocação pronominal *3 [Aula 01]
+- Verbos: tempos, modos, correlação verbal e vozes *3 [Aula 03]
+- Substantivo, adjetivo, artigo, numeral e advérbio *2 [Aula 01]
+- Preposição e conjunção *2 [Aula 02]
+- Concordância verbal e nominal *2 [Aula 05]
+- Partícula SE e vocábulos QUE e COMO *2 [Aulas 01 e 02]
+- Pontuação *2 [Aula 04]
+- Coesão e coerência: conectores e referenciação *2 [Aula 07]
+- Crase *2 [Aula 06]
+- Regência verbal e nominal *2 [Aula 06]
+- Tipos de discurso: direto, indireto e indireto livre *1 [Aula 09]
 
 // Direito Administrativo: 6 questões na prova 2025 · 679 questões no caderno TEC
-Direito Administrativo | 3 | 3
-- Improbidade (Lei 8.429/92): atos de improbidade, arts. 9º a 11 *3
-- Improbidade (Lei 8.429/92): disposições gerais, arts. 1º a 8º-A *2
-- Improbidade (Lei 8.429/92): penas, procedimento e prescrição, arts. 12 a 23-C *3
-- Estatuto SP (Lei 10.261/68): penalidades, TAC e suspensão da sindicância, arts. 251 a 267-P *2
-- Estatuto SP (Lei 10.261/68): provimento, exercício, vacância e direitos, arts. 1º a 240 *2
-- Estatuto SP (Lei 10.261/68): deveres, proibições e responsabilidades, arts. 241 a 250 *2
-- Estatuto SP (Lei 10.261/68): procedimento disciplinar, arts. 268 a 323 *1
+Direito Administrativo | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Administrativo (Prof. Antonio Daud)
+- Improbidade (Lei 8.429/92): atos de improbidade, arts. 9º a 11 *3 [Aula 03]
+- Improbidade (Lei 8.429/92): disposições gerais, arts. 1º a 8º-A *2 [Aula 03]
+- Improbidade (Lei 8.429/92): penas, procedimento e prescrição, arts. 12 a 23-C *3 [Aula 03]
+- Estatuto SP (Lei 10.261/68): penalidades, TAC e suspensão da sindicância, arts. 251 a 267-P *2 [Aula 02]
+- Estatuto SP (Lei 10.261/68): provimento, exercício, vacância e direitos, arts. 1º a 240 *2 [Aula 01]
+- Estatuto SP (Lei 10.261/68): deveres, proibições e responsabilidades, arts. 241 a 250 *2 [Aula 02]
+- Estatuto SP (Lei 10.261/68): procedimento disciplinar, arts. 268 a 323 *1 [Aula 02]
 
 // Direito Processual Civil: 5 questões na prova 2025 · 1094 questões no caderno TEC
-Direito Processual Civil | 3 | 3
-- Recursos: disposições gerais, apelação, agravos e embargos de declaração, arts. 994 a 1.026 *3
-- Audiência de conciliação, contestação, reconvenção e revelia, arts. 334 a 346 *3
-- Citação, cartas e intimações, arts. 236 a 275 *3
-- Provas, arts. 369 a 484 *3
-- Sentença, coisa julgada e liquidação, arts. 485 a 512 *2
-- Juizados Especiais Cíveis (Lei 9.099/95) e da Fazenda Pública (Lei 12.153/09) *2
-- Forma, tempo e lugar dos atos processuais, arts. 188 a 217 *2
-- Petição inicial e improcedência liminar, arts. 318 a 332 *2
-- Tutela provisória, arts. 294 a 311 *2
-- Cumprimento de sentença, arts. 513 a 538 *2
-- Prazos, arts. 218 a 235 *2
-- Saneamento, julgamento conforme o estado e audiência de instrução, arts. 347 a 368 *2
-- Impedimento, suspeição e auxiliares da justiça, arts. 144 a 155 *1
+Direito Processual Civil | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Processual Civil
+- Recursos: disposições gerais, apelação, agravos e embargos de declaração, arts. 994 a 1.026 *3 [Aula 08]
+- Audiência de conciliação, contestação, reconvenção e revelia, arts. 334 a 346 *3 [Aula 04]
+- Citação, cartas e intimações, arts. 236 a 275 *3 [Aula 02]
+- Provas, arts. 369 a 484 *3 [Aulas 05 e 06]
+- Sentença, coisa julgada e liquidação, arts. 485 a 512 *2 [Aula 07]
+- Juizados Especiais Cíveis (Lei 9.099/95) e da Fazenda Pública (Lei 12.153/09) *2 [Aula 09]
+- Forma, tempo e lugar dos atos processuais, arts. 188 a 217 *2 [Aula 01]
+- Petição inicial e improcedência liminar, arts. 318 a 332 *2 [Aula 04]
+- Tutela provisória, arts. 294 a 311 *2 [Aula 03]
+- Cumprimento de sentença, arts. 513 a 538 *2 [Aulas 04 e 07]
+- Prazos, arts. 218 a 235 *2 [Aula 01]
+- Saneamento, julgamento conforme o estado e audiência de instrução, arts. 347 a 368 *2 [Aula 04]
+- Impedimento, suspeição e auxiliares da justiça, arts. 144 a 155 *1 [Aula 00]
 
 // Direito Processual Penal: 5 questões na prova 2025 · 665 questões no caderno TEC
-Direito Processual Penal | 3 | 3
-- Juizado Especial Criminal (Lei 9.099/95): disposições gerais e fase preliminar, arts. 60 a 76 *3
-- Juizado Especial Criminal (Lei 9.099/95): procedimento sumaríssimo e disposições finais, arts. 77 a 89 *2
-- Recursos: teoria geral, recurso em sentido estrito, apelação e embargos, arts. 574 a 620 *3
-- Citações e intimações, arts. 351 a 372 *3
-- Procedimento comum ordinário e sumário, sentença e restauração de autos, arts. 381 a 405, 531 a 548 *2
-- Tribunal do Júri, arts. 406 a 497 *2
-- Juiz, Ministério Público, acusado e defensor, arts. 251 a 267 e 274 *2
-- Revisão criminal e habeas corpus, arts. 621 a 667 *1
+Direito Processual Penal | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Processual Penal
+- Juizado Especial Criminal (Lei 9.099/95): disposições gerais e fase preliminar, arts. 60 a 76 *3 [Aula 06]
+- Juizado Especial Criminal (Lei 9.099/95): procedimento sumaríssimo e disposições finais, arts. 77 a 89 *2 [Aula 06]
+- Recursos: teoria geral, recurso em sentido estrito, apelação e embargos, arts. 574 a 620 *3 [Aula 04]
+- Citações e intimações, arts. 351 a 372 *3 [Aula 01]
+- Procedimento comum ordinário e sumário, sentença e restauração de autos, arts. 381 a 405, 531 a 548 *2 [Aula 02]
+- Tribunal do Júri, arts. 406 a 497 *2 [Aula 03]
+- Juiz, Ministério Público, acusado e defensor, arts. 251 a 267 e 274 *2 [Aula 00]
+- Revisão criminal e habeas corpus, arts. 621 a 667 *1 [Aulas 04 e 05]
 
 // Direito Constitucional: 5 questões na prova 2025 · 941 questões no caderno TEC
-Direito Constitucional | 3 | 3
-- Direitos e deveres individuais e coletivos (art. 5º) *3
-- Administração pública: disposições gerais (arts. 37 e 38) *3
-- Remédios constitucionais *2
-- Servidores públicos (arts. 39 a 41) *2
-- Direitos sociais (arts. 6º a 11) *2
-- Nacionalidade (arts. 12 e 13) *1
-- Órgãos do Poder Judiciário (art. 92) *1
+Direito Constitucional | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Constitucional
+- Direitos e deveres individuais e coletivos (art. 5º) *3 [Aulas 00 a 02]
+- Administração pública: disposições gerais (arts. 37 e 38) *3 [Aula 05]
+- Remédios constitucionais *2 [Aulas 01 e 02]
+- Servidores públicos (arts. 39 a 41) *2 [Aula 05]
+- Direitos sociais (arts. 6º a 11) *2 [Aula 03]
+- Nacionalidade (arts. 12 e 13) *1 [Aula 04]
+- Órgãos do Poder Judiciário (art. 92) *1 [Aula 06]
 
 // Normas da Corregedoria Geral da Justiça: 5 questões na prova 2025 · 257 questões no caderno TEC
-Normas da Corregedoria Geral da Justiça | 3 | 3
-- NSCGJ Tomo I, Cap. III: Seções I a VII (arts. 26 a 34, 46 a 86) *3
-- NSCGJ Tomo I, Cap. III: Seções XVII a XIX (arts. 157 a 189-G) *3
-- NSCGJ Tomo I, Cap. XI (arts. 1.189 a 1.265) *2
-- NSCGJ Tomo I, Cap. III: Seções IX a XV (arts. 103 a 142) *2
-- NSCGJ Tomo I, Cap. II (arts. 5º a 18) *2
-- NSCGJ Tomo I, Cap. III: Seção VIII (arts. 87 a 99) *2
+Normas da Corregedoria Geral da Justiça | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Legislação Especial TJ-SP
+- NSCGJ Tomo I, Cap. III: Seções I a VII (arts. 26 a 34, 46 a 86) *3 [Aulas 02 e 03]
+- NSCGJ Tomo I, Cap. III: Seções XVII a XIX (arts. 157 a 189-G) *3 [Aulas 07 e 08]
+- NSCGJ Tomo I, Cap. XI (arts. 1.189 a 1.265) *2 [conferir no curso]
+- NSCGJ Tomo I, Cap. III: Seções IX a XV (arts. 103 a 142) *2 [Aulas 05 e 06]
+- NSCGJ Tomo I, Cap. II (arts. 5º a 18) *2 [Aula 01]
+- NSCGJ Tomo I, Cap. III: Seção VIII (arts. 87 a 99) *2 [Aula 04]
 
 // Direito Penal: 4 questões na prova 2025 · 836 questões no caderno TEC
-Direito Penal | 2 | 3
-- Concussão, excesso de exação e corrupção passiva (arts. 316 e 317) *3
-- Peculato e crimes em sistemas de informação (arts. 312 a 313-B) *3
-- Prevaricação, condescendência, advocacia administrativa, sigilo e demais crimes funcionais (arts. 314, 315, 319 a 325) *3
-- Crimes de particular contra a administração (arts. 328 a 337) *2
-- Falsidade documental (arts. 296 a 305) *2
-- Crimes contra a administração da justiça (arts. 339 a 347, 357 e 359) *1
-- Funcionário público para fins penais (art. 327) *1
-- Papéis públicos, falsa identidade e fraude em certames (arts. 293 a 295, 307, 308, 311-A) *1
+Direito Penal | 2 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Penal
+- Concussão, excesso de exação e corrupção passiva (arts. 316 e 317) *3 [Aula 01]
+- Peculato e crimes em sistemas de informação (arts. 312 a 313-B) *3 [Aula 01]
+- Prevaricação, condescendência, advocacia administrativa, sigilo e demais crimes funcionais (arts. 314, 315, 319 a 325) *3 [Aula 01]
+- Crimes de particular contra a administração (arts. 328 a 337) *2 [Aula 02]
+- Falsidade documental (arts. 296 a 305) *2 [Aula 00]
+- Crimes contra a administração da justiça (arts. 339 a 347, 357 e 359) *1 [Aula 03]
+- Funcionário público para fins penais (art. 327) *1 [Aula 01]
+- Papéis públicos, falsa identidade e fraude em certames (arts. 293 a 295, 307, 308, 311-A) *1 [Aula 00]
 
 // Informática: 9 questões na prova 2025 · 1709 questões no caderno TEC
-Informática | 4 | 3
-- Internet, navegadores e sites de busca *3
-- Windows 10 e 11 *3
-- MS-Excel *2
-- MS-Word *2
-- Correio eletrônico *2
-- OneDrive e computação em nuvem *1
-- Microsoft Teams *1
+Informática | 4 | 3 | Pré-Edital TJ-SP (Escrevente) Informática
+- Internet, navegadores e sites de busca *3 [Aulas 00 e 01]
+- Windows 10 e 11 *3 [Aulas 05 e 06]
+- MS-Excel *2 [Aula 03]
+- MS-Word *2 [Aula 04]
+- Correio eletrônico *2 [Aula 02]
+- OneDrive e computação em nuvem *1 [Aula 07]
+- Microsoft Teams *1 [Aula 07]
 
 // Raciocínio Lógico: 6 questões na prova 2025 · 1182 questões no caderno TEC
-Raciocínio Lógico | 3 | 3
-- Sequências numéricas, de figuras e de letras (inclui PA e PG) *3
-- Lógica de argumentação e diagramas lógicos *3
-- Equivalências lógicas e negação de proposições *2
-- Associação de informações e verdade/mentira *2
-- Datas, calendários, orientação espacial e outros problemas *2
-- Proposições, conectivos e tabela-verdade *1
+Raciocínio Lógico | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Raciocínio Lógico e Matemática
+- Sequências numéricas, de figuras e de letras (inclui PA e PG) *3 [Aula 05]
+- Lógica de argumentação e diagramas lógicos *3 [Aulas 03 e 04]
+- Equivalências lógicas e negação de proposições *2 [Aula 02]
+- Associação de informações e verdade/mentira *2 [Aula 07]
+- Datas, calendários, orientação espacial e outros problemas *2 [Aulas 06 e 07]
+- Proposições, conectivos e tabela-verdade *1 [Aulas 00 e 01]
 
 // Matemática: 5 questões na prova 2025 · 1449 questões no caderno TEC
-Matemática | 3 | 3
-- Geometria plana e espacial *3
-- Médias, gráficos e tabelas *3
-- Equações de 1º e 2º grau *3
-- Razão, proporção e regra de três *2
-- Porcentagem *2
-- Números naturais, divisibilidade, MMC e MDC *2
-- Frações, decimais e números reais *2
-- Unidades de medida *2
-- Sistemas lineares *1
-- Juros simples *1
+Matemática | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Raciocínio Lógico e Matemática
+- Geometria plana e espacial *3 [Aulas 17 e 18]
+- Médias, gráficos e tabelas *3 [Aulas 19 e 20]
+- Equações de 1º e 2º grau *3 [Aula 16]
+- Razão, proporção e regra de três *2 [Aulas 12 e 13]
+- Porcentagem *2 [Aula 14]
+- Números naturais, divisibilidade, MMC e MDC *2 [Aulas 09 e 11]
+- Frações, decimais e números reais *2 [Aulas 08, 09 e 12]
+- Unidades de medida *2 [Aula 10]
+- Sistemas lineares *1 [Aula 16]
+- Juros simples *1 [Aula 15]
 
 // Atualidades: 3 questões na prova 2025 · 273 questões no caderno TEC
-Atualidades | 2 | 3
-- Política nacional e internacional *3
-- Economia nacional e internacional *2
-- Meio ambiente e sustentabilidade *2
-- Ciência e tecnologia *2
-- Cultura, sociedade, saúde, educação e outros temas *2
+Atualidades | 2 | 3 | Pré-Edital TJ-SP (Escrevente) Atualidades
+- Política nacional e internacional *3 [Retrospectivas mensais]
+- Economia nacional e internacional *2 [Retrospectivas mensais]
+- Meio ambiente e sustentabilidade *2 [Retrospectivas mensais]
+- Ciência e tecnologia *2 [Retrospectivas mensais]
+- Cultura, sociedade, saúde, educação e outros temas *2 [Retrospectivas mensais]
 
 // Estatuto da Pessoa com Deficiência: 1 questões na prova 2025 · 281 questões no caderno TEC
-Estatuto da Pessoa com Deficiência | 1 | 3
-- Disposições gerais, igualdade e não discriminação (arts. 1º a 9º) *3
-- Direito à vida e ao trabalho (arts. 10 a 13 e 34 a 38) *1
+Estatuto da Pessoa com Deficiência | 1 | 3 | Pré-Edital TJ-SP (Escrevente) Atualidades
+- Disposições gerais, igualdade e não discriminação (arts. 1º a 9º) *3 [Atualidades, Aula 01]
+- Direito à vida e ao trabalho (arts. 10 a 13 e 34 a 38) *1 [Atualidades, Aula 01]
 
 // Redação: prova discursiva eliminatória (40 pontos)
-Redação | 3 | 3
-- Estrutura do texto dissertativo-argumentativo *3
-- Argumentação e repertório *2
-- Coesão, coerência e norma culta *2
-- Prática com temas no estilo VUNESP *3
+Redação | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Redação Sem Correção
+- Estrutura do texto dissertativo-argumentativo *3 [Aulas 00 a 02]
+- Argumentação e repertório *2 [Aulas 01 e 02]
+- Coesão, coerência e norma culta *2 [Aula 02]
+- Prática com temas no estilo VUNESP *3 [Aulas 04 a 06]
