@@ -1,89 +1,141 @@
-// TJSP – Escrevente Técnico Judiciário · base: edital VUNESP 2025
-// Formato: Matéria | peso (1-5) | nível (1-5) · assuntos com *incidência (1 baixa, 2 média, 3 alta) e #páginas do PDF (quando conhecido)
-// Peso proporcional ao nº de questões. Incidência inicial estimada pelo histórico da VUNESP; será recalibrada com os cadernos do TEC.
+// TJSP – Escrevente Técnico Judiciário · base: edital VUNESP 2025 (prova de 07/12/2025)
+// Peso: nº de questões de cada matéria na prova de 2025. Incidência: participação do assunto no caderno do guia TEC TJ SP 2025.
+// Nota mínima: 50% nos Blocos I (Português) e II (Direito). Bloco III é classificatório. Redação eliminatória.
 @concurso: TJSP – Escrevente Técnico Judiciário
 @banca: VUNESP
 
+// Língua Portuguesa: 16 questões na prova 2025 · 1079 questões no caderno TEC
 Língua Portuguesa | 5 | 3
-- Interpretação e análise de textos verbais e não verbais *3
-- Significação contextual de palavras e expressões *2
-- Sinônimos, antônimos, sentido próprio e figurado *2
-- Classes de palavras *2
-- Concordância verbal e nominal *3
-- Regência verbal e nominal *3
-- Colocação pronominal *2
-- Crase *3
-- Pontuação *3
+- Interpretação de textos e tipologia textual *3
+- Reescrita de frases, substituição de trechos, clareza e correção *2
+- Semântica: sinônimos, antônimos, sentido próprio e figurado, significação contextual *3
+- Pronomes e colocação pronominal *3
+- Verbos: tempos, modos, correlação verbal e vozes *3
+- Substantivo, adjetivo, artigo, numeral e advérbio *2
+- Preposição e conjunção *2
+- Concordância verbal e nominal *2
+- Partícula SE e vocábulos QUE e COMO *2
+- Pontuação *2
+- Coesão e coerência: conectores e referenciação *2
+- Crase *2
+- Regência verbal e nominal *2
+- Tipos de discurso: direto, indireto e indireto livre *1
 
-Direito Processual Civil | 4 | 3
-- CPC arts. 144 a 155 – impedimento, suspeição e auxiliares da justiça *2
-- CPC arts. 188 a 275 – atos processuais, prazos e comunicação dos atos *3
-- CPC arts. 294 a 311 – tutela provisória *2
-- CPC arts. 318 a 538 – procedimento comum, provas, sentença e cumprimento *3
-- CPC arts. 994 a 1026 – recursos *2
-- Lei 9.099/1995 arts. 3º a 19 – Juizados Especiais Cíveis *2
-- Lei 12.153/2009 – Juizados Especiais da Fazenda Pública *1
+// Direito Administrativo: 6 questões na prova 2025 · 679 questões no caderno TEC
+Direito Administrativo | 3 | 3
+- Improbidade (Lei 8.429/92): atos de improbidade, arts. 9º a 11 *3
+- Improbidade (Lei 8.429/92): disposições gerais, arts. 1º a 8º-A *2
+- Improbidade (Lei 8.429/92): penas, procedimento e prescrição, arts. 12 a 23-C *3
+- Estatuto SP (Lei 10.261/68): penalidades, TAC e suspensão da sindicância, arts. 251 a 267-P *2
+- Estatuto SP (Lei 10.261/68): provimento, exercício, vacância e direitos, arts. 1º a 240 *2
+- Estatuto SP (Lei 10.261/68): deveres, proibições e responsabilidades, arts. 241 a 250 *2
+- Estatuto SP (Lei 10.261/68): procedimento disciplinar, arts. 268 a 323 *1
 
+// Direito Processual Civil: 5 questões na prova 2025 · 1094 questões no caderno TEC
+Direito Processual Civil | 3 | 3
+- Recursos: disposições gerais, apelação, agravos e embargos de declaração, arts. 994 a 1.026 *3
+- Audiência de conciliação, contestação, reconvenção e revelia, arts. 334 a 346 *3
+- Citação, cartas e intimações, arts. 236 a 275 *3
+- Provas, arts. 369 a 484 *3
+- Sentença, coisa julgada e liquidação, arts. 485 a 512 *2
+- Juizados Especiais Cíveis (Lei 9.099/95) e da Fazenda Pública (Lei 12.153/09) *2
+- Forma, tempo e lugar dos atos processuais, arts. 188 a 217 *2
+- Petição inicial e improcedência liminar, arts. 318 a 332 *2
+- Tutela provisória, arts. 294 a 311 *2
+- Cumprimento de sentença, arts. 513 a 538 *2
+- Prazos, arts. 218 a 235 *2
+- Saneamento, julgamento conforme o estado e audiência de instrução, arts. 347 a 368 *2
+- Impedimento, suspeição e auxiliares da justiça, arts. 144 a 155 *1
+
+// Direito Processual Penal: 5 questões na prova 2025 · 665 questões no caderno TEC
 Direito Processual Penal | 3 | 3
-- CPP arts. 251 a 258 – juiz, Ministério Público *1
-- CPP arts. 261 a 267 e 274 – acusado, defensor e auxiliares *1
-- CPP arts. 351 a 372 – citações e intimações *3
-- CPP arts. 394 a 497 – procedimentos comum e do júri *3
-- CPP arts. 531 a 538 e 541 a 548 – procedimento sumário e restauração de autos *2
-- CPP arts. 574 a 667 – recursos e habeas corpus *2
-- Lei 9.099/1995 arts. 60 a 83, 88 e 89 – Juizado Especial Criminal *2
+- Juizado Especial Criminal (Lei 9.099/95): disposições gerais e fase preliminar, arts. 60 a 76 *3
+- Juizado Especial Criminal (Lei 9.099/95): procedimento sumaríssimo e disposições finais, arts. 77 a 89 *2
+- Recursos: teoria geral, recurso em sentido estrito, apelação e embargos, arts. 574 a 620 *3
+- Citações e intimações, arts. 351 a 372 *3
+- Procedimento comum ordinário e sumário, sentença e restauração de autos, arts. 381 a 405, 531 a 548 *2
+- Tribunal do Júri, arts. 406 a 497 *2
+- Juiz, Ministério Público, acusado e defensor, arts. 251 a 267 e 274 *2
+- Revisão criminal e habeas corpus, arts. 621 a 667 *1
 
-Direito Penal | 3 | 3
-- CP arts. 293 a 305, 307 e 308 – crimes contra a fé pública *2
-- CP art. 311-A – fraudes em certames de interesse público *1
-- CP arts. 312 a 317 – peculato, concussão, corrupção passiva *3
-- CP arts. 319 a 327 – prevaricação e demais crimes de funcionário público *3
-- CP arts. 328 a 333 – crimes de particular contra a administração *2
-- CP arts. 336 e 337 – inutilização de edital e subtração de documento *1
-- CP arts. 339 a 347, 357 e 359 – crimes contra a administração da justiça *2
-
+// Direito Constitucional: 5 questões na prova 2025 · 941 questões no caderno TEC
 Direito Constitucional | 3 | 3
-- CF Título II, Cap. I – direitos e deveres individuais e coletivos (art. 5º) *3
-- CF Título II, Cap. II – direitos sociais *2
-- CF Título II, Cap. III – nacionalidade *2
-- CF Título III, Cap. VII, Seções I e II – administração pública e servidores *3
-- CF art. 92 – órgãos do Poder Judiciário *1
+- Direitos e deveres individuais e coletivos (art. 5º) *3
+- Administração pública: disposições gerais (arts. 37 e 38) *3
+- Remédios constitucionais *2
+- Servidores públicos (arts. 39 a 41) *2
+- Direitos sociais (arts. 6º a 11) *2
+- Nacionalidade (arts. 12 e 13) *1
+- Órgãos do Poder Judiciário (art. 92) *1
 
-Direito Administrativo | 2 | 3
-- Lei 10.261/1968 arts. 239 a 323 – deveres, proibições, penalidades e processo administrativo *3
-- Lei 8.429/1992 – improbidade administrativa *3
+// Normas da Corregedoria Geral da Justiça: 5 questões na prova 2025 · 257 questões no caderno TEC
+Normas da Corregedoria Geral da Justiça | 3 | 3
+- NSCGJ Tomo I, Cap. III: Seções I a VII (arts. 26 a 34, 46 a 86) *3
+- NSCGJ Tomo I, Cap. III: Seções XVII a XIX (arts. 157 a 189-G) *3
+- NSCGJ Tomo I, Cap. XI (arts. 1.189 a 1.265) *2
+- NSCGJ Tomo I, Cap. III: Seções IX a XV (arts. 103 a 142) *2
+- NSCGJ Tomo I, Cap. II (arts. 5º a 18) *2
+- NSCGJ Tomo I, Cap. III: Seção VIII (arts. 87 a 99) *2
 
-Normas da Corregedoria Geral da Justiça | 2 | 2
-- NSCGJ Tomo I – Cap. II (ofícios de justiça) *2
-- NSCGJ Tomo I – Cap. III (serviços judiciais e atos do escrevente) *2
-- NSCGJ Tomo I – Cap. XI (seções indicadas no edital) *1
+// Direito Penal: 4 questões na prova 2025 · 836 questões no caderno TEC
+Direito Penal | 2 | 3
+- Concussão, excesso de exação e corrupção passiva (arts. 316 e 317) *3
+- Peculato e crimes em sistemas de informação (arts. 312 a 313-B) *3
+- Prevaricação, condescendência, advocacia administrativa, sigilo e demais crimes funcionais (arts. 314, 315, 319 a 325) *3
+- Crimes de particular contra a administração (arts. 328 a 337) *2
+- Falsidade documental (arts. 296 a 305) *2
+- Crimes contra a administração da justiça (arts. 339 a 347, 357 e 359) *1
+- Funcionário público para fins penais (art. 327) *1
+- Papéis públicos, falsa identidade e fraude em certames (arts. 293 a 295, 307, 308, 311-A) *1
 
+// Informática: 9 questões na prova 2025 · 1709 questões no caderno TEC
 Informática | 4 | 3
-- Windows 10 – conceitos, arquivos e pastas *2
-- MS-Word – edição e formatação *3
-- MS-Excel – fórmulas, funções e formatação *3
+- Internet, navegadores e sites de busca *3
+- Windows 10 e 11 *3
+- MS-Excel *2
+- MS-Word *2
 - Correio eletrônico *2
-- Internet e navegadores *2
-- Microsoft 365: Teams e OneDrive *2
+- OneDrive e computação em nuvem *1
+- Microsoft Teams *1
 
+// Raciocínio Lógico: 6 questões na prova 2025 · 1182 questões no caderno TEC
 Raciocínio Lógico | 3 | 3
-- Estruturas lógicas e lógica de argumentação *3
-- Dedução e diagramas lógicos *2
-- Sequências numéricas e figurais *3
+- Sequências numéricas, de figuras e de letras (inclui PA e PG) *3
+- Lógica de argumentação e diagramas lógicos *3
+- Equivalências lógicas e negação de proposições *2
+- Associação de informações e verdade/mentira *2
+- Datas, calendários, orientação espacial e outros problemas *2
+- Proposições, conectivos e tabela-verdade *1
 
-Matemática | 2 | 3
-- Números reais, MMC e MDC *2
-- Razão, proporção e regra de três *3
-- Porcentagem e juros simples *3
-- Média aritmética, tabelas e gráficos *2
-- Equações de 1º e 2º grau e sistemas *2
-- Medidas e geometria básica *2
+// Matemática: 5 questões na prova 2025 · 1449 questões no caderno TEC
+Matemática | 3 | 3
+- Geometria plana e espacial *3
+- Médias, gráficos e tabelas *3
+- Equações de 1º e 2º grau *3
+- Razão, proporção e regra de três *2
+- Porcentagem *2
+- Números naturais, divisibilidade, MMC e MDC *2
+- Frações, decimais e números reais *2
+- Unidades de medida *2
+- Sistemas lineares *1
+- Juros simples *1
 
+// Atualidades: 3 questões na prova 2025 · 273 questões no caderno TEC
 Atualidades | 2 | 3
-- Fatos políticos, econômicos, sociais e culturais desde 2025 *2
-- Lei 13.146/2015 (Estatuto da Pessoa com Deficiência) arts. 1º a 13 e 34 a 38 *2
+- Política nacional e internacional *3
+- Economia nacional e internacional *2
+- Meio ambiente e sustentabilidade *2
+- Ciência e tecnologia *2
+- Cultura, sociedade, saúde, educação e outros temas *2
 
+// Estatuto da Pessoa com Deficiência: 1 questões na prova 2025 · 281 questões no caderno TEC
+Estatuto da Pessoa com Deficiência | 1 | 3
+- Disposições gerais, igualdade e não discriminação (arts. 1º a 9º) *3
+- Direito à vida e ao trabalho (arts. 10 a 13 e 34 a 38) *1
+
+// Redação: prova discursiva eliminatória (40 pontos)
 Redação | 3 | 3
 - Estrutura do texto dissertativo-argumentativo *3
 - Argumentação e repertório *2
 - Coesão, coerência e norma culta *2
+- Prática com temas no estilo VUNESP *3

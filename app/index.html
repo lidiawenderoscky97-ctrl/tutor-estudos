@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="2">
+<meta name="versao" content="3">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tutor de Estudos</title>
@@ -540,14 +540,31 @@ async function buscarConcurso(){
   render();
 }
 async function carregarConcurso(arq){
-  const temDados = S.materias.length;
-  if(temDados && !confirm('Carregar este edital junto com o que você já tem? Matérias e assuntos com o mesmo nome são atualizados, sem perder o histórico.')) return;
+  let substituir = false;
+  if(S.materias.length){
+    substituir = confirm('Você já tem um edital no programa.\n\nOK = SUBSTITUIR pelo edital escolhido (assuntos que já têm estudo registrado são mantidos; o resto é trocado).\nCancelar = não carregar nada.');
+    if(!substituir) return;
+  }
   try{
     const r = await fetch(CATALOGO+arq+'?t='+Date.now()); if(!r.ok) throw new Error('HTTP '+r.status);
-    const msg = importar(await r.text(), true);
+    const texto = await r.text();
+    if(substituir) limparSemHistorico(texto);
+    const msg = importar(texto, true);
     buscaRes = null; buscaMsg = 'Edital carregado: '+msg+' Ajuste seu nível (1–5) em cada matéria abaixo.';
     delete S.metas[hoje()]; save(); render();
   }catch(e){ alert('Não foi possível baixar o edital: '+e.message); }
+}
+// Remove assuntos (e matérias) sem nenhum estudo registrado que não existam no novo edital
+function limparSemHistorico(texto){
+  const novos = new Set(), mats = new Set(); let atual = null;
+  texto.split('\n').forEach(l => { l = l.trim(); if(!l || l.startsWith('//') || l.startsWith('@')) return;
+    if(/^[-•*]/.test(l)){ if(atual) novos.add(atual+'|'+l.replace(/^[-•*]\s*/,'').replace(/#\s*\d+/,'').replace(/\*\s*[123](?!\d)/,'').replace(/\s+/g,' ').trim().toLowerCase()); }
+    else { atual = l.replace(/^#+\s*/,'').split('|')[0].trim().toLowerCase(); mats.add(atual); } });
+  const usados = new Set(S.sessoes.map(s=>s.topicoId));
+  S.materias.forEach(m => { m.topicos = m.topicos.filter(t => usados.has(t.id) || t.feitos>0 || novos.has(m.nome.toLowerCase()+'|'+t.nome.toLowerCase())); });
+  const ids = new Set(S.materias.flatMap(m=>m.topicos.map(t=>t.id)));
+  S.revisoes = S.revisoes.filter(r => ids.has(r.topicoId));
+  S.materias = S.materias.filter(m => m.topicos.length || mats.has(m.nome.toLowerCase()) || S.sessoes.some(s=>s.materiaId===m.id));
 }
 
 function vEdital(){
