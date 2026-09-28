@@ -55,12 +55,12 @@ main{padding:18px 28px 60px;max-width:1180px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;gap:14px;align-items:center}
 .kpi .big{font-size:22px;line-height:1.2}
 .ring{flex:none}
-.hero{background:linear-gradient(135deg,var(--acc),#7b5cf0);color:#fff;border:0;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.hero{background:var(--sb);color:#fff;border:0;display:flex;gap:20px;align-items:center;flex-wrap:wrap;box-shadow:inset 4px 0 0 var(--acc)}
 .hero .mut{color:rgba(255,255,255,.8)}
 .hero h2{color:#fff;font-size:20px;margin:0 0 4px}
 .xp{flex:1;min-width:220px}
-.xp .bar{background:rgba(255,255,255,.25)}
-.xp .bar i{background:#fff}
+.xp .bar{background:rgba(255,255,255,.14)}
+.xp .bar i{background:var(--gold)}
 .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:600;margin-right:6px}
 label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
 input,select,textarea{font:inherit;font-size:14px;width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
@@ -548,7 +548,7 @@ function vPainel(){
   const d = parse(hoje()).getDay();
   let h = `<div class="card hero"><div style="flex:1;min-width:240px"><h2>Olá! ${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}</h2>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
-      <div style="margin-top:10px"><span class="badge">🔥 ${seq} ${seq===1?'dia':'dias'} seguidos</span><span class="badge">⭐ Nível ${lv.n}</span></div></div>
+      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span></div></div>
     <div class="xp"><div class="mut" style="display:flex;justify-content:space-between"><span>${xp} XP</span><span>próximo nível: ${lv.fim} XP</span></div>
       <div class="bar" style="height:10px;margin-top:6px"><i style="width:${lv.p*100}%"></i></div>
       <div class="mut" style="margin-top:6px;font-size:12px">XP = minutos estudados + 2 por acerto + 20 por meta concluída</div></div></div>`;
@@ -561,7 +561,7 @@ function vPainel(){
   h += `<div class="g2"><div class="col"><div class="card"><h2>Próximas metas de hoje <button class="g" onclick="ir('hoje')">Ver todas</button></h2>
     ${pend.length ? pend.map(x=>{const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!t) return '';
       return `<div class="item"><div style="min-width:0"><span class="tipo ${x.tipo}">${TIPOS[x.tipo]}</span> <b>${esc(m.nome)}</b><div class="mut">${esc(curto(t.nome,80))} · ${hm(x.min)}</div></div>
-      <button class="g" onclick="iniciarMeta('${x.id}');ir('hoje')">▶ Iniciar</button></div>`}).join('') : '<div class="empty">Tudo concluído por hoje. 🎉</div>'}</div>`;
+      <button class="g" onclick="iniciarMeta('${x.id}');ir('hoje')">▶ Iniciar</button></div>`}).join('') : '<div class="empty">Tudo concluído por hoje.</div>'}</div>`;
   h += `<div class="card"><h2>Tempo por atividade <span class="mut">últimos 7 dias · ${hm(tpt)}</span></h2>
     ${tpt ? `<div class="stack"><i style="width:${tp.conteudo/tpt*100}%;background:var(--acc)"></i><i style="width:${tp.questoes/tpt*100}%;background:var(--ok)"></i><i style="width:${tp.revisao/tpt*100}%;background:var(--rev)"></i></div>
     <div class="leg"><span style="--c:var(--acc)">Teoria + questões ${hm(tp.conteudo)}</span><span style="--c:var(--ok)">Questões ${hm(tp.questoes)}</span><span style="--c:var(--rev)">Revisão ${hm(tp.revisao)}</span></div>` : '<div class="empty">Conclua metas para ver a divisão do seu tempo.</div>'}</div>`;
@@ -610,7 +610,7 @@ function cardMeta(x,i){
     <div style="min-width:0"><div><span class="tipo ${x.tipo}">${TIPOS[x.tipo]}</span> <span class="mut">${hm(x.min)} · ${focos(x.min)}</span></div>
       <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
-      ${t.aula||m.curso ? `<div class="aula">📘 Estratégia${m.curso?' · '+esc(curto(m.curso,60)):''}${t.aula?' · <b>'+esc(t.aula)+'</b>':''}</div>`:''}</div><div class="acts">`;
+      ${t.aula||m.curso ? `<div class="aula"><b style="color:var(--acc)">Estratégia</b>${m.curso?' · '+esc(curto(m.curso,60)):''}${t.aula?' · <b>'+esc(t.aula)+'</b>':''}</div>`:''}</div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`;
   else {
     if(ativa) h += `<button class="g" onclick="pausarTimer()">${S.timer.inicio?'⏸ Pausar':'▶ Retomar'}</button>`;
@@ -749,10 +749,10 @@ function vEdital(){
       <div class="row" style="margin-bottom:8px"><div><label>Nome</label><input value="${esc(m.nome)}" onchange="setMat('${m.id}','nome',this.value)"></div>
         <div><label>Peso (1–5)</label><input type="number" min="1" max="5" value="${m.peso}" onchange="setMat('${m.id}','peso',+this.value)"></div>
         <div><label>Meu nível (1–5)</label><input type="number" min="1" max="5" value="${m.nivel}" onchange="setMat('${m.id}','nivel',+this.value)"></div></div>
-      ${m.curso?`<div class="mut" style="margin-bottom:6px">📘 Curso Estratégia: ${esc(m.curso)}</div>`:''}
+      ${m.curso?`<div class="mut" style="margin-bottom:6px">Curso Estratégia: ${esc(m.curso)}</div>`:''}
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
       ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp"><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
-        <span class="nm">${esc(t.nome)}<small>${[t.aula?'📘 '+esc(t.aula):'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small></span>
+        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small></span>
         <input type="number" min="0" value="${t.paginas||''}" placeholder="?" onchange="setTop('${m.id}','${t.id}','paginas',+this.value||0)">
         <select class="hide" onchange="setTop('${m.id}','${t.id}','incid',+this.value)">${[1,2,3].map(k=>`<option value="${k}" ${k==t.incid?'selected':''}>${INCID[k]}</option>`).join('')}</select>
         <span class="hide mut">${hm(tempoTopico(m,t).total)}</span>
