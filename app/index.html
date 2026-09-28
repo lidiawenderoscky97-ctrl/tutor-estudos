@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="5">
+<meta name="versao" content="6">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tutor de Estudos</title>
@@ -288,11 +288,15 @@ function ciclo(extra){
   const ativos = S.materias.filter(m => m.topicos.some(t => t.status!=='concluido'));
   const ws = ativos.map(m => ({m, w:(+m.peso||1) * (6-(+m.nivel||3)) * fatorMateria(m)}));
   const tot = ws.reduce((s,x)=>s+x.w,0) || 1;
-  return ws.map(({m,w}) => {
-    const alvo = Math.max(30, r5(minSemana()*w/tot));
+  const unid = Math.floor(minSemana()/5);
+  const cotas = ws.map(x => unid*x.w/tot), base = cotas.map(Math.floor);
+  let sobra = unid - base.reduce((s,x)=>s+x,0);
+  cotas.map((c,i)=>({i, f:c-base[i]})).sort((a,b)=>b.f-a.f).forEach(x=>{ if(sobra>0){ base[x.i]++; sobra--; } });
+  return ws.map(({m,w},i) => {
+    const alvo = base[i]*5;
     const feito = S.sessoes.filter(s => s.materiaId===m.id && TIPOS_CONTEUDO.includes(s.tipo) && (s.ts||0) >= S.config.cicloTs)
                            .reduce((a,s)=>a+(+s.min||0),0) + (extra[m.id]||0);
-    return {m, w, alvo, feito, r: feito/alvo, fat: fatorMateria(m)};
+    return {m, w, alvo, feito, r: alvo ? feito/alvo : Infinity, fat: fatorMateria(m)};
   });
 }
 function ordemTopicos(m){
@@ -324,8 +328,9 @@ function montarMetas(dia, base){
   const revs = S.revisoes.filter(r => !r.feita && r.due<=dia && !ja.has(r.id)).sort((a,b)=>a.due<b.due?-1:1);
   for(const r of revs){
     const m = mat(r.materiaId), t = topico(m, r.topicoId); if(!t) continue;
-    const ix = indice(t.id).p, min = ix!=null && ix<.6 ? 45 : 30;
+    const ix = indice(t.id).p; let min = ix!=null && ix<.6 ? 45 : 30;
     if(revUsado + min > cap*.5 && revUsado > 0) break;
+    if(usado + min > cap){ min = r5(cap - usado); if(min < 15) break; }
     metas.push({id:uid(), tipo:'revisao', revisaoId:r.id, materiaId:m.id, topicoId:t.id, min, etapa:r.etapa}); usado += min; revUsado += min;
   }
   const naMeta = new Set(metas.map(x=>x.topicoId));
@@ -336,7 +341,7 @@ function montarMetas(dia, base){
   const extra = {}, plan = {}, cont = {}; let ultima = null, guarda = 0;
   metas.filter(x=>x.tipo==='conteudo').forEach(x=>{ plan[x.topicoId]=(plan[x.topicoId]||0)+(x.feita?0:1); cont[x.materiaId]=(cont[x.materiaId]||0)+1; ultima=x.materiaId; });
   while(usado + (+S.config.blocoMin||30) <= cap && guarda++ < 20){
-    const c = ciclo(extra).filter(x => proxBloco(x.m, plan)).sort((a,b)=>a.r-b.r || b.w-a.w);
+    const c = ciclo(extra).filter(x => x.alvo>0 && proxBloco(x.m, plan)).sort((a,b)=>a.r-b.r || b.w-a.w);
     const e = c.find(x => x.m.id!==ultima && (cont[x.m.id]||0)<2) || c.find(x => (cont[x.m.id]||0)<2);
     if(!e) break;
     const b = proxBloco(e.m, plan);
@@ -513,7 +518,7 @@ const ICON = {
 };
 const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['registrar','Registro avulso'],['config','Configurações']];
 let aba = 'painel';
-function ir(a){ aba=a; if(a!=='hoje') caixaAberta=null; render(); window.scrollTo(0,0); }
+function ir(a){ aba=a; if(a!=='hoje') caixaAberta=null; if(a!=='config') avisoCfg=''; render(); window.scrollTo(0,0); }
 function render(){
   const lvl = nivel(xpTotal());
   document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Tutor de Estudos</div>` +
@@ -643,10 +648,10 @@ function vSemana(){
     if(S.config.dataProva && fim > S.config.dataProva) prev += ` <span class="tag bad">passa da data da prova</span>`; }
   let h = `<div class="card"><h2>Próximos 7 dias</h2><p class="mut" style="margin-top:-6px">Projeção automática supondo que você cumpra as metas. Ela se ajusta sozinha a cada meta concluída, ao seu acerto e às revisões.</p>
     <div class="semana">${sem.map((d,i)=>{const tot=d.metas.reduce((s,x)=>s+x.min,0); const pd=parse(d.dia);
-      return `<div class="dia ${i===0?'hj':''}"><h4>${i===0?'Hoje':DIAS3[pd.getDay()]} <span class="mut">${br(d.dia).slice(0,5)}</span></h4><div class="mut">${tot?hm(tot):'descanso'}</div>
+      return `<div class="dia ${i===0?'hj':''}"><h4>${i===0?'Hoje':DIAS3[pd.getDay()]} <span class="mut">${br(d.dia).slice(0,5)}</span></h4><div class="mut">${capacidade(d.dia)?hm(tot)+' de '+hm(capacidade(d.dia)):'descanso'}</div>
       ${d.metas.map(x=>{const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!m||!t) return ''; return `<div class="bl ${x.tipo} ${x.feita?'feita':''}"><b>${esc(curto(m.nome,24))}</b>${esc(curto(t.nome,48))}<div class="mut">${TIPOS[x.tipo]} · ${hm(x.min)}${t.aula?' · '+esc(t.aula):''}</div></div>`}).join('')}</div>`}).join('')}</div></div>`;
   h += `<div class="card" style="margin-top:16px"><h2>Ciclo da semana <button class="g" onclick="if(confirm('Zerar o progresso e iniciar um novo ciclo?')){S.config.cicloTs=Date.now();save();render();}">Iniciar novo ciclo</button></h2>
-    <p class="mut">${prev}<br>Ciclo iniciado em ${br(iso(new Date(S.config.cicloTs)))} · ${hm(tF)} de ${hm(tA)}. Fatia de cada matéria = peso × dificuldade × desempenho; abaixo de ${S.config.limiar}% ganha mais tempo.</p>
+    <p class="mut">${prev}<br>Ciclo iniciado em ${br(iso(new Date(S.config.cicloTs)))} · ${hm(tF)} de ${hm(tA)} (= ${hm(ms)} líquidas por semana). Fatia de cada matéria = peso × dificuldade × desempenho; abaixo de ${S.config.limiar}% ganha mais tempo.</p>
     ${c.sort((a,b)=>b.alvo-a.alvo).map(x => `<div class="brow"><span>${esc(curto(x.m.nome,26))} ${x.fat>1?'<span class="tag bad" title="Acerto baixo: mais tempo">+</span>':x.fat<1?'<span class="tag ok" title="Acerto alto: menos tempo">−</span>':''}</span>
       <div class="bar"><i style="width:${Math.min(100,x.r*100)}%"></i></div><span>${hm(x.feito)}/${hm(x.alvo)}</span></div>`).join('')}</div>`;
   return h;
@@ -1001,8 +1006,10 @@ function vConfig(){
     <div class="row"><div><label>Concurso / cargo</label><input value="${esc(c.concurso)}" onchange="setCfg('concurso',this.value)"></div>
       <div><label>Banca</label><input value="${esc(c.banca)}" onchange="setCfg('banca',this.value)"></div></div>
     <label>Data da prova</label><input type="date" value="${c.dataProva}" onchange="setCfg('dataProva',this.value)">
-    <div class="row"><div><label>Horas por dia útil</label><input type="number" step=".5" min="0" value="${c.horasUtil}" onchange="setCfg('horasUtil',+this.value)"></div>
-      <div><label>Horas no sábado e domingo</label><input type="number" step=".5" min="0" value="${c.horasFds}" onchange="setCfg('horasFds',+this.value)"></div></div>
+    <div class="row"><div><label>Horas líquidas por dia útil</label><input type="number" step=".5" min="0" value="${c.horasUtil}" onchange="setCfg('horasUtil',+this.value)"></div>
+      <div><label>Horas líquidas no sábado e domingo</label><input type="number" step=".5" min="0" value="${c.horasFds}" onchange="setCfg('horasFds',+this.value)"></div></div>
+    <p class="mut">Total: <b>${hm(minSemana())}</b> líquidas por semana. O ciclo divide exatamente esse tempo entre as matérias, e nenhum dia passa das horas dele.</p>
+    ${avisoCfg?`<div class="alert info">${avisoCfg}</div>`:''}
     <h3>Cálculo dos blocos</h3>
     <div class="row"><div><label>Ritmo de leitura (min por página)</label><input type="number" step=".25" min=".5" value="${c.ritmoPag}" onchange="setCfg('ritmoPag',+this.value||2)"></div>
       <div><label>Bloco mínimo (min)</label><input type="number" step="5" min="15" value="${c.blocoMin}" onchange="setCfg('blocoMin',+this.value||30)"></div>
@@ -1025,7 +1032,13 @@ function vConfig(){
     ${DESK ? '<button class="g" onclick="verificarAtualizacao()">Verificar atualizações agora</button>' : ''}
     <h3>Zona de perigo</h3><button class="g" style="color:var(--bad)" onclick="if(confirm('Apagar TODOS os dados?')){S=padrao();save();render();}">Apagar todos os dados</button></div></div>`;
 }
-function setCfg(k,v){S.config[k]=v; save(); render();}
+const REPLANEJA = ['horasUtil','horasFds','blocoMin','blocoMax','ritmoPag','limiar'];
+let avisoCfg = '';
+function setCfg(k,v){
+  S.config[k]=v;
+  if(REPLANEJA.includes(k) && S.materias.length){ gerarMetas(true); avisoCfg = 'Cronograma e metas pendentes de hoje recalculados com '+hm(minSemana())+' líquidas por semana.'; }
+  save(); render();
+}
 function setInt(v){const a=v.split(/[,; ]+/).map(Number).filter(n=>n>0); if(a.length){S.config.intervalos=a; save();} render();}
 function exportar(){const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='tutor-estudos-backup-'+hoje()+'.json'; a.click();}
 function restaurar(f){if(!f)return; const r=new FileReader(); r.onload=()=>{try{const d=JSON.parse(r.result); if(!d.materias) throw 0; if(confirm('Substituir os dados atuais pelo backup?')){S=d; migrar(); save(); render();}}catch(e){alert('Arquivo de backup inválido.');}}; r.readAsText(f);}

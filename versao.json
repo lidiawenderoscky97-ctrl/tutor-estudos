@@ -1,4 +1,4 @@
 {
-  "versao": 5,
-  "notas": "Envie o PDF do edital: o tutor lê o conteúdo programático e monta o cronograma"
+  "versao": 6,
+  "notas": "Horas líquidas: cronograma recalculado ao mudar as horas, sem ultrapassar o total"
 }
