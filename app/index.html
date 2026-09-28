@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="4">
+<meta name="versao" content="5">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tutor de Estudos</title>
@@ -528,7 +528,7 @@ function render(){
   if(aba==='registrar') atualizaTopicos();
   if(caixaAberta){ const el = document.getElementById('cq'); if(el) el.focus(); }
 }
-const vazio = () => cardBusca() + `<div class="card" style="margin-top:16px"><h2>Ou monte o edital você mesmo</h2><p class="mut">Cadastre as matérias e os assuntos, ou importe o edital verticalizado. O tutor calcula o tempo, monta os blocos, as metas diárias e o cronograma.</p><button class="b" onclick="ir('edital')">Ir para o Edital</button></div>`;
+const vazio = () => cardBusca() + cardPdf() + `<div class="card" style="margin-top:16px"><h2>Ou monte o edital você mesmo</h2><p class="mut">Cadastre as matérias e os assuntos, ou importe o edital verticalizado. O tutor calcula o tempo, monta os blocos, as metas diárias e o cronograma.</p><button class="b" onclick="ir('edital')">Ir para o Edital</button></div>`;
 function anel(p, cor, tam, txt){
   tam = tam||64; const r = tam/2-6, c = 2*Math.PI*r, v = Math.max(0,Math.min(1,p||0));
   return `<svg class="ring" width="${tam}" height="${tam}" viewBox="0 0 ${tam} ${tam}"><circle cx="${tam/2}" cy="${tam/2}" r="${r}" stroke="var(--soft)" stroke-width="7" fill="none"/>
@@ -735,11 +735,135 @@ function limparSemHistorico(texto){
   S.materias = S.materias.filter(m => m.topicos.length || mats.has(m.nome.toLowerCase()) || S.sessoes.some(s=>s.materiaId===m.id));
 }
 
+/* ---------- Importar edital em PDF ----------
+   Lê o texto do PDF (pdf.js), localiza o conteúdo programático, separa matérias e assuntos
+   e, quando o quadro de provas traz o nº de questões, calcula os pesos. Tudo vai para revisão antes de importar. */
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+let pdfEstado = {msg:'', texto:'', resumo:'', arquivo:''};
+async function carregarPdfJs(){
+  if(window.pdfjsLib) return window.pdfjsLib;
+  await new Promise((ok,err)=>{ const s=document.createElement('script'); s.src=PDFJS+'pdf.min.js'; s.onload=ok;
+    s.onerror=()=>err(new Error('não foi possível carregar o leitor de PDF. Verifique a internet.')); document.head.appendChild(s); });
+  const w = await (await fetch(PDFJS+'pdf.worker.min.js')).text();
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([w],{type:'text/javascript'}));
+  return window.pdfjsLib;
+}
+async function linhasDoPdf(buf){
+  const lib = await carregarPdfJs();
+  const doc = await lib.getDocument({data:buf}).promise;
+  const linhas = [];
+  for(let p=1; p<=doc.numPages; p++){
+    const c = await (await doc.getPage(p)).getTextContent();
+    let atual = '', lastY = null;
+    for(const it of c.items){
+      const y = it.transform ? it.transform[5] : null;
+      if(lastY!==null && y!==null && Math.abs(y-lastY) > 2){ linhas.push(atual); atual=''; }
+      atual += (atual && !/\s$/.test(atual) && !/^\s/.test(it.str) ? ' ' : '') + it.str;
+      lastY = y;
+      if(it.hasEOL){ linhas.push(atual); atual=''; lastY=null; }
+    }
+    if(atual) linhas.push(atual);
+  }
+  return linhas.map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean);
+}
+const MINUSC = new Set(['de','da','do','das','dos','e','em','a','o','as','os','para','com','no','na','nos','nas','à','ao']);
+const tituloMat = s => s.toLowerCase().split(' ').map((w,i)=> i>0 && MINUSC.has(w) ? w : w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+const MATERIA_CONHECIDA = /^(l[íi]ngua portuguesa|portugu[êe]s|matem[áa]tica( financeira)?|racioc[íi]nio l[óo]gico|(no[çc][õo]es de )?inform[áa]tica|atualidades|direito [a-zà-ú ]{3,40}|legisla[çc][ãa]o [a-zà-ú ,\-]{3,60}|administra[çc][ãa]o (p[úu]blica|geral|financeira)[a-zà-ú ]*|contabilidade [a-zà-ú ]*|economia|estat[íi]stica|arquivologia|[ée]tica [a-zà-ú ]*|reda[çc][ãa]o|normas [a-zà-ú ]{3,60}|estatuto [a-zà-ú ]{3,60}|conhecimentos (sobre|de|do|da) [a-zà-ú ]{3,60})/i;
+const GRUPO = /^(conhecimentos (gerais|b[áa]sicos|espec[íi]ficos|comuns|em [a-zà-ú ]+|de direito)$|n[íi]vel (m[ée]dio|superior|fundamental)|cargos?\b|para (todos|o cargo|os cargos)|anexo|conte[úu]do(s)? program[áa]tico|parte [ivx\d]|m[óo]dulo|bloco [ivx\d]|prova (objetiva|discursiva)|disciplinas?$|mat[ée]rias?$)/i;
+function ehCabecalho(l){
+  const s = l.replace(/[:\-–]\s*$/,'').trim();
+  if(s.length < 4 || s.length > 90 || /^\d/.test(s)) return false;
+  const letras = s.replace(/[^A-Za-zÀ-ÿ]/g,''); if(letras.length < 4) return false;
+  const maius = letras.replace(/[^A-ZÀ-Þ]/g,'').length / letras.length;
+  if(maius > .85) return true;
+  return MATERIA_CONHECIDA.test(s) && s.length <= 70 && !/[.;]$/.test(l);
+}
+function editalParaTexto(linhas){
+  const n = linhas.map(norm);
+  // início: ocorrência de "conteúdo programático" seguida de uma matéria reconhecível
+  // prefere a linha que é título (anexo/cabeçalho curto) e que é seguida de matérias; menções no meio do texto ficam de fora
+  const cands = n.map((l,i)=>i).filter(i=>/conteudo(s)? programatico/.test(n[i]));
+  const segue = i => linhas.slice(i+1,i+40).some(x=>MATERIA_CONHECIDA.test(x.replace(/^[\d.\s–-]+/,'')));
+  const titulo = i => linhas[i].length <= 80 && (ehCabecalho(linhas[i]) || /^anexo/.test(n[i]) || /^conteudo/.test(n[i]));
+  let ini = cands.find(i=>titulo(i) && segue(i));
+  if(ini === undefined) ini = cands.find(i=>titulo(i));
+  if(ini === undefined) ini = cands.find(segue);
+  if(ini === undefined) ini = cands.length ? cands[0] : -1;
+  let fim = linhas.length;
+  if(ini >= 0){ for(let i=ini+5;i<linhas.length;i++){ if(/^anexo\s+[ivxl\d]+\b/.test(n[i]) && !/conteudo(s)? programatico/.test(n[i])){ fim = i; break; } } }
+  const corpo = linhas.slice(ini>=0 ? ini+1 : 0, fim);
+  const mats = []; let atual = null;
+  for(let l of corpo){
+    l = l.replace(/^[\dIVX]+[.)\-–]\s+(?=[A-ZÀ-Þ])/,'');
+    let cab = null, resto = '';
+    const dp = l.match(/^([^:]{4,70}):\s*(.*)$/);
+    if(dp && (ehCabecalho(dp[1]) || MATERIA_CONHECIDA.test(dp[1].trim()))){ cab = dp[1]; resto = dp[2]; }
+    else if(ehCabecalho(l)) cab = l;
+    if(cab){
+      cab = cab.replace(/[:\-–]\s*$/,'').trim();
+      if(GRUPO.test(norm(cab))){ if(resto) (atual||{}).txt += ' '+resto; continue; }
+      atual = {nome: tituloMat(cab), txt: resto}; mats.push(atual); continue;
+    }
+    if(atual) atual.txt += ' ' + l;
+  }
+  const out = [];
+  mats.forEach(m => {
+    let t = m.txt.replace(/\s+/g,' ').replace(/(^|[.;:]\s+)\d+(\.\d+)*[.)]\s+(?=[A-ZÀ-Þ])/g,'$1');
+    let tops = t.split(/(?<=[.;])\s+(?=[A-ZÀ-Þ"“(])/).map(x=>x.replace(/^(\d+(\.\d+)*[.)]|[\-–•])\s+/,'').replace(/[.;,\s]+$/,'').trim()).filter(x=>x.length>=4);
+    tops = tops.map(x=> x.length>180 ? x.slice(0,177)+'…' : x);
+    const vistos = new Set(); tops = tops.filter(x=>{ const k=norm(x); if(vistos.has(k)) return false; vistos.add(k); return true; });
+    if(tops.length) out.push({nome:m.nome, tops});
+  });
+  // pesos pelo nº de questões do quadro de provas (texto antes do conteúdo programático)
+  const antes = n.slice(0, ini>0 ? ini : 0).join('\n');
+  out.forEach(m => {
+    const re = new RegExp(norm(m.nome).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[^\\n\\d]{0,25}(\\d{1,2})\\b');
+    const mm = antes.match(re); m.q = mm ? +mm[1] : null;
+    m.peso = m.q==null ? 3 : m.q>=15 ? 5 : m.q>=9 ? 4 : m.q>=5 ? 3 : m.q>=3 ? 2 : 1;
+  });
+  const txt = out.map(m => `${m.nome} | ${m.peso} | 3\n` + m.tops.map(x=>`- ${x.replace(/[\[\]#*]/g,'')} *2`).join('\n')).join('\n\n');
+  return {texto: txt, materias: out.length, assuntos: out.reduce((s,m)=>s+m.tops.length,0), comPeso: out.filter(m=>m.q!=null).length, achou: ini>=0};
+}
+async function lerEditalPdf(file){
+  if(!file) return;
+  pdfEstado = {msg:'Lendo o PDF...', texto:'', resumo:'', arquivo:file.name}; render();
+  try{
+    const linhas = await linhasDoPdf(await file.arrayBuffer());
+    if(linhas.join('').length < 200) throw new Error('o PDF parece ser uma imagem escaneada, sem texto selecionável');
+    const r = editalParaTexto(linhas);
+    if(!r.materias) throw new Error('não encontrei matérias e assuntos no texto. Copie o conteúdo programático e cole em “Importar edital em texto”, mais abaixo');
+    pdfEstado.texto = `// Lido de ${file.name}. Revise: corrija nomes, junte ou apague linhas. Formato: Matéria | peso | nível, e assuntos com "-".\n` + r.texto;
+    pdfEstado.resumo = `${r.materias} matérias e ${r.assuntos} assuntos encontrados${r.achou?' no conteúdo programático':''}. `+
+      (r.comPeso ? `Pesos calculados pelo nº de questões em ${r.comPeso} matérias; as demais ficaram com peso 3.` : 'Não encontrei o nº de questões por matéria: todas ficaram com peso 3 (ajuste se souber).');
+    pdfEstado.msg = '';
+  }catch(e){ pdfEstado.msg = 'Não foi possível ler o edital: '+esc(e.message)+'.'; }
+  render();
+}
+function importarPdf(substituir){
+  const txt = document.getElementById('pdfimp').value;
+  if(substituir){ if(S.materias.length && !confirm('Substituir o edital atual por este? Assuntos com estudo registrado são mantidos.')) return; limparSemHistorico(txt); }
+  const nome = (pdfEstado.arquivo||'').replace(/\.pdf$/i,'');
+  if(!S.config.concurso && nome) S.config.concurso = nome;
+  const msg = importar(txt, true);
+  pdfEstado = {msg:'Edital importado: '+msg+' O cronograma e as metas já seguem este edital. Ajuste o nível (1–5) de cada matéria e, se quiser, a incidência dos assuntos.', texto:'', resumo:'', arquivo:''};
+  delete S.metas[hoje()]; save(); render();
+}
+function cardPdf(){
+  return `<div class="card" style="margin-top:16px"><h2>Enviar o PDF do edital</h2>
+    <p class="mut">Escolha o arquivo do edital. O tutor encontra o conteúdo programático, separa matérias e assuntos e, quando o quadro de provas traz o nº de questões, calcula os pesos. Você revisa antes de importar.</p>
+    <input id="pdfarq" type="file" accept="application/pdf,.pdf" onchange="lerEditalPdf(this.files[0])">
+    ${pdfEstado.msg?`<p class="mut">${pdfEstado.msg}</p>`:''}
+    ${pdfEstado.texto?`<div class="alert info">${esc(pdfEstado.resumo)} A leitura é automática: confira se cada matéria e assunto está certo antes de importar.</div>
+      <textarea id="pdfimp" style="min-height:320px">${esc(pdfEstado.texto)}</textarea>
+      <div class="inl"><button class="b" onclick="importarPdf(true)">Usar como meu edital</button><button class="g" onclick="importarPdf(false)">Adicionar ao edital atual</button>
+      <button class="g" onclick="pdfEstado={msg:'',texto:'',resumo:'',arquivo:''};render()">Descartar</button></div>`:''}</div>`;
+}
+
 /* ---------- Edital ---------- */
 const abertas = new Set();
 function vEdital(){
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
-  let h = cardBusca() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
+  let h = cardBusca() + cardPdf() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
     <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca.</p>`;
   h += S.materias.map(m => {
     const mc = m.topicos.filter(t=>t.status==='concluido').length, st = stats(s=>s.materiaId===m.id);
