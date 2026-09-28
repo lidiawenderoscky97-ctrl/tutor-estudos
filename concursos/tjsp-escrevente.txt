@@ -1,0 +1,89 @@
+// TJSP – Escrevente Técnico Judiciário · base: edital VUNESP 2025
+// Formato: Matéria | peso (1-5) | nível (1-5) · assuntos com *incidência (1 baixa, 2 média, 3 alta) e #páginas do PDF (quando conhecido)
+// Peso proporcional ao nº de questões. Incidência inicial estimada pelo histórico da VUNESP; será recalibrada com os cadernos do TEC.
+@concurso: TJSP – Escrevente Técnico Judiciário
+@banca: VUNESP
+
+Língua Portuguesa | 5 | 3
+- Interpretação e análise de textos verbais e não verbais *3
+- Significação contextual de palavras e expressões *2
+- Sinônimos, antônimos, sentido próprio e figurado *2
+- Classes de palavras *2
+- Concordância verbal e nominal *3
+- Regência verbal e nominal *3
+- Colocação pronominal *2
+- Crase *3
+- Pontuação *3
+
+Direito Processual Civil | 4 | 3
+- CPC arts. 144 a 155 – impedimento, suspeição e auxiliares da justiça *2
+- CPC arts. 188 a 275 – atos processuais, prazos e comunicação dos atos *3
+- CPC arts. 294 a 311 – tutela provisória *2
+- CPC arts. 318 a 538 – procedimento comum, provas, sentença e cumprimento *3
+- CPC arts. 994 a 1026 – recursos *2
+- Lei 9.099/1995 arts. 3º a 19 – Juizados Especiais Cíveis *2
+- Lei 12.153/2009 – Juizados Especiais da Fazenda Pública *1
+
+Direito Processual Penal | 3 | 3
+- CPP arts. 251 a 258 – juiz, Ministério Público *1
+- CPP arts. 261 a 267 e 274 – acusado, defensor e auxiliares *1
+- CPP arts. 351 a 372 – citações e intimações *3
+- CPP arts. 394 a 497 – procedimentos comum e do júri *3
+- CPP arts. 531 a 538 e 541 a 548 – procedimento sumário e restauração de autos *2
+- CPP arts. 574 a 667 – recursos e habeas corpus *2
+- Lei 9.099/1995 arts. 60 a 83, 88 e 89 – Juizado Especial Criminal *2
+
+Direito Penal | 3 | 3
+- CP arts. 293 a 305, 307 e 308 – crimes contra a fé pública *2
+- CP art. 311-A – fraudes em certames de interesse público *1
+- CP arts. 312 a 317 – peculato, concussão, corrupção passiva *3
+- CP arts. 319 a 327 – prevaricação e demais crimes de funcionário público *3
+- CP arts. 328 a 333 – crimes de particular contra a administração *2
+- CP arts. 336 e 337 – inutilização de edital e subtração de documento *1
+- CP arts. 339 a 347, 357 e 359 – crimes contra a administração da justiça *2
+
+Direito Constitucional | 3 | 3
+- CF Título II, Cap. I – direitos e deveres individuais e coletivos (art. 5º) *3
+- CF Título II, Cap. II – direitos sociais *2
+- CF Título II, Cap. III – nacionalidade *2
+- CF Título III, Cap. VII, Seções I e II – administração pública e servidores *3
+- CF art. 92 – órgãos do Poder Judiciário *1
+
+Direito Administrativo | 2 | 3
+- Lei 10.261/1968 arts. 239 a 323 – deveres, proibições, penalidades e processo administrativo *3
+- Lei 8.429/1992 – improbidade administrativa *3
+
+Normas da Corregedoria Geral da Justiça | 2 | 2
+- NSCGJ Tomo I – Cap. II (ofícios de justiça) *2
+- NSCGJ Tomo I – Cap. III (serviços judiciais e atos do escrevente) *2
+- NSCGJ Tomo I – Cap. XI (seções indicadas no edital) *1
+
+Informática | 4 | 3
+- Windows 10 – conceitos, arquivos e pastas *2
+- MS-Word – edição e formatação *3
+- MS-Excel – fórmulas, funções e formatação *3
+- Correio eletrônico *2
+- Internet e navegadores *2
+- Microsoft 365: Teams e OneDrive *2
+
+Raciocínio Lógico | 3 | 3
+- Estruturas lógicas e lógica de argumentação *3
+- Dedução e diagramas lógicos *2
+- Sequências numéricas e figurais *3
+
+Matemática | 2 | 3
+- Números reais, MMC e MDC *2
+- Razão, proporção e regra de três *3
+- Porcentagem e juros simples *3
+- Média aritmética, tabelas e gráficos *2
+- Equações de 1º e 2º grau e sistemas *2
+- Medidas e geometria básica *2
+
+Atualidades | 2 | 3
+- Fatos políticos, econômicos, sociais e culturais desde 2025 *2
+- Lei 13.146/2015 (Estatuto da Pessoa com Deficiência) arts. 1º a 13 e 34 a 38 *2
+
+Redação | 3 | 3
+- Estrutura do texto dissertativo-argumentativo *3
+- Argumentação e repertório *2
+- Coesão, coerência e norma culta *2

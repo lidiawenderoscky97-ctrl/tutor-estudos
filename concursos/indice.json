@@ -1,0 +1,12 @@
+[
+  {
+    "nome": "TJSP – Escrevente Técnico Judiciário",
+    "orgao": "Tribunal de Justiça do Estado de São Paulo",
+    "cargo": "Escrevente Técnico Judiciário (nível médio)",
+    "banca": "VUNESP",
+    "base": "Base: edital 2025 (novo edital ainda não publicado)",
+    "obs": "70 questões (Português 16 · Direito 30 · Conhecimentos Gerais 24) + redação. Incidência inicial estimada; será refinada com os cadernos do TEC.",
+    "palavras": ["tjsp", "tj-sp", "tj sp", "tribunal de justica", "sao paulo", "escrevente", "vunesp", "judiciario"],
+    "arquivo": "tjsp-escrevente.txt"
+  }
+]
