@@ -7,7 +7,7 @@ cfg_path = os.path.join(raiz, 'site', 'firebase-config.json')
 if not os.path.exists(cfg_path):
     open(os.path.join(docs, 'index.html'), 'w', encoding='utf-8').write(
         '<!DOCTYPE html><html lang="pt-BR"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-        '<title>Tutor de Estudos</title><body style="font-family:system-ui;padding:32px"><h1>Tutor de Estudos</h1><p>Site em configuração. Volte em alguns minutos.</p></body></html>')
+        '<title>Estudo Guiado</title><body style="font-family:system-ui;padding:32px"><h1>Estudo Guiado</h1><p>Site em configuração. Volte em alguns minutos.</p></body></html>')
     print('sem configuração do Firebase: página provisória gerada'); raise SystemExit
 cfg = json.load(open(cfg_path, encoding='utf-8'))
 SDK = '12.19.0'
@@ -34,7 +34,7 @@ h = h.replace('<!-- TUTOR-ESTUDOS-APP -->', '<!-- TUTOR-ESTUDOS-APP -->\n' + loa
 open(os.path.join(docs, 'index.html'), 'w', encoding='utf-8').write(h)
 shutil.copy(os.path.join(raiz, 'desktop', 'icone.png'), os.path.join(docs, 'icone.png'))
 shutil.copy(os.path.join(raiz, 'versao.json'), os.path.join(docs, 'versao.json'))
-json.dump({"name":"Tutor de Estudos","short_name":"Tutor","start_url":"./","display":"standalone",
+json.dump({"name":"Estudo Guiado","short_name":"Estudo Guiado","start_url":"./","display":"standalone",
            "background_color":"#f4f5fa","theme_color":"#191a2e","lang":"pt-BR",
            "icons":[{"src":"icone.png","sizes":"512x512","type":"image/png","purpose":"any"}]},
           open(os.path.join(docs, 'manifest.webmanifest'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)

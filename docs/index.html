@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="11">
+<meta name="versao" content="12">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -23,7 +23,7 @@ window.SDK_PRONTO = (function(){
 </script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tutor de Estudos</title>
+<title>Estudo Guiado</title>
 <style>
 :root{
   --bg:#f4f5fa;--card:#ffffff;--ink:#1b1d2a;--mut:#6c7085;--line:#e4e6ef;--soft:#f0f1f7;
@@ -752,7 +752,7 @@ let aba = 'painel';
 function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHoje=''; } if(a!=='config') avisoCfg=''; render(); window.scrollTo(0,0); }
 function render(){
   const lvl = nivel(xpTotal());
-  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Tutor de Estudos</div>` +
+  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Estudo Guiado</div>` +
     ABAS.map(([k,n]) => `<button class="${k===aba?'on':''}" onclick="ir('${k}')" title="${n}">${ICON[k]}<span>${n}</span></button>`).join('') +
     `<div class="sep"></div><div class="mini">${ONLINE && ONLINE.usuario ? esc(curto(ONLINE.usuario.nome||ONLINE.usuario.email,24))+'<br>' : ''}Nível ${lvl.n} · versão ${VERSAO}</div>`;
   document.getElementById('titulo').textContent = (ABAS.find(x=>x[0]===aba)||['',''])[1];
@@ -1324,11 +1324,11 @@ function adaptadorFirebase(fs, uid){
   return { doc: p => fs.doc(mapa(p)) };
 }
 function telaLogin(msg){
-  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Tutor de Estudos</div>`;
+  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Estudo Guiado</div>`;
   document.getElementById('titulo').textContent = 'Entrar';
   ['cron','contagem','sync'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = ''; });
   document.getElementById('app').innerHTML = `<div class="card" style="max-width:560px">
-    <h2>Seu tutor de estudos para concursos</h2>
+    <h2>Estudo Guiado: seu tutor para concursos</h2>
     <p>Edital verticalizado, metas do dia com pomodoro, cronograma da semana, revisões espaçadas e análise de desempenho por assunto.</p>
     <p class="mut">Entre com sua conta Google. Cada pessoa tem o próprio espaço: ninguém vê os seus dados, e você acessa o mesmo progresso no celular, no tablet e no computador.</p>
     ${msg?`<div class="alert bad">${esc(msg)}</div>`:''}

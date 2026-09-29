@@ -1,4 +1,4 @@
-# Tutor de Estudos
+# Estudo Guiado
 
 Sistema de estudos para concursos: edital verticalizado, ciclo adaptativo, revisões espaçadas e análise de desempenho.
 
@@ -20,3 +20,9 @@ Os dados de estudo ficam apenas no computador, em `Documentos\Tutor de Estudos\d
 
 - `online/gerar.py` gera `online/tutor-estudos.html` a partir de `app/index.html`, com o catálogo de concursos embutido.
 - Essa página é publicada no Claude (privada) e guarda o progresso na conta: `tutor/estado` e, por mês, `tutor/estado/sessoes/AAAA-MM` e `tutor/estado/metas/AAAA-MM`.
+
+## Site com login
+
+- Endereço: https://estudoguiado.pages.dev (Cloudflare Pages publica a pasta `docs/` a cada atualização do ramo `main`).
+- Login e dados: Firebase (projeto `tutor-estudos-f380b`), dados em `usuarios/<id>` protegidos pelas regras do Firestore.
+- `online/gerar_site.py` gera `docs/` a partir de `app/index.html` e `site/firebase-config.json`.

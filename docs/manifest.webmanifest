@@ -1,6 +1,6 @@
 {
- "name": "Tutor de Estudos",
- "short_name": "Tutor",
+ "name": "Estudo Guiado",
+ "short_name": "Estudo Guiado",
  "start_url": "./",
  "display": "standalone",
  "background_color": "#f4f5fa",

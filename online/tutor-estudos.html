@@ -1,5 +1,5 @@
-<title>Tutor de Estudos</title>
-<meta name="versao" content="11">
+<title>Estudo Guiado</title>
+<meta name="versao" content="12">
 
 <style>
 :root{
@@ -728,7 +728,7 @@ let aba = 'painel';
 function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHoje=''; } if(a!=='config') avisoCfg=''; render(); window.scrollTo(0,0); }
 function render(){
   const lvl = nivel(xpTotal());
-  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Tutor de Estudos</div>` +
+  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Estudo Guiado</div>` +
     ABAS.map(([k,n]) => `<button class="${k===aba?'on':''}" onclick="ir('${k}')" title="${n}">${ICON[k]}<span>${n}</span></button>`).join('') +
     `<div class="sep"></div><div class="mini">${ONLINE && ONLINE.usuario ? esc(curto(ONLINE.usuario.nome||ONLINE.usuario.email,24))+'<br>' : ''}Nível ${lvl.n} · versão ${VERSAO}</div>`;
   document.getElementById('titulo').textContent = (ABAS.find(x=>x[0]===aba)||['',''])[1];
@@ -1300,11 +1300,11 @@ function adaptadorFirebase(fs, uid){
   return { doc: p => fs.doc(mapa(p)) };
 }
 function telaLogin(msg){
-  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Tutor de Estudos</div>`;
+  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Estudo Guiado</div>`;
   document.getElementById('titulo').textContent = 'Entrar';
   ['cron','contagem','sync'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = ''; });
   document.getElementById('app').innerHTML = `<div class="card" style="max-width:560px">
-    <h2>Seu tutor de estudos para concursos</h2>
+    <h2>Estudo Guiado: seu tutor para concursos</h2>
     <p>Edital verticalizado, metas do dia com pomodoro, cronograma da semana, revisões espaçadas e análise de desempenho por assunto.</p>
     <p class="mut">Entre com sua conta Google. Cada pessoa tem o próprio espaço: ninguém vê os seus dados, e você acessa o mesmo progresso no celular, no tablet e no computador.</p>
     ${msg?`<div class="alert bad">${esc(msg)}</div>`:''}
