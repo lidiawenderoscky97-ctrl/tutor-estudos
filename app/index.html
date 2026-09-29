@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="8">
+<meta name="versao" content="9">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tutor de Estudos</title>
@@ -144,6 +144,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 #faixa{background:var(--acc);color:#fff;padding:10px 16px;font-size:14px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
 #faixa button{font:inherit;font-size:13px;padding:5px 12px;border-radius:8px;border:0;background:#fff;color:var(--acc);font-weight:600;cursor:pointer}
 .empty{color:var(--mut);font-size:14px;padding:6px 0}
+/* pomodoro */
+.pomo{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.pomo-anel{flex:none}
 #modal{position:fixed;inset:0;background:rgba(10,10,24,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
 #modal .box{background:var(--card);color:var(--ink);border-radius:14px;padding:20px;max-width:460px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.35)}
 #modal p{white-space:pre-wrap;margin:0 0 16px;line-height:1.5}
@@ -228,7 +231,7 @@ const INCID = {1:'Baixa',2:'Média',3:'Alta'};
 /* ============ Dados ============ */
 const padrao = () => ({
   config:{concurso:'',banca:'',horasUtil:3,horasFds:4,dataProva:'',intervalos:[1,7,15,30,60,90],
-          ritmoPag:2,blocoMin:30,blocoMax:120,limiar:75,cicloTs:Date.now()},
+          ritmoPag:2,blocoMin:30,blocoMax:120,limiar:75,cicloTs:Date.now(),pomodoro:{ativo:true,foco:25,curta:5,longa:15,ciclos:4}},
   materias:[], sessoes:[], revisoes:[], metas:{}, timer:null
 });
 let S;
@@ -441,6 +444,7 @@ function gerarMetas(manterFeitas){
   save();
 }
 function focos(min){
+  const pc = S.config.pomodoro; if(!pc || pc.ativo!==false){ const f = (pc&&pc.foco)||25, n = Math.max(1, Math.round(min/f)); return `${n} pomodoro${n>1?'s':''} de ${f} min`; }
   if(min <= 50) return `1 foco de ${min} min`;
   const k = Math.ceil(min/50), f = r5(min/k);
   return `${k} focos de ~${f} min`;
@@ -488,25 +492,125 @@ function agendarProxima(r, pHoje, dia){
   S.revisoes.push(nova); return nova.id;
 }
 
-/* ============ Cronômetro ============ */
-const tempoTimer = () => !S.timer ? 0 : (S.timer.acum||0) + (S.timer.inicio ? Date.now()-S.timer.inicio : 0);
-function fmtRel(ms){ const s=Math.floor(ms/1000); return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+/* ============ Cronômetro (livre ou pomodoro) ============
+   Livre: conta o tempo corrido. Pomodoro: alterna foco e pausa; só o foco conta como tempo de estudo. */
+const POMO_PADRAO = {ativo:true, foco:25, curta:5, longa:15, ciclos:4};
+const cfgPomo = () => Object.assign({}, POMO_PADRAO, S.config.pomodoro||{});
+const ehPomo = () => S.timer && S.timer.modo === 'pomodoro';
+function durFase(t){ const c = cfgPomo(); if(t.fase==='foco'||t.fase==='espera') return c.foco*60000; return (t.feitos>0 && t.feitos % c.ciclos === 0 ? c.longa : c.curta)*60000; }
+const decorridoFase = t => (t.faseFeito||0) + (t.faseInicio ? Date.now()-t.faseInicio : 0);
+function tempoTimer(){
+  const t = S.timer; if(!t) return 0;
+  if(t.modo==='pomodoro') return (t.focoAcum||0) + (t.fase==='foco' ? decorridoFase(t) : 0);
+  return (t.acum||0) + (t.inicio ? Date.now()-t.inicio : 0);
+}
+const rodando = () => S.timer && (ehPomo() ? !!S.timer.faseInicio : !!S.timer.inicio);
+function fmtRel(ms){ const s=Math.max(0,Math.floor(ms/1000)); return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function fmtMin(ms){ const s=Math.max(0,Math.ceil(ms/1000)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function novoTimer(metaId, label){
+  const c = cfgPomo();
+  return c.ativo ? {metaId, label, modo:'pomodoro', fase:'foco', faseInicio:Date.now(), faseFeito:0, focoAcum:0, feitos:0}
+                 : {metaId, label, modo:'livre', inicio:Date.now(), acum:0};
+}
 async function iniciarMeta(id){
   const meta = (S.metas[hoje()]||[]).find(x=>x.id===id); if(!meta) return;
-  if(S.timer && S.timer.metaId!==id && tempoTimer()>60000 && !(await confirmar('Já há um cronômetro rodando em outra meta. Trocar para esta? (o tempo anterior será descartado)'))) return;
+  if(S.timer && S.timer.metaId!==id && tempoTimer()>60000 && !(await confirmar('Já há um cronômetro rodando em outra atividade. Trocar para esta meta? (o tempo anterior será descartado)'))) return;
   const m = mat(meta.materiaId), t = topico(m, meta.topicoId);
-  S.timer = {metaId:id, label:(m?m.nome:'')+' › '+(t?t.nome:''), inicio:Date.now(), acum:(S.timer&&S.timer.metaId===id?S.timer.acum:0)};
+  if(S.timer && S.timer.metaId===id){ if(!rodando()) pausarTimer(); return; }
+  S.timer = novoTimer(id, (m?m.nome:'')+' › '+(t?t.nome:''));
+  somAviso(true); save(); render();
+}
+async function iniciarLivre(){
+  if(S.timer && tempoTimer()>60000 && !(await confirmar('Já há um cronômetro rodando. Trocar por um pomodoro livre? (o tempo anterior será descartado)'))) return;
+  S.timer = novoTimer(null, 'Estudo livre'); if(S.timer.modo!=='pomodoro'){ S.timer = {metaId:null, label:'Estudo livre', modo:'pomodoro', fase:'foco', faseInicio:Date.now(), faseFeito:0, focoAcum:0, feitos:0}; }
+  somAviso(true); save(); render();
+}
+function pausarTimer(){
+  const t = S.timer; if(!t) return;
+  if(t.modo==='pomodoro'){
+    if(t.fase==='espera'){ t.fase='foco'; t.faseFeito=0; t.faseInicio=Date.now(); }
+    else if(t.faseInicio){ t.faseFeito = decorridoFase(t); t.faseInicio=null; } else t.faseInicio=Date.now();
+  } else { if(t.inicio){ t.acum += Date.now()-t.inicio; t.inicio=null; } else t.inicio=Date.now(); }
   save(); render();
 }
-function pausarTimer(){ if(!S.timer) return; if(S.timer.inicio){ S.timer.acum += Date.now()-S.timer.inicio; S.timer.inicio=null; } else S.timer.inicio=Date.now(); save(); desenharCron(); render(); }
+function pularPausa(){ const t=S.timer; if(!t||t.modo!=='pomodoro') return; t.fase='foco'; t.faseFeito=0; t.faseInicio=Date.now(); save(); render(); }
 async function pararTimer(){ if(S.timer && tempoTimer()>60000 && !(await confirmar('Descartar o tempo cronometrado?'))) return; S.timer=null; save(); render(); }
+function registrarLivre(){
+  const min = Math.max(1, Math.round(tempoTimer()/60000)); S.timer = null; save();
+  prefRegistro = {min}; ir('registrar');
+}
+let prefRegistro = null;
+// Avança as fases do pomodoro (também recupera o tempo se a página ficou fechada)
+function avancarPomodoro(){
+  const t = S.timer; if(!t || t.modo!=='pomodoro' || !t.faseInicio) return false;
+  let mudou = false;
+  while(t.faseInicio && decorridoFase(t) >= durFase(t)){
+    const fimFase = t.faseInicio + (durFase(t) - (t.faseFeito||0));
+    if(t.fase==='foco'){
+      t.focoAcum = (t.focoAcum||0) + durFase(t); t.feitos = (t.feitos||0)+1;
+      t.fase = 'pausa'; t.faseFeito = 0; t.faseInicio = fimFase;
+      const c = cfgPomo(), longa = t.feitos % c.ciclos === 0;
+      somAviso(); avisar(`Pomodoro ${t.feitos} concluído! Pausa ${longa?'longa':'curta'} de ${longa?c.longa:c.curta} min: levante, beba água, sem celular.`);
+    } else {
+      t.fase = 'espera'; t.faseFeito = 0; t.faseInicio = null;
+      somAviso(); avisar('Pausa terminada. Clique em "Começar foco" quando estiver pronta.');
+    }
+    mudou = true;
+  }
+  if(mudou){ save(); render(); }
+  return mudou;
+}
+let audioCtx = null;
+function somAviso(soPreparar){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    if(soPreparar) return;
+    [0, .25, .5].forEach((d,i) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = i===2 ? 880 : 660; o.connect(g); g.connect(audioCtx.destination);
+      const t0 = audioCtx.currentTime + d; g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(.25,t0+.02); g.gain.exponentialRampToValueAtTime(.0001,t0+.2);
+      o.start(t0); o.stop(t0+.22); });
+  }catch(e){}
+}
+function textoTimer(){
+  const t = S.timer; if(!t) return '';
+  if(t.modo!=='pomodoro') return fmtRel(tempoTimer());
+  if(t.fase==='espera') return 'pronto para o foco';
+  return `${t.fase==='foco'?'Foco':'Pausa'} ${fmtMin(durFase(t)-decorridoFase(t))}`;
+}
 function desenharCron(){
   const el = document.getElementById('cron'); if(!el) return;
-  if(!S.timer){ el.innerHTML=''; return; }
-  el.innerHTML = `<span class="chip ${S.timer.inicio?'run':''}" title="${esc(S.timer.label)}">⏱ <b>${fmtRel(tempoTimer())}</b> ${esc(curto(S.timer.label,34))}
-    <button onclick="pausarTimer()">${S.timer.inicio?'Pausar':'Retomar'}</button><button onclick="caixaAberta='${S.timer.metaId}';ir('hoje')">Concluir</button></span>`;
+  const t = S.timer; if(!t){ el.innerHTML=''; return; }
+  const acao = t.modo==='pomodoro' && t.fase==='pausa' ? `<button onclick="pularPausa()">Pular pausa</button>`
+             : t.modo==='pomodoro' && t.fase==='espera' ? `<button onclick="pausarTimer()">Começar foco</button>`
+             : `<button onclick="pausarTimer()">${rodando()?'Pausar':'Retomar'}</button>`;
+  const fim = t.metaId ? `<button onclick="caixaAberta='${t.metaId}';ir('hoje')">Concluir</button>` : `<button onclick="registrarLivre()">Registrar</button>`;
+  el.innerHTML = `<span class="chip ${rodando()?'run':''}" title="${esc(t.label)}">${t.modo==='pomodoro'?'Pomodoro':'⏱'} <b>${textoTimer()}</b> ${esc(curto(t.label,30))} ${acao}${fim}<button onclick="pararTimer()" title="Parar">✕</button></span>`;
 }
-setInterval(() => { if(S && S.timer && S.timer.inicio){ const b=document.querySelector('#cron b'); if(b) b.textContent = fmtRel(tempoTimer()); } }, 1000);
+function cardPomodoro(){
+  const t = S.timer; if(!t || t.modo!=='pomodoro') return '';
+  const c = cfgPomo(), dur = durFase(t), feito = t.fase==='espera' ? 0 : decorridoFase(t);
+  const cor = t.fase==='foco' ? 'var(--acc)' : t.fase==='pausa' ? 'var(--ok)' : 'var(--mut)';
+  const fase = t.fase==='foco' ? `Foco ${ (t.feitos||0)+1 }` : t.fase==='pausa' ? ((t.feitos % c.ciclos === 0) ? 'Pausa longa' : 'Pausa curta') : 'Pausa encerrada';
+  return `<div class="card pomo"><div class="pomo-anel">${anel(dur?feito/dur:0, cor, 132, `<tspan id="pomo-t">${t.fase==='espera'?'--:--':fmtMin(dur-feito)}</tspan>`)}</div>
+    <div style="flex:1;min-width:200px"><div class="tipo ${t.fase==='pausa'?'extra':''}">${fase}</div>
+      <div class="tit" style="margin-top:6px">${esc(t.label)}</div>
+      <div class="mut">Pomodoros feitos: ${t.feitos||0} · tempo de foco: ${hm(tempoTimer()/60000)} · ${c.foco}/${c.curta} min, pausa longa a cada ${c.ciclos}</div>
+      <div class="dots" style="margin-top:8px">${Array.from({length:c.ciclos},(_,i)=>`<i class="${i < ((t.feitos||0) % c.ciclos || (t.feitos && t.feitos % c.ciclos===0 && t.fase==='pausa' ? c.ciclos : 0)) ? 'on':''}"></i>`).join('')}</div>
+      <div class="inl">${t.fase==='espera' ? `<button class="b" onclick="pausarTimer()">▶ Começar foco</button>`
+        : t.fase==='pausa' ? `<button class="g" onclick="pularPausa()">Pular pausa</button>`
+        : `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>`}
+        ${t.metaId ? `<button class="b" onclick="caixaAberta='${t.metaId}';render()">Concluir meta</button>` : `<button class="b" onclick="registrarLivre()">Registrar estudo</button>`}
+        <button class="g" onclick="pararTimer()">Parar</button></div></div></div>`;
+}
+setInterval(() => {
+  if(!S || !S.timer) return;
+  if(avancarPomodoro()) return;
+  if(rodando()){
+    const b = document.querySelector('#cron b'); if(b) b.textContent = textoTimer();
+    const p = document.getElementById('pomo-t'); if(p && ehPomo()) p.textContent = fmtMin(durFase(S.timer)-decorridoFase(S.timer));
+  }
+}, 1000);
 
 /* ============ Concluir / desfazer metas ============ */
 let caixaAberta = null, maisTempo = null, avisoHoje = '';
@@ -666,6 +770,7 @@ function vPainel(){
     <div class="kpi">${anel(meta?sem.min/meta:0,'var(--rev)')}<div><div class="mut">Semana</div><div class="big">${hm(sem.min)}</div><div class="mut">de ${hm(meta)} planejadas</div></div></div>
     <div class="kpi">${anel(sem.p||0,'var(--ok)',64,sem.q?pct(sem.p):'—')}<div><div class="mut">Acerto na semana</div><div class="big">${sem.q}</div><div class="mut">questões resolvidas</div></div></div>
     <div class="kpi">${anel(cob,'var(--gold)')}<div><div class="mut">Cobertura do edital</div><div class="big">${pct(cob)}</div><div class="mut">do conteúdo estudado</div></div></div></div>`;
+  h += cardPomodoro() + (!S.timer ? `<div class="card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>Pomodoro livre</b><div class="mut">Para estudar fora das metas. Ao terminar, o tempo de foco vai para o Registro avulso.</div></div><button class="b" onclick="iniciarLivre()">▶ Iniciar pomodoro</button></div>` : '');
   const pend = metas.filter(x=>!x.feita).slice(0,4);
   h += `<div class="g2"><div class="col"><div class="card"><h2>Próximas metas de hoje <button class="g" onclick="ir('hoje')">Ver todas</button></h2>
     ${pend.length ? pend.map(x=>{const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!t) return '';
@@ -692,7 +797,7 @@ function vHoje(){
   if(!S.metas[hoje()]) gerarMetas(false);
   const metas = S.metas[hoje()] || [];
   const plan = metas.reduce((s,x)=>s+x.min,0), feitoMin = metas.filter(x=>x.feita).reduce((s,x)=>s+(x.minReal||x.min),0);
-  let h = `<div class="g2"><div class="col"><div class="card"><h2><span>${DIAS[parse(hoje()).getDay()][0].toUpperCase()+DIAS[parse(hoje()).getDay()].slice(1)}, ${br(hoje())} · <span class="mut">${hm(feitoMin)} de ${hm(plan)}</span></span>
+  let h = cardPomodoro() + `<div class="g2"><div class="col"><div class="card"><h2><span>${DIAS[parse(hoje()).getDay()][0].toUpperCase()+DIAS[parse(hoje()).getDay()].slice(1)}, ${br(hoje())} · <span class="mut">${hm(feitoMin)} de ${hm(plan)}</span></span>
       <button class="g" onclick="confirmar('Refazer as metas pendentes de hoje? As concluídas ficam.').then(ok=>{if(ok){gerarMetas(true);render();}})">Refazer pendentes</button></h2>
       <div class="bar" style="height:10px"><i style="width:${plan?Math.min(100,feitoMin/plan*100):0}%"></i></div>${avisoHoje?`<div class="alert info" style="margin-top:10px">${esc(avisoHoje)}</div>`:''}`;
   if(!metas.length) h += `<div class="empty" style="margin-top:10px">Sem metas para hoje: ${capacidade(hoje())? 'todo o conteúdo do ciclo está concluído.' : 'dia sem horas de estudo em Configurações.'}</div>`;
@@ -724,7 +829,7 @@ function cardMeta(x,i){
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`+
     (maisTempo!==x.id ? `<button class="g" onclick="maisTempo='${x.id}';render()">+ Adicionar tempo</button>` : '');
   else {
-    if(ativa) h += `<button class="g" onclick="pausarTimer()">${S.timer.inicio?'⏸ Pausar':'▶ Retomar'}</button>`;
+    if(ativa) h += `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>`;
     else h += `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
     if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';render()">Concluir</button>`;
   }
@@ -1092,7 +1197,7 @@ function vRegistrar(){
     <label>Matéria</label><select id="fm" onchange="atualizaTopicos()">${opt(S.materias.map(m=>[m.id,m.nome]))}</select>
     <label>Assunto</label><select id="fp"></select>
     <div class="row"><div><label>Fonte</label><select id="ff">${opt(FONTES.map(f=>[f,f]),'TEC Concursos')}</select></div>
-      <div><label>Minutos</label><input id="fmin" type="number" min="0" value="30"></div></div>
+      <div><label>Minutos</label><input id="fmin" type="number" min="0" value="${prefRegistro?prefRegistro.min:30}"></div></div>${prefRegistro?'<div class="alert info">Tempo de foco do pomodoro livre já preenchido. Escolha a matéria e o assunto e salve.</div>':''}
     <div class="row"><div><label>Questões</label><input id="fq" type="number" min="0" value="0"></div>
       <div><label>Acertos</label><input id="fa" type="number" min="0" value="0"></div></div>
     <label>Observações</label><input id="fo">
@@ -1109,6 +1214,7 @@ function atualizaTopicos(){
   fp.innerHTML = '<option value="">(sem assunto específico)</option>' + (m ? m.topicos.map(t => `<option value="${t.id}">${esc(curto(t.nome,90))}</option>`).join('') : '');
 }
 function salvarSessao(){
+  prefRegistro = null;
   const q = +fq.value||0, a = +fa.value||0;
   if(a > q) return avisar('Acertos não podem ser maiores que o número de questões.');
   S.sessoes.push({id:uid(), ts:Date.now(), data:fd.value||hoje(), materiaId:fm.value, topicoId:fp.value||null, tipo:ft.value, fonte:ff.value, min:+fmin.value||0, q, a, obs:fo.value});
@@ -1131,6 +1237,13 @@ function vConfig(){
     <div class="row"><div><label>Ritmo de leitura (min por página)</label><input type="number" step=".25" min=".5" value="${c.ritmoPag}" onchange="setCfg('ritmoPag',+this.value||2)"></div>
       <div><label>Bloco mínimo (min)</label><input type="number" step="5" min="15" value="${c.blocoMin}" onchange="setCfg('blocoMin',+this.value||30)"></div>
       <div><label>Bloco máximo (min)</label><input type="number" step="5" min="30" value="${c.blocoMax}" onchange="setCfg('blocoMax',+this.value||120)"></div></div>
+    <h3>Cronômetro</h3>
+    <div class="row"><div><label for="pm_ativo">Modo</label><select id="pm_ativo" onchange="setPomo('ativo',this.value==='1')"><option value="1" ${cfgPomo().ativo?'selected':''}>Pomodoro</option><option value="0" ${!cfgPomo().ativo?'selected':''}>Cronômetro livre</option></select></div>
+      <div><label for="pm_foco">Foco (min)</label><input id="pm_foco" type="number" min="5" max="120" step="5" value="${cfgPomo().foco}" onchange="setPomo('foco',+this.value||25)"></div>
+      <div><label for="pm_curta">Pausa curta (min)</label><input id="pm_curta" type="number" min="1" max="30" value="${cfgPomo().curta}" onchange="setPomo('curta',+this.value||5)"></div>
+      <div><label for="pm_longa">Pausa longa (min)</label><input id="pm_longa" type="number" min="5" max="60" value="${cfgPomo().longa}" onchange="setPomo('longa',+this.value||15)"></div>
+      <div><label for="pm_ciclos">Pausa longa a cada</label><input id="pm_ciclos" type="number" min="2" max="8" value="${cfgPomo().ciclos}" onchange="setPomo('ciclos',+this.value||4)"></div></div>
+    <p class="mut">No pomodoro, só o tempo de foco conta como estudo. As pausas começam sozinhas; o próximo foco espera você clicar.</p>
     <h3>Revisões</h3>
     <div class="row"><div><label>Limiar de acerto (%)</label><input type="number" min="50" max="95" value="${c.limiar}" onchange="setCfg('limiar',+this.value||75)"></div>
       <div><label>Intervalos base (dias)</label><input value="${c.intervalos.join(', ')}" onchange="setInt(this.value)"></div></div>
@@ -1156,6 +1269,7 @@ function setCfg(k,v){
   if(REPLANEJA.includes(k) && S.materias.length){ gerarMetas(true); avisoCfg = 'Cronograma e metas pendentes de hoje recalculados com '+hm(minSemana())+' líquidas por semana.'; }
   save(); render();
 }
+function setPomo(k,v){ S.config.pomodoro = Object.assign({}, cfgPomo(), {[k]:v}); save(); render(); }
 function setInt(v){const a=v.split(/[,; ]+/).map(Number).filter(n=>n>0); if(a.length){S.config.intervalos=a; save();} render();}
 async function exportar(){
   const nome = 'tutor-estudos-backup-'+hoje()+'.json', json = JSON.stringify(S,null,1);
