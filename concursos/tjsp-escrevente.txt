@@ -6,6 +6,7 @@
 
 // Língua Portuguesa: 16 questões na prova 2025 · 1079 questões no caderno TEC
 Língua Portuguesa | 5 | 3 | Pré-Edital TJ-SP (Escrevente) Língua Portuguesa
+@estrategia: 370448 00=3671821,01=3671822,02=3671823,03=3671824,04=3671825,05=3671826,06=3671827,07=3671828,08=3671829,09=3671830,10=3671831
 - Interpretação de textos e tipologia textual *3 [Aula 09]
 - Reescrita de frases, substituição de trechos, clareza e correção *2 [Aulas 07 e 09]
 - Semântica: sinônimos, antônimos, sentido próprio e figurado, significação contextual *3 [Aula 08]
@@ -23,6 +24,7 @@ Língua Portuguesa | 5 | 3 | Pré-Edital TJ-SP (Escrevente) Língua Portuguesa
 
 // Direito Administrativo: 6 questões na prova 2025 · 679 questões no caderno TEC
 Direito Administrativo | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Administrativo (Prof. Antonio Daud)
+@estrategia: 370449 01=294007,02=3671834,03=3671835,04=217839
 - Improbidade (Lei 8.429/92): atos de improbidade, arts. 9º a 11 *3 [Aula 03]
 - Improbidade (Lei 8.429/92): disposições gerais, arts. 1º a 8º-A *2 [Aula 03]
 - Improbidade (Lei 8.429/92): penas, procedimento e prescrição, arts. 12 a 23-C *3 [Aula 03]
@@ -33,6 +35,7 @@ Direito Administrativo | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Administ
 
 // Direito Processual Civil: 5 questões na prova 2025 · 1094 questões no caderno TEC
 Direito Processual Civil | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Processual Civil
+@estrategia: 370443 00=281327,01=3671783,02=3671784,03=3671785,04=3671786,05=3671787,06=3671788,07=3671789,08=3671790,09=72834
 - Recursos: disposições gerais, apelação, agravos e embargos de declaração, arts. 994 a 1.026 *3 [Aula 08]
 - Audiência de conciliação, contestação, reconvenção e revelia, arts. 334 a 346 *3 [Aula 04]
 - Citação, cartas e intimações, arts. 236 a 275 *3 [Aula 02]
@@ -49,6 +52,7 @@ Direito Processual Civil | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Proces
 
 // Direito Processual Penal: 5 questões na prova 2025 · 665 questões no caderno TEC
 Direito Processual Penal | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Processual Penal
+@estrategia: 370444 00=3671793,01=3671794,02=3671795,03=3671796,04=298811,05=3671798,06=3671799
 - Juizado Especial Criminal (Lei 9.099/95): disposições gerais e fase preliminar, arts. 60 a 76 *3 [Aula 06]
 - Juizado Especial Criminal (Lei 9.099/95): procedimento sumaríssimo e disposições finais, arts. 77 a 89 *2 [Aula 06]
 - Recursos: teoria geral, recurso em sentido estrito, apelação e embargos, arts. 574 a 620 *3 [Aula 04]
@@ -60,6 +64,7 @@ Direito Processual Penal | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Proces
 
 // Direito Constitucional: 5 questões na prova 2025 · 941 questões no caderno TEC
 Direito Constitucional | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Constitucional
+@estrategia: 370442 00=208646,01=209055,02=210780,03=3671777,04=3671778,05=3671779,06=256026
 - Direitos e deveres individuais e coletivos (art. 5º) *3 [Aulas 00 a 02]
 - Administração pública: disposições gerais (arts. 37 e 38) *3 [Aula 05]
 - Remédios constitucionais *2 [Aulas 01 e 02]
@@ -70,6 +75,7 @@ Direito Constitucional | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Constitu
 
 // Normas da Corregedoria Geral da Justiça: 5 questões na prova 2025 · 257 questões no caderno TEC
 Normas da Corregedoria Geral da Justiça | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Legislação Especial TJ-SP
+@estrategia: 370450 00=3671837,01=3671839,02=3671840,03=3671841,04=3671842,05=3671843,06=3671844,07=3671845,08=3671846,09=3671847,10=3671848,11=3671849,12=3671850,13=3671851,14=3671852
 - NSCGJ Tomo I, Cap. III: Seções I a VII (arts. 26 a 34, 46 a 86) *3 [Aulas 02 e 03]
 - NSCGJ Tomo I, Cap. III: Seções XVII a XIX (arts. 157 a 189-G) *3 [Aulas 07 e 08]
 - NSCGJ Tomo I, Cap. XI (arts. 1.189 a 1.265) *2 [conferir no curso]
@@ -79,6 +85,7 @@ Normas da Corregedoria Geral da Justiça | 3 | 3 | Pré-Edital TJ-SP (Escrevente
 
 // Direito Penal: 4 questões na prova 2025 · 836 questões no caderno TEC
 Direito Penal | 2 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Penal
+@estrategia: 370445 00=204167,01=205428,02=252972,03=85549
 - Concussão, excesso de exação e corrupção passiva (arts. 316 e 317) *3 [Aula 01]
 - Peculato e crimes em sistemas de informação (arts. 312 a 313-B) *3 [Aula 01]
 - Prevaricação, condescendência, advocacia administrativa, sigilo e demais crimes funcionais (arts. 314, 315, 319 a 325) *3 [Aula 01]
@@ -90,6 +97,7 @@ Direito Penal | 2 | 3 | Pré-Edital TJ-SP (Escrevente) Direito Penal
 
 // Informática: 9 questões na prova 2025 · 1709 questões no caderno TEC
 Informática | 4 | 3 | Pré-Edital TJ-SP (Escrevente) Informática
+@estrategia: 370451 00=3671854,01=3671855,02=3671856,03=3671857,04=3671858,05=3671859,06=3671860,07=3671861
 - Internet, navegadores e sites de busca *3 [Aulas 00 e 01]
 - Windows 10 e 11 *3 [Aulas 05 e 06]
 - MS-Excel *2 [Aula 03]
@@ -100,6 +108,7 @@ Informática | 4 | 3 | Pré-Edital TJ-SP (Escrevente) Informática
 
 // Raciocínio Lógico: 6 questões na prova 2025 · 1182 questões no caderno TEC
 Raciocínio Lógico | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Raciocínio Lógico e Matemática
+@estrategia: 370452 00=3671863,01=3671864,02=3671865,03=3671866,04=3671867,05=3671868,06=3671869,07=3671870,08=3671871,09=3671872,10=3671873,11=3671874,12=3671875,13=3671876,14=3671877,15=3671878,16=3671879,17=3671880,18=3671881,19=3671882,20=3671883
 - Sequências numéricas, de figuras e de letras (inclui PA e PG) *3 [Aula 05]
 - Lógica de argumentação e diagramas lógicos *3 [Aulas 03 e 04]
 - Equivalências lógicas e negação de proposições *2 [Aula 02]
@@ -109,6 +118,7 @@ Raciocínio Lógico | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Raciocínio Lógico
 
 // Matemática: 5 questões na prova 2025 · 1449 questões no caderno TEC
 Matemática | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Raciocínio Lógico e Matemática
+@estrategia: 370452 00=3671863,01=3671864,02=3671865,03=3671866,04=3671867,05=3671868,06=3671869,07=3671870,08=3671871,09=3671872,10=3671873,11=3671874,12=3671875,13=3671876,14=3671877,15=3671878,16=3671879,17=3671880,18=3671881,19=3671882,20=3671883
 - Geometria plana e espacial *3 [Aulas 17 e 18]
 - Médias, gráficos e tabelas *3 [Aulas 19 e 20]
 - Equações de 1º e 2º grau *3 [Aula 16]
@@ -122,6 +132,7 @@ Matemática | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Raciocínio Lógico e Matem
 
 // Atualidades: 3 questões na prova 2025 · 273 questões no caderno TEC
 Atualidades | 2 | 3 | Pré-Edital TJ-SP (Escrevente) Atualidades
+@estrategia: 370441 01=249065,02=3676146,03=3676147,04=3676148,05=3676149,06=3676150,07=3676151,08=3676152,09=3676153,10=3676154,11=3676155
 - Política nacional e internacional *3 [Retrospectivas mensais]
 - Economia nacional e internacional *2 [Retrospectivas mensais]
 - Meio ambiente e sustentabilidade *2 [Retrospectivas mensais]
@@ -130,11 +141,13 @@ Atualidades | 2 | 3 | Pré-Edital TJ-SP (Escrevente) Atualidades
 
 // Estatuto da Pessoa com Deficiência: 1 questões na prova 2025 · 281 questões no caderno TEC
 Estatuto da Pessoa com Deficiência | 1 | 3 | Pré-Edital TJ-SP (Escrevente) Atualidades
+@estrategia: 370441 01=249065,02=3676146,03=3676147,04=3676148,05=3676149,06=3676150,07=3676151,08=3676152,09=3676153,10=3676154,11=3676155
 - Disposições gerais, igualdade e não discriminação (arts. 1º a 9º) *3 [Atualidades, Aula 01]
 - Direito à vida e ao trabalho (arts. 10 a 13 e 34 a 38) *1 [Atualidades, Aula 01]
 
 // Redação: prova discursiva eliminatória (40 pontos)
 Redação | 3 | 3 | Pré-Edital TJ-SP (Escrevente) Redação Sem Correção
+@estrategia: 370540 00=3672841,01=3672842,02=3672843,03=3672844,04=3672845,05=3672846,06=3672847
 - Estrutura do texto dissertativo-argumentativo *3 [Aulas 00 a 02]
 - Argumentação e repertório *2 [Aulas 01 e 02]
 - Coesão, coerência e norma culta *2 [Aula 02]

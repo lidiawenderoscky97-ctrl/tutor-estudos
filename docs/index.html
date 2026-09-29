@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="17">
+<meta name="versao" content="18">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -263,7 +263,33 @@ function migrar(){
   S.materias.forEach(m => { m.peso = m.peso||3; m.nivel = m.nivel||3; m.curso = m.curso||'';
     m.topicos.forEach(t => { t.incid = t.incid||2; t.paginas = +t.paginas||0; t.feitos = +t.feitos||0; t.status = t.status||'nao'; t.aula = t.aula||''; });
     // curso do TJSP que ficou de um edital anterior (versões antigas não limpavam ao trocar de edital)
-    if(/pr[ée]-edital tj-sp/i.test(m.curso) && S.config.concurso && !/tj-?sp|s[ãa]o paulo/i.test(S.config.concurso)){ m.curso = ''; m.topicos.forEach(t => t.aula = ''); } });
+    if(/pr[ée]-edital tj-sp/i.test(m.curso) && S.config.concurso && !/tj-?sp|s[ãa]o paulo/i.test(S.config.concurso)){ m.curso = ''; delete m.estCurso; delete m.estAulas; m.topicos.forEach(t => t.aula = ''); } });
+  setTimeout(completarEstrategia, 800);
+}
+// Quem carregou o edital do catálogo antes dos links do Estratégia recebe o link do curso e das aulas
+async function completarEstrategia(){
+  try{
+    if(!S.config.concurso || !S.materias.some(m => m.curso && !m.estCurso)) return;
+    const lista = JSON.parse(await lerCatalogo('indice.json'));
+    const c = lista.find(x => x.nome === S.config.concurso); if(!c) return;
+    const info = lerEstrategia(await lerCatalogo(c.arquivo)); let n = 0;
+    S.materias.forEach(m => { const e = info[m.nome.toLowerCase()]; if(e && !m.estCurso && (!e.curso || e.curso === m.curso)){ m.estCurso = e.id; m.estAulas = e.aulas; n++; } });
+    if(n){ save(); render(); }
+  }catch(e){}
+}
+function lerEstrategia(texto){        // {matéria: {id, aulas, curso}} a partir das linhas "@estrategia:" do catálogo
+  const out = {}; let atual = null;
+  texto.split('\n').forEach(l => { l = l.trim(); if(!l || l.startsWith('//')) return;
+    const e = l.match(/^@estrategia\s*:\s*(.*)$/i);
+    if(e){ if(atual) out[atual.nome.toLowerCase()] = {...parseEstrategia(e[1]), curso: atual.curso}; return; }
+    if(l.startsWith('@') || /^[-•*]/.test(l)) return;
+    const [nome,,,curso] = l.replace(/^#+\s*/,'').split('|').map(x=>x.trim()); atual = {nome, curso: curso||''}; });
+  return out;
+}
+function parseEstrategia(v){          // "370448 00=3671821,01=3671822" ou o link do curso
+  const id = (String(v).match(/cursos\/(\d+)/) || String(v).match(/^\s*(\d{3,})/) || [])[1] || '';
+  const aulas = {}; (String(v).match(/\b\d{1,3}=\d+/g) || []).forEach(p => { const [a, b] = p.split('='); aulas[String(+a).padStart(2,'0')] = b; });
+  return {id, aulas};
 }
 function load(){
   try{
@@ -906,7 +932,7 @@ function cardMeta(x,i){
     <div style="min-width:0"><div><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <span class="mut">${hm(x.min)} · ${focos(x.min)}</span></div>
       <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
-      ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(buscaEstrategia(m))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')} ↗</a>${t.aula?' · <b>'+esc(t.aula)+'</b>':''}</div>`:''}
+      ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
       ${linkTec(m) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div><a class="aula" style="text-decoration:none" href="${esc(linkTec(m))}" target="_blank" rel="noopener"><b style="color:var(--ok)">Abrir caderno no TEC</b> ↗</a></div>` : ''}</div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`+
     (maisTempo!==x.id ? `<button class="g" onclick="maisTempo='${x.id}';render()">+ Adicionar tempo</button>` : '');
@@ -1045,7 +1071,7 @@ function limparSemHistorico(texto){
   S.revisoes = S.revisoes.filter(r => ids.has(r.topicoId));
   S.materias = S.materias.filter(m => m.topicos.length || mats.has(m.nome.toLowerCase()) || S.sessoes.some(s=>s.materiaId===m.id));
   // curso do Estratégia, aulas e cadernos do TEC eram do concurso anterior: o novo edital traz os seus
-  S.materias.forEach(m => { m.curso = ''; m.tecLink = ''; delete m.tecAtualizado; m.topicos.forEach(t => { t.aula = ''; delete t.tecQ; }); });
+  S.materias.forEach(m => { m.curso = ''; m.tecLink = ''; delete m.tecAtualizado; delete m.estCurso; delete m.estAulas; m.topicos.forEach(t => { t.aula = ''; delete t.tecQ; }); });
   S.config.tecLinkGeral = '';
 }
 
@@ -1474,7 +1500,8 @@ function vEdital(){
         <div><label>Peso (1–5)</label><input type="number" min="1" max="5" value="${m.peso}" onchange="setMat('${m.id}','peso',+this.value)"></div>
         <div><label>Meu nível (1–5)</label><input type="number" min="1" max="5" value="${m.nivel}" onchange="setMat('${m.id}','nivel',+this.value)"></div></div>
       <div class="inl" style="margin:0 0 8px"><div style="flex:1;min-width:220px"><label>Curso no Estratégia</label><input value="${esc(m.curso||'')}" placeholder="${esc('Curso de '+m.nome+(S.config.concurso?' para '+S.config.concurso:''))}" onchange="setMatCurso('${m.id}',this.value)"></div>
-        <a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(buscaEstrategia(m))}" target="_blank" rel="noopener">Procurar no Estratégia</a></div>
+        <div style="flex:1;min-width:220px"><label>Link do curso no Estratégia</label><input value="${m.estCurso?esc(EST_BASE+'/'+m.estCurso+'/aulas'):''}" placeholder="https://www.estrategiaconcursos.com.br/app/dashboard/cursos/…/aulas" onchange="setMatEstLink('${m.id}',this.value)"></div>
+        <a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(linkEstrategia(m))}" target="_blank" rel="noopener">${m.estCurso?'Abrir curso':'Minhas matrículas'}</a></div>
       <div class="inl" style="margin:0 0 8px"><div style="flex:1;min-width:220px"><label>Link do caderno no TEC</label><input value="${esc(m.tecLink||'')}" placeholder="https://www.tecconcursos.com.br/..." onchange="setMatLink('${m.id}',this.value)"></div>
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
@@ -1499,10 +1526,20 @@ Língua Portuguesa | 5 | 4
     <div style="margin-top:10px"><button class="b" onclick="importar()">Importar</button></div></div>`;
   return h;
 }
-// Pesquisa o curso da matéria para o concurso atual no site do Estratégia
-function buscaEstrategia(m){
-  const q = m.curso ? m.curso : [S.config.concurso, m.nome].filter(Boolean).join(' ');
-  return 'https://www.google.com/search?q=' + encodeURIComponent('site:estrategiaconcursos.com.br curso ' + q);
+// Link direto na área do aluno do Estratégia: a aula do assunto, o curso da matéria ou, sem curso definido, "Minhas Matrículas"
+const EST_BASE = 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos';
+function linkEstrategia(m, t){
+  if(!m || !m.estCurso) return EST_BASE;
+  const n = t && (String(t.aula||'').match(/\d+/) || [])[0], aula = n != null && m.estAulas ? m.estAulas[String(+n).padStart(2,'0')] : null;
+  return `${EST_BASE}/${m.estCurso}/aulas` + (aula ? '/' + aula : '');
+}
+function setMatEstLink(id, v){
+  const m = mat(id); v = v.trim();
+  if(!v){ delete m.estCurso; delete m.estAulas; save(); render(); return; }
+  const e = parseEstrategia(v);
+  if(!/estrategiaconcursos\.com\.br/i.test(v) || !e.id){ avisar('Cole o link do curso na área do aluno do Estratégia (ex.: https://www.estrategiaconcursos.com.br/app/dashboard/cursos/370448/aulas).'); render(); return; }
+  if(m.estCurso !== e.id){ m.estCurso = e.id; m.estAulas = {}; }
+  save(); render();
 }
 function setMatCurso(id,v){ mat(id).curso = v.trim(); save(); render(); }
 function setMatLink(id,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; } mat(id).tecLink = v; save(); render(); }
@@ -1517,7 +1554,9 @@ function importar(texto, silencioso){
   (texto ?? imp.value).split('\n').forEach(l => {
     l = l.trim(); if(!l || l.startsWith('//')) return;
     if(l.startsWith('@')){ const [k,...v] = l.slice(1).split(':'); const val = v.join(':').trim();
-      if(k.trim()==='concurso') S.config.concurso = val; if(k.trim()==='banca') S.config.banca = val; return; }
+      if(k.trim()==='concurso') S.config.concurso = val; if(k.trim()==='banca') S.config.banca = val;
+      if(k.trim()==='estrategia' && atual){ const e = parseEstrategia(val); if(e.id){ atual.estCurso = e.id; atual.estAulas = e.aulas; } }
+      return; }
     if(/^[-•*]/.test(l)){
       if(!atual) return;
       let nome = l.replace(/^[-•*]\s*/,''), incid = null, pag = null, aula = null, mm;
