@@ -1,0 +1,17 @@
+{
+ "name": "Tutor de Estudos",
+ "short_name": "Tutor",
+ "start_url": "./",
+ "display": "standalone",
+ "background_color": "#f4f5fa",
+ "theme_color": "#191a2e",
+ "lang": "pt-BR",
+ "icons": [
+  {
+   "src": "icone.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  }
+ ]
+}
