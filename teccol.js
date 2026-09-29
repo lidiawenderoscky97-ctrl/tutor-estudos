@@ -19,7 +19,8 @@ async function tecColetor(){
     }catch(e){ falhas++; }
     feitos++; msg('Lendo os cadernos… (' + feitos + '/' + urls.length + ')'); } };
   await Promise.all([trabalhar(), trabalhar(), trabalhar()]);
-  const txt = 'ESTUDO-GUIADO-TEC\n' + blocos.filter(Boolean).join('\n');
+  const banca = ((document.body.innerText.match(/Banca\s+([^\n]+?)\s*(\(p[áa]gina|\n|$)/) || [])[1] || '').trim();
+  const txt = 'ESTUDO-GUIADO-TEC\n@@guia ' + document.title.replace(/\s+/g,' ').trim() + '\n@@banca ' + banca + '\n' + blocos.filter(Boolean).join('\n');
   box.querySelector('#eg-msg').innerHTML = 'Pronto: ' + (urls.length - falhas) + ' cadernos lidos' + (falhas ? ' (' + falhas + ' com erro — clique de novo se precisar)' : '') + '. Clique em <b>Copiar</b> e cole no Estudo Guiado (Edital → Incidência pelo caderno do TEC).';
   const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'width:100%;height:70px;font-size:11px'; box.appendChild(ta);
   const bt = document.createElement('button'); bt.textContent = 'Copiar'; bt.style.cssText = 'margin-top:8px;padding:7px 16px;background:#4f46e5;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer';
