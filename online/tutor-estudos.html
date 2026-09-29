@@ -1,5 +1,5 @@
 <title>Estudo Guiado</title>
-<meta name="versao" content="19">
+<meta name="versao" content="20">
 
 <style>
 :root{
@@ -240,9 +240,14 @@ function migrar(){
     m.topicos.forEach(t => { t.incid = t.incid||2; t.paginas = +t.paginas||0; t.feitos = +t.feitos||0; t.status = t.status||'nao'; t.aula = t.aula||''; });
     // curso do TJSP que ficou de um edital anterior (versões antigas não limpavam ao trocar de edital)
     if(/pr[ée]-edital tj-sp/i.test(m.curso) && S.config.concurso && !/tj-?sp|s[ãa]o paulo/i.test(S.config.concurso)){ m.curso = ''; delete m.estCurso; delete m.estAulas; m.topicos.forEach(t => t.aula = ''); } });
-  setTimeout(completarEstrategia, 800);
+  setTimeout(completarEstrategia, 800); setTimeout(verificarOrigemEdital, 1200);
 }
 // Quem carregou o edital do catálogo antes dos links do Estratégia recebe o link do curso e das aulas
+async function verificarOrigemEdital(){ // edital já em uso antes desta versão: do catálogo ou enviado por você?
+  if(S.config.origemEdital || !S.config.concurso || !S.materias.length) return;
+  try{ const lista = JSON.parse(await lerCatalogo('indice.json'));
+    S.config.origemEdital = lista.some(c => norm(c.nome) === norm(S.config.concurso)) ? 'catalogo' : 'pdf'; save(); }catch(e){}
+}
 async function completarEstrategia(){
   try{
     if(!S.config.concurso || !S.materias.some(m => m.curso && !m.estCurso)) return;
@@ -328,6 +333,7 @@ document.addEventListener('visibilitychange', async () => {
 });
 function save(){
   if(projetando) return;
+  try{ salvarEditalAtual(); }catch(e){}
   if(ONLINE){ if(!ONLINE.somenteLeitura){ sujo = true; statusSync('Salvando…'); clearTimeout(filaSalvar); filaSalvar = setTimeout(gravarOnline, 700); } return; }
   const json = JSON.stringify(S);
   if(DESK){ if(!DESK.gravar(json)) avisar('Não foi possível salvar o arquivo de dados em Documentos\\Tutor de Estudos.'); return; }
@@ -1004,8 +1010,52 @@ function cardBusca(){
     <p class="mut">Digite o concurso (ex.: TJSP, escrevente, Vunesp). O tutor carrega o edital verticalizado com matérias, assuntos, pesos, incidência e as aulas do Estratégia.</p>
     <div class="inl" style="margin-top:0"><input id="bq" value="${esc(buscaTermo)}" placeholder="Qual concurso você vai prestar?" style="flex:1;width:auto" onkeydown="if(event.key==='Enter')buscarConcurso()"><button class="b" onclick="buscarConcurso()">Buscar</button></div>
     ${buscaMsg?`<p class="mut">${buscaMsg}</p>`:''}
-    ${buscaRes?buscaRes.map(c=>`<div class="item"><div><b>${esc(c.nome)}</b><div class="mut">${esc([c.cargo,c.banca,c.base].filter(Boolean).join(' · '))}</div>${c.obs?`<div class="mut">${esc(c.obs)}</div>`:''}</div>
-      <button class="g" onclick="carregarConcurso('${esc(c.arquivo)}')">Carregar edital</button></div>`).join(''):''}</div>`;
+    ${buscaRes?buscaRes.map(c=> c.salvo ? itemSalvo(c.salvo) : `<div class="item"><div><b>${esc(c.nome)}</b><div class="mut">${esc([c.cargo,c.banca,c.base].filter(Boolean).join(' · '))}</div>${c.obs?`<div class="mut">${esc(c.obs)}</div>`:''}</div>
+      <button class="g" onclick="carregarConcurso('${esc(c.arquivo)}')">Carregar edital</button></div>`).join(''):''}
+    ${(S.editais||[]).length && !buscaRes ? `<h3 style="margin-top:14px">Seus editais salvos</h3>` + S.editais.map(itemSalvo).join('') : ''}</div>`;
+}
+function itemSalvo(e){
+  const emUso = norm(e.nome) === norm(S.config.concurso);
+  return `<div class="item"><div><b>${esc(e.nome)}</b>${emUso?' <span class="tag ok">em uso</span>':''}<div class="mut">${esc([e.banca, 'enviado por você', e.mats+' matérias · '+e.tops+' assuntos', 'atualizado em '+fmtData(e.atualizado)].filter(Boolean).join(' · '))}</div></div>
+    <div class="inl" style="margin:0">${emUso?'':`<button class="g" onclick="carregarSalvo('${e.id}')">Carregar edital</button>`}<button class="x" title="Excluir da lista" onclick="excluirSalvo('${e.id}')">✕</button></div></div>`;
+}
+const fmtData = d => d ? d.split('-').reverse().join('/') : '';
+// Guarda o edital em uso (matérias, assuntos, pesos, incidência, aulas e links) na sua conta para carregar de novo depois
+function exportarEditalTexto(){
+  const limpa = s => String(s||'').replace(/\[/g,'(').replace(/\]/g,')').replace(/#/g,'nº').replace(/\*/g,'').replace(/\|/g,'/').replace(/\s+/g,' ').trim();
+  const L = [`@concurso: ${S.config.concurso}`, `@banca: ${S.config.banca||''}`];
+  if(S.config.tecLinkGeral) L.push(`@tecgeral: ${S.config.tecLinkGeral}`);
+  S.materias.forEach(m => {
+    L.push('', `${limpa(m.nome)} | ${m.peso} | ${m.nivel} | ${limpa(m.curso)}`);
+    if(m.estCurso) L.push(`@estrategia: ${m.estCurso} ` + Object.entries(m.estAulas||{}).map(([a,b]) => a+'='+b).join(','));
+    if(m.tecLink) L.push(`@tec: ${m.tecLink}`);
+    m.topicos.forEach(t => L.push(`- ${limpa(t.nome)} *${t.incid||2}${t.paginas?' #'+t.paginas:''}${t.aula?' ['+limpa(t.aula)+']':''}`));
+  });
+  return L.join('\n');
+}
+function salvarEditalAtual(){
+  if(!S.config.concurso || !S.materias.length || !['pdf','proprio'].includes(S.config.origemEdital)) return;
+  S.editais = S.editais || [];
+  let e = S.editais.find(x => norm(x.nome) === norm(S.config.concurso));
+  if(!e){ e = {id: uid()}; S.editais.unshift(e); }
+  Object.assign(e, {nome: S.config.concurso, banca: S.config.banca||'', texto: exportarEditalTexto(), atualizado: hoje(),
+    mats: S.materias.length, tops: S.materias.reduce((s,m)=>s+m.topicos.length,0)});
+  if(S.editais.length > 15) S.editais.length = 15;
+}
+async function carregarSalvo(id){
+  const e = (S.editais||[]).find(x => x.id === id); if(!e) return;
+  if(S.materias.length && !(await confirmar(`Trocar para o edital “${e.nome}”?\n\nO edital atual fica salvo na sua lista. Assuntos com estudo registrado são mantidos.`))) return;
+  salvarEditalAtual();
+  limparSemHistorico(e.texto);
+  S.config.origemEdital = 'pdf';
+  const msg = importar(e.texto, true); buscaRes = null; buscaTermo = '';
+  buscaMsg = 'Edital carregado: '+msg;
+  delete S.metas[hoje()]; gerarMetas(false); save(); render();
+}
+async function excluirSalvo(id){
+  const e = (S.editais||[]).find(x => x.id === id); if(!e) return;
+  if(!(await confirmar(`Tirar “${e.nome}” da sua lista de editais? (o estudo registrado não é apagado)`))) return;
+  S.editais = S.editais.filter(x => x.id !== id); save(); render();
 }
 async function lerCatalogo(arq){
   if(window.CATALOGO_EMBUTIDO && window.CATALOGO_EMBUTIDO[arq]) return window.CATALOGO_EMBUTIDO[arq];
@@ -1016,7 +1066,8 @@ async function buscarConcurso(){
   buscaTermo = document.getElementById('bq').value.trim(); buscaMsg = 'Buscando...'; buscaRes = null; render();
   try{
     const lista = JSON.parse(await lerCatalogo('indice.json')); const termos = norm(buscaTermo).split(/\s+/).filter(Boolean);
-    buscaRes = lista.filter(c => { const alvo = norm([c.nome,c.cargo,c.banca,c.orgao,(c.palavras||[]).join(' ')].join(' ')); return termos.every(t => alvo.includes(t)); });
+    const salvos = (S.editais||[]).filter(e => { const alvo = norm(e.nome+' '+e.banca).replace(/-/g,''); return termos.every(t => alvo.includes(t.replace(/-/g,''))); }).map(e => ({salvo: e}));
+    buscaRes = salvos.concat(lista.filter(c => { const alvo = norm([c.nome,c.cargo,c.banca,c.orgao,(c.palavras||[]).join(' ')].join(' ')); return termos.every(t => alvo.includes(t)); }));
     buscaMsg = buscaRes.length ? '' : `Ainda não há “${esc(buscaTermo)}” no catálogo. Peça no Claude: <b>“adicione o concurso ${esc(buscaTermo)} ao catálogo”</b>. Depois de publicado, ele aparece nesta busca.`;
   }catch(e){ buscaMsg = 'Não foi possível acessar o catálogo agora (verifique a internet). Detalhe: '+esc(e.message); }
   render();
@@ -1029,7 +1080,9 @@ async function carregarConcurso(arq){
   }
   try{
     const texto = await lerCatalogo(arq);
+    salvarEditalAtual();
     if(substituir) limparSemHistorico(texto);
+    S.config.origemEdital = 'catalogo';
     const msg = importar(texto, true);
     buscaRes = null; buscaMsg = 'Edital carregado: '+msg+' Ajuste seu nível (1–5) em cada matéria abaixo.';
     delete S.metas[hoje()]; save(); render();
@@ -1173,12 +1226,14 @@ async function lerEditalPdf(file){
 async function importarPdf(substituir){
   let txt = document.getElementById('pdfimp').value;
   if(!substituir) txt = txt.split('\n').filter(l => !/^\s*@(concurso|banca)\s*:/i.test(l)).join('\n'); // só acrescenta matérias: mantém o concurso atual
-  if(substituir){ if(S.materias.length && !(await confirmar('Substituir o edital atual por este? Assuntos com estudo registrado são mantidos.'))) return; limparSemHistorico(txt); }
+  if(substituir){ if(S.materias.length && !(await confirmar('Substituir o edital atual por este? O edital atual fica salvo na sua lista e assuntos com estudo registrado são mantidos.'))) return; salvarEditalAtual(); limparSemHistorico(txt); }
   const nome = (pdfEstado.arquivo||'').replace(/\.pdf$/i,'');
   if(substituir && !/^\s*@concurso\s*:\s*\S/im.test(txt)){ S.config.concurso = nome; S.config.banca = ''; }
   if(!S.config.concurso && nome) S.config.concurso = nome;
+  if(substituir || !S.config.origemEdital) S.config.origemEdital = 'pdf';
   const msg = importar(txt, true);
-  pdfEstado = {msg:'Edital importado: '+msg+' O cronograma e as metas já seguem este edital. Ajuste o nível (1–5) de cada matéria e, se quiser, a incidência dos assuntos.', texto:'', resumo:'', arquivo:''};
+  salvarEditalAtual();
+  pdfEstado = {msg:'Edital importado e salvo na sua lista (aparece em “Buscar concurso”): '+msg+' O cronograma e as metas já seguem este edital. Ajuste o nível (1–5) de cada matéria e, se quiser, a incidência dos assuntos.', texto:'', resumo:'', arquivo:''};
   delete S.metas[hoje()]; save(); render();
 }
 function cardPdf(){
@@ -1661,6 +1716,8 @@ function importar(texto, silencioso){
     l = l.trim(); if(!l || l.startsWith('//')) return;
     if(l.startsWith('@')){ const [k,...v] = l.slice(1).split(':'); const val = v.join(':').trim();
       if(k.trim()==='concurso') S.config.concurso = val; if(k.trim()==='banca') S.config.banca = val;
+      if(k.trim()==='tec' && atual && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) atual.tecLink = val;
+      if(k.trim()==='tecgeral' && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) S.config.tecLinkGeral = val;
       if(k.trim()==='estrategia' && atual){ const e = parseEstrategia(val); if(e.id){ atual.estCurso = e.id; atual.estAulas = e.aulas; } }
       return; }
     if(/^[-•*]/.test(l)){
