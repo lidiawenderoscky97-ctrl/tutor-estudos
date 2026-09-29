@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="22">
+<meta name="versao" content="23">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -357,8 +357,15 @@ function stats(f){let q=0,a=0,min=0;S.sessoes.forEach(s=>{if(f(s)){q+=+s.q||0;a+
 const F_NIVEL = {1:1.3, 2:1.15, 3:1, 4:.85, 5:.7};
 const F_INC   = {1:.7, 2:1, 3:1.3};
 const SEM_PAG = {1:40, 2:60, 3:90};
+// Com o caderno do TEC importado, o peso do assunto é contínuo: questões do assunto ÷ média dos assuntos da matéria
+// (raiz quadrada para não exagerar; entre 0,6 e 1,8). Sem caderno, vale a incidência baixa/média/alta.
+function fatorIncid(m,t){
+  if(t.tecQ == null) return F_INC[t.incid] || 1;
+  const v = m.topicos.filter(x => x.tecQ != null).map(x => +x.tecQ); const media = v.reduce((s,x)=>s+x,0) / (v.length||1);
+  return Math.min(1.8, Math.max(.6, Math.sqrt((+t.tecQ||0) / (media||1))));
+}
 function tempoTopico(m,t){
-  const nv = F_NIVEL[m.nivel] || 1, fi = F_INC[t.incid] || 1;
+  const nv = F_NIVEL[m.nivel] || 1, fi = fatorIncid(m,t);
   const teoria = t.paginas > 0 ? t.paginas * (+S.config.ritmoPag||2) * nv : SEM_PAG[t.incid||2] * nv;
   const quest = teoria * .4 * fi;
   return {teoria, quest, total: teoria + quest};
@@ -1362,7 +1369,12 @@ function tecPontuar(item, t, unicas, nomeAlt){
 }
 // Texto colado: pares "Assunto" / "123 questões" (página de detalhes do caderno do Guia do TEC)
 function tecLerTexto(txt){
-  const L = txt.split(/\r?\n/).map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean), itens = [];
+  txt = String(txt).replace(/^\s*ESTUDO-GUIADO-TEC\s*/,'');
+  if(/^@@caderno /m.test(txt)){ // vários cadernos do Guia (favorito do TEC): lê cada um e guarda o link dele
+    return txt.split(/^(?=@@caderno )/m).flatMap(b => { const cab = b.match(/^@@caderno (\S+)(?: \| (.*))?/); if(!cab) return [];
+      return tecLerTexto(b.slice(cab[0].length)).map(x => Object.assign(x, {link: cab[1], caderno: (cab[2]||'').trim()})); });
+  }
+  const L = txt.split(/\r?\n/).map(s=>s.replace(/\s+/g,' ').trim().replace(/^uma quest(ão|ao)\b/i,'1 questão')).filter(Boolean), itens = [];
   for(let i=0;i<L.length;i++){
     let m = L[i].match(/^(\d{1,6})\s+quest(?:ões|oes|ão|ao)\b/i);
     if(m && i>0 && !/^\d{1,6}\s+quest/i.test(L[i-1]) && !/\d\s+quest(?:ões|oes|ão|ao)\b/i.test(L[i-1])){ itens.push({nome:L[i-1], q:+m[1]}); continue; }
@@ -1554,6 +1566,8 @@ function tecAplicar(){
   const tot = tecTotais(), ms = tecMateriasDoResultado(); let n = 0;
   ms.forEach(m => { const media = tecMedia(m, tot);
     m.topicos.forEach(t => { if(tot[t.id]!=null){ t.tecQ = tot[t.id]; t.incid = tecNivel(tot[t.id], media); n++; } });
+    const porLink = {}; tecEstado.itens.forEach(x => { if(x.link && x.alvo && x.mid===m.id) porLink[x.link] = (porLink[x.link]||0) + x.q; });
+    const lk = Object.keys(porLink).sort((a,b)=>porLink[b]-porLink[a])[0]; if(lk) m.tecLink = lk;
     m.tecAtualizado = hoje(); });
   tecEstado = null; delete S.metas[hoje()]; gerarMetas(false);
   save(); render(); avisar(`Incidência de ${n} assuntos atualizada em ${ms.length===1 ? ms[0].nome : ms.length+' matérias'}. As metas foram refeitas.`);
@@ -1562,12 +1576,14 @@ function cardTec(){
   if(!S.materias.length) return '';
   const opt = S.materias.map(m=>`<option value="${m.id}">${esc(m.nome)}</option>`).join('');
   let h = `<div class="card" style="margin-top:16px"><h2>Incidência pelo caderno do TEC</h2>
-    <p class="mut">Pode ser um caderno por matéria ou <b>um caderno só com todas as matérias</b>. O tutor separa as matérias, cruza os assuntos do TEC com o edital, ajusta a incidência de cada assunto e refaz o plano, mantendo a ordem de estudo das aulas.</p>
+    <p class="mut">A incidência de cada assunto vem da frequência dele nos cadernos grandes do TEC para a prova (o Guia do concurso tem um caderno por matéria). O tutor cruza os assuntos do TEC com o edital, dá mais tempo e prioridade aos mais cobrados e refaz o plano, mantendo a ordem das aulas.</p>
+    <div class="alert info"><b>Automático (recomendado):</b> arraste para a barra de favoritos o botão <a class="b" style="text-decoration:none;padding:4px 11px;border-radius:9px;background:var(--acc);color:var(--accink);font-weight:600" href="${esc(linkColetorTec())}" onclick="event.preventDefault();avisar('Arraste o botão para a barra de favoritos e clique nele na página do Guia do TEC.')">Estudo Guiado ← TEC</a>
+      (ou <button class="lk" onclick="copiarColetorTec()">copie o código</button> e crie um favorito com ele). No TEC, logado, abra <b>Guias</b> → seu concurso → seu cargo (a página com os “Cadernos por matéria”) e clique no favorito. Ele lê todos os cadernos do Guia; clique em <b>Copiar</b> e cole abaixo. Os links dos cadernos também ficam nas metas de questões.</div>
     <div class="row"><div><label for="tecMat">Matéria do caderno</label><select id="tecMat"><option value="">Descobrir sozinho (uma ou várias matérias)</option>${opt}</select></div>
       <div style="grid-column:span 2"><label for="tecLink">Link do caderno no TEC</label><input id="tecLink" placeholder="https://www.tecconcursos.com.br/..."></div></div>
     ${S.config.tecLinkGeral ? `<div class="inl mut" style="margin:6px 0">Caderno geral: <a href="${esc(S.config.tecLinkGeral)}" target="_blank" rel="noopener">abrir no TEC ↗</a> <span>(usado nas matérias sem link próprio)</span> <button class="lk" onclick="S.config.tecLinkGeral='';save();render()">remover</button></div>` : ''}
     <details style="margin-top:10px"><summary class="mut" style="cursor:pointer">Como pegar o conteúdo do caderno</summary><ol class="pl mut" style="padding-left:18px;margin:6px 0">
-      <li><b>Caderno do Guia:</b> no Guia do concurso no TEC, clique em <b>Ver detalhes</b> do caderno. Aparece o índice com o número de questões por assunto. Aperte <b>Ctrl+A</b>, <b>Ctrl+C</b> e cole abaixo.</li>
+      <li><b>Um caderno do Guia (manual):</b> no Guia do concurso no TEC, clique em <b>Ver detalhes</b> do caderno. Aparece o índice com o número de questões por assunto. Aperte <b>Ctrl+A</b>, <b>Ctrl+C</b> e cole abaixo.</li>
       <li><b>Seu caderno (uma ou todas as matérias):</b> abra o caderno, aba <b>Índice</b>, clique em <b>Expandir</b> (para abrir todos os assuntos), aperte <b>Ctrl+A</b>, <b>Ctrl+C</b> e cole abaixo.</li>
       <li>O link sozinho não basta: o TEC só abre o caderno para quem está logado, então o site não consegue ler a página por conta própria.</li></ol></details>
     <label for="tecTxt">Conteúdo copiado da página</label><textarea id="tecTxt" style="min-height:110px" placeholder="Cole aqui (Ctrl+V)"></textarea>
@@ -1591,6 +1607,38 @@ function cardTec(){
   }
   return h + `</div>`;
 }
+// Favorito que roda no Guia do TEC (cargo): busca a página "Ver detalhes" de cada caderno por matéria e junta os índices
+async function tecColetor(){
+  if(!/tecconcursos\.com\.br$/.test(location.hostname)){ alert('Abra o TEC Concursos, entre em Guias → seu concurso → seu cargo e clique neste favorito lá.'); return; }
+  const links = [...document.querySelectorAll('a')].filter(a => /ver detalhes/i.test(a.textContent) && /\/guias\//.test(a.pathname));
+  if(!links.length){ alert('Não achei os cadernos do Guia nesta página. Abra Guias → seu concurso → seu cargo (a página com "Cadernos por matéria") e clique de novo.'); return; }
+  const velho = document.getElementById('eg-coletor'); if(velho) velho.remove();
+  const box = document.createElement('div'); box.id = 'eg-coletor';
+  box.style.cssText = 'position:fixed;z-index:2147483647;top:16px;right:16px;width:400px;max-width:92vw;background:#fff;color:#111;border:2px solid #4f46e5;border-radius:12px;padding:14px;font:14px/1.4 sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.25)';
+  box.innerHTML = '<b style="color:#4f46e5">Estudo Guiado</b><div id="eg-msg" style="margin:8px 0">Lendo os cadernos…</div>'; document.body.appendChild(box);
+  const msg = t => { box.querySelector('#eg-msg').textContent = t; };
+  const urls = [...new Set(links.map(a => a.href))]; let feitos = 0, falhas = 0; const blocos = new Array(urls.length);
+  const fila = urls.map((u, i) => [u, i]);
+  const trabalhar = async () => { while(fila.length){ const [u, i] = fila.shift();
+    try{ const html = await (await fetch(u, {credentials:'include'})).text();
+      const d = new DOMParser().parseFromString(html, 'text/html'); d.querySelectorAll('script,style,noscript').forEach(e => e.remove());
+      const L = d.body.textContent.split('\n').map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+      const titulo = (d.querySelector('h1') || {}).textContent || ''; const out = [];
+      for(let k = 1; k < L.length; k++) if(/^(\d{1,6}|uma)\s+quest(ões|oes|ão|ao)\b/i.test(L[k]) && !/quest(ões|oes|ão|ao)\b/i.test(L[k-1])) out.push(L[k-1], L[k].replace(/^uma/i, '1'));
+      blocos[i] = '@@caderno ' + u + ' | ' + titulo.replace(/\s+/g, ' ').trim() + '\n' + out.join('\n');
+    }catch(e){ falhas++; }
+    feitos++; msg('Lendo os cadernos… (' + feitos + '/' + urls.length + ')'); } };
+  await Promise.all([trabalhar(), trabalhar(), trabalhar()]);
+  const txt = 'ESTUDO-GUIADO-TEC\n' + blocos.filter(Boolean).join('\n');
+  box.querySelector('#eg-msg').innerHTML = 'Pronto: ' + (urls.length - falhas) + ' cadernos lidos' + (falhas ? ' (' + falhas + ' com erro — clique de novo se precisar)' : '') + '. Clique em <b>Copiar</b> e cole no Estudo Guiado (Edital → Incidência pelo caderno do TEC).';
+  const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'width:100%;height:70px;font-size:11px'; box.appendChild(ta);
+  const bt = document.createElement('button'); bt.textContent = 'Copiar'; bt.style.cssText = 'margin-top:8px;padding:7px 16px;background:#4f46e5;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer';
+  bt.onclick = async () => { try{ await navigator.clipboard.writeText(txt); }catch(e){ ta.select(); document.execCommand('copy'); } bt.textContent = 'Copiado ✓'; };
+  const fe = document.createElement('button'); fe.textContent = 'Fechar'; fe.style.cssText = 'margin:8px 0 0 8px;padding:7px 12px;background:#eee;border:0;border-radius:8px;cursor:pointer'; fe.onclick = () => box.remove();
+  box.appendChild(bt); box.appendChild(fe);
+}
+const linkColetorTec = () => 'javascript:' + encodeURIComponent('(' + tecColetor.toString() + ')()');
+async function copiarColetorTec(){ try{ await navigator.clipboard.writeText(linkColetorTec()); avisar('Código copiado. Crie um favorito e cole como endereço.'); }catch(e){ avisar('Não consegui copiar. Arraste o botão para a barra de favoritos.'); } }
 function tecEscolher(i, v){ const x = tecEstado.itens[i], [mid, tid] = v ? v.split('|') : ['', '']; x.mid = mid; x.alvo = tid; render(); }
 
 
@@ -1820,8 +1868,33 @@ function importar(texto, silencioso){
 }
 
 /* ---------- Desempenho ---------- */
+// Onde focar: peso do assunto na prova (frequência nos cadernos do TEC, ou a incidência) × peso da matéria × seu desempenho
+function prioridades(){
+  const maxPeso = Math.max(1, ...S.materias.map(m => +m.peso||1)), L = lim(), out = [];
+  S.materias.forEach(m => {
+    const usaTec = m.topicos.some(t => t.tecQ != null);
+    const base = t => usaTec ? (+t.tecQ||0) : ({1:1, 2:2, 3:4}[t.incid||2]);
+    const soma = m.topicos.reduce((s,t)=>s+base(t),0) || 1;
+    m.topicos.forEach(t => {
+      const share = base(t)/soma, ix = indice(t.id);
+      let f = ix.p == null ? 1 : 1 + Math.max(0, L - ix.p) * 2.5;
+      if(t.status==='concluido' && ix.p != null && ix.p >= L) f *= .25;
+      out.push({m, t, share, usaTec, p: ix.p, q: ix.q, score: share * ((+m.peso||1)/maxPeso) * f});
+    });
+  });
+  return out.sort((a,b) => b.score - a.score);
+}
+function cardPrioridades(n){
+  const pr = prioridades().slice(0, n||12); if(!pr.length) return '';
+  const temTec = S.materias.some(m => m.topicos.some(t => t.tecQ != null));
+  return `<div class="card"><h2>Onde focar</h2><p class="mut" style="margin-top:-4px">Assuntos que mais pesam na prova${temTec ? ' pela frequência nos cadernos do TEC' : ' pela incidência do edital'}, considerando o peso da matéria e o seu acerto. O planejamento dá mais tempo e questões a eles.${temTec ? '' : ' Importe os cadernos do Guia do TEC (tela Edital) para usar a frequência real.'}</p>
+    <div style="overflow-x:auto"><table><tr><th>#</th><th>Assunto</th><th class="n">${temTec?'% no TEC':'Incidência'}</th><th class="n">Seu acerto</th><th>Situação</th></tr>
+    ${pr.map((x,i) => `<tr><td>${i+1}</td><td>${esc(curto(x.t.nome,60))}<div class="mut" style="font-size:12px">${esc(x.m.nome)}</div></td>
+      <td class="n">${x.usaTec ? pct(x.share) : INCID[x.t.incid||2]}</td><td class="n">${x.p==null?'<span class="mut">—</span>':`<span class="tag ${corP(x.p)}">${pct(x.p)}</span> <span class="mut" style="font-size:12px">${x.q}q</span>`}</td>
+      <td>${x.t.status==='concluido' ? (x.p!=null && x.p<lim() ? '<span class="tag warn">revisar</span>' : '<span class="tag ok">concluído</span>') : x.t.status==='estudando' ? '<span class="tag">estudando</span>' : '<span class="mut">a estudar</span>'}</td></tr>`).join('')}</table></div></div>`;
+}
 function vDesempenho(){
-  if(!S.sessoes.length) return `<div class="card"><h2>Desempenho</h2><div class="empty">Conclua metas registrando questões e acertos para ver sua evolução.</div></div>`;
+  if(!S.sessoes.length) return cardPrioridades() + `<div class="card" style="margin-top:16px"><h2>Desempenho</h2><div class="empty">Conclua metas registrando questões e acertos para ver sua evolução.</div></div>`;
   const g = stats(()=>true);
   const semanas = []; for(let i=7;i>=0;i--){const ini=addDias(segunda(hoje()),-7*i), fim=addDias(ini,7); semanas.push({ini, ...stats(s=>s.data>=ini&&s.data<fim)});}
   const maxS = Math.max(...semanas.map(s=>s.min), 1);
@@ -1831,7 +1904,7 @@ function vDesempenho(){
   const banco = []; S.materias.forEach(m=>m.topicos.forEach(t=>{const ix=indice(t.id); if(ix.q) banco.push({m,t,...ix, prox:(S.revisoes.filter(r=>r.topicoId===t.id&&!r.feita).map(r=>r.due).sort()[0])});}));
   banco.sort((a,b)=>a.p-b.p);
   const tp = tempoPorTipo('0000-00-00'), tpt = tp.conteudo+tp.questoes+tp.revisao;
-  return `<div class="kpis">
+  return cardPrioridades() + `<div class="kpis" style="margin-top:16px">
     <div class="kpi"><div><div class="mut">Horas totais</div><div class="big">${hm(g.min)}</div></div></div>
     <div class="kpi"><div><div class="mut">Questões</div><div class="big">${g.q}</div></div></div>
     <div class="kpi"><div><div class="mut">Acerto geral</div><div class="big">${pct(g.p)}</div></div></div>
