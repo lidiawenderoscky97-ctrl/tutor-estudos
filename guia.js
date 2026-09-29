@@ -73,13 +73,16 @@ function tecItensBrutos(txt){
 function tecAssuntosDaArvore(raizes){
   const total = raizes.reduce((s,r)=>s+r.q,0) || 1;
   let nos = raizes.flatMap(r => r.filhos.length ? r.filhos : [r]);   // a raiz é o nome da matéria no TEC
-  for(let k = 0; k < 60; k++){
-    if(nos.length >= 25) break;
-    const cand = nos.filter(x => x.filhos.length >= 2 && x.q / total > (nos.length < 12 ? .04 : .1)).sort((a,b)=>b.q-a.q)[0];
+  for(let k = 0; k < 80 && nos.length < 40; k++){
+    const sh = x => x.q / total;
+    const cand = nos.filter(x => x.filhos.length >= 2 && (sh(x) > .2 || (nos.length < 12 && sh(x) > .04) || (nos.length < 25 && sh(x) > .1))).sort((a,b)=>b.q-a.q)[0];
     if(!cand) break;
     const i = nos.indexOf(cand); nos.splice(i, 1, ...cand.filhos);
   }
-  return nos.filter(x => x.q > 0);
+  nos = nos.filter(x => x.q > 0);
+  const pouco = nos.filter(x => x.q < Math.max(3, total * .012));   // assuntos com pouquíssimas questões viram um só
+  if(pouco.length >= 2){ nos = nos.filter(x => !pouco.includes(x)); nos.push({nome:'Demais assuntos (pouco cobrados): ' + pouco.map(x=>x.nome.replace(/\s*\(.*?\)\s*/g,' ').trim()).slice(0,6).join('; ') + (pouco.length>6?'…':''), q: pouco.reduce((s,x)=>s+x.q,0), filhos:[]}); }
+  return nos;
 }
 function editalDoGuia(txt){
   const guia = (txt.match(/^@@guia (.*)$/m)||[])[1] || '', banca = ((txt.match(/^@@banca (.*)$/m)||[])[1] || '').trim();
@@ -88,7 +91,7 @@ function editalDoGuia(txt){
   blocos.forEach(b => {
     const cab = b.match(/^@@caderno (\S+)(?: \| (.*))?/); const titulo = (cab[2]||'').trim();
     if(/^(in[ée]ditas|simulado|quest[õo]es in[ée]ditas|revis[ãa]o)/i.test(titulo)) return;
-    const nome = titulo.replace(/\s+para\s+.*$/i, '').trim() || titulo;
+    const nome = titulo.replace(/\s+para\s+.*$/i, '').replace(/\s+-\s+.*\b(19|20)\d{2}\s*$/, '').trim() || titulo;
     const nos = tecAssuntosDaArvore(tecSoFolhas(tecItensBrutos(b), true));
     if(nos.length) mats.push({nome, link: cab[1], nos, total: nos.reduce((s,x)=>s+x.q,0)});
   });
@@ -103,4 +106,3 @@ function editalDoGuia(txt){
   return {texto: L.join('\n'), materias: mats.length, assuntos: mats.reduce((s,m)=>s+m.nos.length,0), concurso};
 }
 function tecNivel(q, media){ const r = q/(media||1); return r>=1.25 ? 3 : r<0.5 ? 1 : 2; }
-const tituloMat = s => s;
