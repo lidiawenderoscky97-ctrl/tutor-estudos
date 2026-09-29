@@ -5,14 +5,14 @@ async function estColetor(){
   box.style.cssText = 'position:fixed;z-index:2147483647;top:16px;right:16px;width:400px;max-width:92vw;background:#fff;color:#111;border:2px solid #4f46e5;border-radius:12px;padding:14px;font:14px/1.4 sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.25)';
   box.innerHTML = '<b style="color:#4f46e5">Estudo Guiado</b><div id="eg-msg" style="margin:8px 0">Lendo seus cursos…</div>';
   document.body.appendChild(box);
-  const msg = t => { box.querySelector('#eg-msg').textContent = t; };
+  const msg = t => { box.querySelector('#eg-msg').textContent = t + (document.hidden ? ' — deixe esta aba aberta na frente para terminar.' : ''); };
   const ler = (url, re) => new Promise(ok => {
     const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;left:-10000px;top:0;width:1280px;height:900px'; f.src = url; document.body.appendChild(f);
-    let ult = -1, iguais = 0, n = 0;
-    const iv = setInterval(() => { n++; let as = [];
+    let ult = -1, desde = Date.now(); const ini = Date.now();
+    const iv = setInterval(() => { let as = [];
       try{ as = [...f.contentDocument.querySelectorAll('a')].filter(a => re.test(a.pathname)); }catch(e){}
-      if(as.length && as.length === ult) iguais++; else iguais = 0; ult = as.length;
-      if((as.length && iguais >= 6) || n > 80){ clearInterval(iv); const r = as.map(a => [a.pathname, (a.innerText || a.textContent || '').replace(/\s+/g, ' ').trim()]); f.remove(); ok(r); } }, 250); });
+      if(as.length !== ult){ ult = as.length; desde = Date.now(); }
+      if((as.length && Date.now() - desde >= 1500) || Date.now() - ini > 25000){ clearInterval(iv); const r = as.map(a => [a.pathname, (a.innerText || a.textContent || '').replace(/\s+/g, ' ').trim()]); f.remove(); ok(r); } }, 250); });
   const lista = await ler('/app/dashboard/cursos', /^\/app\/dashboard\/cursos\/\d+\/aulas\/?$/);
   const vistos = new Set(), todos = [];
   lista.forEach(([p, t]) => { const id = p.match(/cursos\/(\d+)/)[1]; if(vistos.has(id)) return; vistos.add(id);
