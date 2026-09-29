@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="15">
+<meta name="versao" content="16">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -1154,7 +1154,7 @@ function cardPdf(){
    Por isso: o link fica guardado por matéria (botão "Abrir caderno no TEC" nas metas de questões) e o
    conteúdo do caderno entra colando o texto da página ou enviando a planilha exportada do caderno. */
 let tecEstado = null; // {materiaId, itens:[{nome,q,alvo}], origem}
-const TEC_PARE = new Set('de da do das dos e em a o as os para com no na nos nas ao aos por sobre entre ou um uma que se questoes questao mescladas mesclados outras outros topicos casos gerais geral disposicoes lei n no nº art arts cf cp cpp cpc cf88 ate parte i ii iii iv v vi vii secao secoes capitulo cap tomo'.split(' '));
+const TEC_PARE = new Set('de da do das dos e em a o as os para com no na nos nas ao aos por sobre entre ou um uma que se questoes questao mescladas mesclados outras outros topicos casos gerais geral disposicoes lei n no nº art arts cf cp cpp cpc cf88 ate parte i ii iii iv v vi vii secao secoes capitulo cap tomo nao demais variadas assuntos dispositivos envolvendo exercicios inclui etc'.split(' '));
 function tecTokens(s){ return norm(s).replace(/(\d)\.(\d{3})/g,'$1$2').split(/[^a-z0-9]+/).filter(w => w && !TEC_PARE.has(w) && !/^\d+$/.test(w) && w.length>2); }
 function tecLeis(s){ return (norm(s).replace(/(\d)\.(\d{3})/g,'$1$2').match(/\b(\d{4,5})\s*\/\s*\d{2,4}\b|\blei\s*(?:n[ºo.]*\s*)?(\d{4,5})/g)||[]).map(x=>(x.match(/\d{4,5}/)||[''])[0]); }
 function tecArtigos(s){
@@ -1172,15 +1172,16 @@ function tecSobreposicao(A,B){
 }
 const tecParecidas = (w, b) => { if(w===b) return true; const mn = Math.min(w.length, b.length); if(mn < 3) return false;
   let k = 0; while(k < mn && w[k]===b[k]) k++;
-  return k===mn ? Math.abs(w.length-b.length) <= 3 : k >= Math.max(4, Math.round(mn*0.6)); };
+  return k===mn ? Math.abs(w.length-b.length) <= 3 : k >= Math.max(5, Math.round(mn*0.6)); };
 function tecPontuar(item, t, unicas, nomeAlt){
   const A = tecTokens(nomeAlt || item.nome), Bl = tecTokens(t.nome), B = new Set(Bl);
   const comunsA = A.filter(w => [...B].some(b => tecParecidas(w,b)));
   const comuns = comunsA.length;
   const cobertura = Math.max(A.length ? comuns/A.length : 0, Bl.length ? Bl.filter(b=>A.some(w=>tecParecidas(w,b))).length/Bl.length : 0);
   const bonus = unicas ? (comunsA.some(w => unicas.has(w)) ? 0.3 : 0) : 0;
-  const art = tecSobreposicao(tecArtigos(item.nome), tecArtigos(t.nome));
   const leiA = tecLeis(item.nome), leiB = tecLeis(t.nome);
+  // artigos só contam como sinal forte quando são da mesma lei (arts. da LEP ≠ arts. das Normas da Corregedoria)
+  const art = tecSobreposicao(tecArtigos(item.nome), tecArtigos(t.nome)) * (leiA.length && !leiB.length ? 0.3 : 1);
   const lei = leiA.length && leiB.length ? (leiA.some(x=>leiB.includes(x)) ? 1 : -0.6) : 0;
   return cobertura + bonus + 1.5*art + 0.8*lei;
 }
@@ -1193,7 +1194,37 @@ function tecLerTexto(txt){
     m = L[i].match(/^(.{4,}?)\s+(\d{1,6})\s+quest(?:ões|oes|ão|ao)\b/i);
     if(m) itens.push({nome:m[1], q:+m[2]});
   }
-  return tecSoFolhas(itens);
+  if(itens.length >= 3) return tecSoFolhas(itens);
+  return tecLerIndice(L);
+}
+// Aba "Índice" do caderno do TEC: cada assunto vem seguido do número da questão em que ele começa
+// (1, 1, 1, 2, 2, 5...). As questões de um assunto = início do próximo − início dele; quem tem 0 é grupo.
+const TEC_TOPO = /^(direitos? |legislacao|lingua |matematica|informatica|raciocinio|atualidades|estatistica|conhecimentos|nocoes|etica|arquivologia|contabilidade|administracao (geral|publica$|financeira)|redacao|portugues|ingles|espanhol|historia|geografia|filosofia|sociologia|psicologia|auditoria|gestao)/;
+function tecLerIndice(L){
+  const num = s => /^\d{1,5}$/.test(s), pares = [];
+  for(let i = 0; i < L.length; i++){
+    if(!num(L[i]) && i + 1 < L.length && num(L[i+1])){ pares.push({nome:L[i], ini:+L[i+1]}); i++; continue; }
+    const t = L[i].match(/^(.*\S)\t+(\d{1,5})$/); if(t) pares.push({nome:t[1], ini:+t[2]});
+  }
+  if(pares.length < 3) return [];
+  let cresc = 0; for(let i = 1; i < pares.length; i++) if(pares[i].ini >= pares[i-1].ini) cresc++;
+  if(cresc < (pares.length - 1) * 0.9) return [];
+  const tot = L.join(' ').match(/(\d{1,6})\s+quest(?:ões|oes)\b/i), total = tot ? +tot[1] : 0;
+  const out = []; let grupoMat = '', cadeia = [], novaCadeia = true;
+  pares.forEach((x, i) => {
+    const prox = pares[i+1], q = prox ? prox.ini - x.ini : (total >= x.ini ? total - x.ini + 1 : 1);
+    const ehMat = tecMateriaPorNome(x.nome);
+    if(q <= 0){                                  // grupo (o primeiro subassunto começa na mesma questão)
+      if(ehMat || (novaCadeia && TEC_TOPO.test(norm(x.nome)))){ grupoMat = x.nome; cadeia = []; } // começo de outra matéria do TEC
+      else { if(novaCadeia) cadeia = []; cadeia.push(x.nome); }
+      novaCadeia = false; return;
+    }
+    if(ehMat && !cadeia.length) grupoMat = x.nome;
+    const caminho = [grupoMat, ...cadeia].filter(Boolean);
+    out.push({nome:x.nome, q, contexto:caminho.join(' '), caminho});
+    novaCadeia = true;
+  });
+  return out;
 }
 // Remonta a árvore (a lista do TEC vem "achatada": grupo, subassuntos, sub-subassuntos...) e devolve só as folhas,
 // cada uma com os nomes dos grupos acima como contexto. Um item só é grupo quando os itens seguintes somam
@@ -1238,7 +1269,7 @@ function tecSoFolhas(itens){
       else folhas.push({nome:itens[i].nome, q:itens[i].q, contexto:pais.join(' '), caminho:pais.slice()});
       alvo -= itens[i].q; i = fim;
     }
-    if(alvo >= 3 && pais.length > 1) folhas.push({nome:itens[p].nome, q:alvo, contexto:pais.slice(0, -1).join(' '), caminho:pais.slice(0, -1)});
+    if(alvo >= 3 && pais.length > 1) folhas.push({nome:itens[p].nome, q:alvo, contexto:pais.slice(0, -1).join(' '), caminho:pais.slice(0, -1), sobra:true});
   }
   let i = 0;
   while(i < n){
@@ -1271,7 +1302,9 @@ function tecMelhorTopico(m, x){          // melhor assunto do edital dentro da m
   let best = null, bp = 0;
   m.topicos.forEach(t => { const p = tecPontuar(x, t, unicas); if(p > bp){ bp = p; best = t; } });
   if(bp < .45 && x.contexto){ // tenta com o nome do grupo (ex.: "Polissemia" dentro de "Semântica")
-    m.topicos.forEach(t => { const p = 0.8*tecPontuar(x, t, unicas, x.nome+' '+x.contexto); if(p > bp){ bp = p; best = t; } });
+    const grupos = (x.caminho||[]).filter(g => !tecMateriaPorNome(g)), perto = grupos[grupos.length-1];
+    [perto, x.contexto].filter(Boolean).forEach(c =>
+      m.topicos.forEach(t => { const p = 0.8*tecPontuar(x, t, unicas, x.nome+' '+c); if(p > bp){ bp = p; best = t; } }));
   }
   return {t: best, p: bp};
 }
@@ -1294,13 +1327,13 @@ function tecCruzar(materiaId, itens, origem){
     if(!m) for(const g of (x.caminho||[])){ m = tecMateriaPorNome(g); if(m) break; }
     let r = m ? tecMelhorTopico(m, x) : {t:null, p:0};
     if(!unica && r.p < .4){ // grupo sem nome de matéria reconhecível: procura em todas as matérias
-      S.materias.forEach(mm => { const rr = tecMelhorTopico(mm, x); if(rr.p > r.p + .05 && rr.p >= .5){ r = rr; m = mm; } });
+      S.materias.forEach(mm => { const rr = tecMelhorTopico(mm, x); if(rr.p > r.p + .05 && rr.p >= (m ? .7 : .5)){ r = rr; m = mm; } });
     }
     x.mid = m ? m.id : '';
     x.alvo = r.p >= .4 && r.t ? r.t.id : '';
   });
   // sobras marcadas direto no grupo da matéria ("Língua Portuguesa (Português)") não são um assunto: saem da lista
-  for(let k = itens.length - 1; k >= 0; k--) if(!itens[k].alvo && tecMateriaPorNome(itens[k].nome)) itens.splice(k, 1);
+  for(let k = itens.length - 1; k >= 0; k--) if(itens[k].sobra && !itens[k].alvo && tecMateriaPorNome(itens[k].nome)) itens.splice(k, 1);
   const mids = [...new Set(itens.filter(x=>x.alvo).map(x=>x.mid))];
   tecEstado = {materiaId: unica ? unica.id : (mids.length===1 ? mids[0] : '*'), itens, origem};
 }
@@ -1309,9 +1342,20 @@ async function tecProcessar(tipo){
   if(link && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(link)) return avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).');
   let mid = sel.value, itens = [];
   try{
-    if(tipo==='texto') itens = tecLerTexto(document.getElementById('tecTxt').value);
+    if(tipo==='texto'){
+      const txt = document.getElementById('tecTxt').value;
+      if(!txt.trim()){
+        if(!link) return avisar('Cole o índice do caderno (ou o link e o índice) antes de cruzar com o edital.');
+        if(mid) mat(mid).tecLink = link; else S.config.tecLinkGeral = link;
+        save(); render();
+        return avisar('Link salvo. O TEC só mostra o caderno para quem está logado, então o site não consegue abrir o link sozinho. Falta colar o índice: no caderno, aba Índice → Expandir → Ctrl+A → Ctrl+C, e cole no quadro.');
+      }
+      itens = tecLerTexto(txt);
+    }
     else { const f = document.getElementById('tecArq').files[0]; if(!f) return; itens = await tecLerPlanilha(f); }
     if(!itens.length) return avisar('Não encontrei assuntos com número de questões. Confira as instruções e tente de novo.');
+    if(tipo==='texto' && itens.every(x => tecMateriaPorNome(x.nome) || TEC_TOPO.test(norm(x.nome))))
+      return avisar('Só vieram os nomes das matérias. No índice do caderno, clique em "Expandir" para abrir todos os assuntos e copie de novo.');
     tecCruzar(mid, itens, tipo);
     if(!tecEstado.itens.some(x=>x.alvo)){ tecEstado = null; render(); return avisar('Nenhum assunto do caderno bateu com o edital. Escolha a matéria e tente de novo.'); }
     if(link){ if(tecEstado.materiaId === '*') S.config.tecLinkGeral = link; else mat(tecEstado.materiaId).tecLink = link; }
@@ -1349,7 +1393,8 @@ function cardTec(){
     ${S.config.tecLinkGeral ? `<div class="inl mut" style="margin:6px 0">Caderno geral: <a href="${esc(S.config.tecLinkGeral)}" target="_blank" rel="noopener">abrir no TEC ↗</a> <span>(usado nas matérias sem link próprio)</span> <button class="lk" onclick="S.config.tecLinkGeral='';save();render()">remover</button></div>` : ''}
     <details style="margin-top:10px"><summary class="mut" style="cursor:pointer">Como pegar o conteúdo do caderno</summary><ol class="pl mut" style="padding-left:18px;margin:6px 0">
       <li><b>Caderno do Guia:</b> no Guia do concurso no TEC, clique em <b>Ver detalhes</b> do caderno. Aparece o índice com o número de questões por assunto. Aperte <b>Ctrl+A</b>, <b>Ctrl+C</b> e cole abaixo.</li>
-      <li><b>Seu caderno (uma ou todas as matérias):</b> abra o caderno, aba <b>Índice</b>, e copie a lista (Ctrl+A, Ctrl+C) ou use <b>Exportar para planilha</b> e envie o arquivo aqui.</li></ol></details>
+      <li><b>Seu caderno (uma ou todas as matérias):</b> abra o caderno, aba <b>Índice</b>, clique em <b>Expandir</b> (para abrir todos os assuntos), aperte <b>Ctrl+A</b>, <b>Ctrl+C</b> e cole abaixo.</li>
+      <li>O link sozinho não basta: o TEC só abre o caderno para quem está logado, então o site não consegue ler a página por conta própria.</li></ol></details>
     <label for="tecTxt">Conteúdo copiado da página</label><textarea id="tecTxt" style="min-height:110px" placeholder="Cole aqui (Ctrl+V)"></textarea>
     <div class="inl"><button class="b" onclick="tecProcessar('texto')">Cruzar com o edital</button>
       <span class="mut">ou planilha exportada:</span><input id="tecArq" type="file" accept=".xlsx,.xls,.csv" style="width:auto" onchange="tecProcessar('planilha')"></div>`;
