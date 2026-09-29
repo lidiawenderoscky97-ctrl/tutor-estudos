@@ -12,7 +12,7 @@ async function estColetor(){
     const iv = setInterval(() => { let as = [];
       try{ as = [...f.contentDocument.querySelectorAll('a')].filter(a => re.test(a.pathname)); }catch(e){}
       if(as.length !== ult){ ult = as.length; desde = Date.now(); }
-      if((as.length && Date.now() - desde >= 1500) || Date.now() - ini > 25000){ clearInterval(iv); const r = as.map(a => [a.pathname, (a.innerText || a.textContent || '').replace(/\s+/g, ' ').trim()]); f.remove(); ok(r); } }, 250); });
+      if((as.length && Date.now() - desde >= 3000 && Date.now() - ini >= 5000) || Date.now() - ini > 40000){ clearInterval(iv); const r = as.map(a => [a.pathname, (a.innerText || a.textContent || '').replace(/\s+/g, ' ').trim()]); f.remove(); ok(r); } }, 250); });
   const lista = await ler('/app/dashboard/cursos', /^\/app\/dashboard\/cursos\/\d+\/aulas\/?$/);
   const vistos = new Set(), todos = [];
   lista.forEach(([p, t]) => { const id = p.match(/cursos\/(\d+)/)[1]; if(vistos.has(id)) return; vistos.add(id);
@@ -38,7 +38,9 @@ async function estColetor(){
   let feitos = 0; msg('Lendo as aulas de ' + cursos.length + ' cursos… (0/' + cursos.length + ')');
   const fila = cursos.slice();
   const trabalhar = async () => { while(fila.length){ const c = fila.shift();
-    const as = await ler('/app/dashboard/cursos/' + c.id + '/aulas', new RegExp('^/app/dashboard/cursos/' + c.id + '/aulas/\\d+/?$'));
+    const re = new RegExp('^/app/dashboard/cursos/' + c.id + '/aulas/\\d+/?$');
+    let as = await ler('/app/dashboard/cursos/' + c.id + '/aulas', re);
+    if(!as.length) as = await ler('/app/dashboard/cursos/' + c.id + '/aulas', re); // tenta de novo se a página demorou
     const ja = new Set();
     as.forEach(([p, t]) => { const aid = p.match(/aulas\/(\d+)/)[1]; if(ja.has(aid)) return; ja.add(aid);
       const m = t.match(/Aula\s*(\d+)/i); c.aulas.push([m ? m[1].padStart(2, '0') : '', aid, t.replace(/^Aula\s*\d+\s*(-\s*Somente em PDF)?\s*/i, '').trim()]); });
