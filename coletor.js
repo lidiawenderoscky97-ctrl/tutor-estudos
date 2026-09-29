@@ -19,8 +19,9 @@ async function estColetor(){
     todos.push({id, titulo: t.replace(/Dispon[íi]vel entre.*$/i, '').trim(), aulas: []}); });
   if(!todos.length){ msg('Não encontrei cursos em "Minhas Matrículas". Confira se você está logado e tente de novo.'); return; }
   // agrupa as matrículas por concurso ("TJ-SP (Escrevente Judiciário) Língua Portuguesa" → "TJ-SP (Escrevente Judiciário)")
-  const grupoDe = t => { const s = t.replace(/^(Pr[ée]|P[óo]s)-?\s*Edital\s*/i, '').trim(); const par = s.match(/^[^()]{2,60}\([^)]*\)/); if(par) return par[0].trim();
-    const tr = s.split(/\s[-–:]\s/)[0]; return tr.length < s.length ? tr.trim() : s.split(' ').slice(0, 3).join(' '); };
+  const grupoDe = t => { const s = t.replace(/^(Pr[ée]|P[óo]s)-?\s*Edital\s*/i, '').replace(/^(Simulados?|Sprint[^-–:]*|Reta Final|Bizu[^-–:]*|Curso Regular( para)?)\s*[-–:]?\s*/i, '').trim();
+    const sig = s.match(/^([A-ZÀ-Þ0-9]{2,}(?:-[A-Z0-9]{1,4})?)(?=[\s(:–-]|$)/); if(sig) return sig[1];
+    return s.split(/\s[-–:]\s|\s\(/)[0].trim() || s; };
   const grupos = {}; todos.forEach(c => { const g = grupoDe(c.titulo); (grupos[g] = grupos[g] || []).push(c); });
   const nomes = Object.keys(grupos).sort((a, b) => grupos[b].length - grupos[a].length);
   box.querySelector('#eg-msg').innerHTML = 'Marque o concurso que você está estudando (' + todos.length + ' matrículas):';
