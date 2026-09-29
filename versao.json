@@ -1,4 +1,4 @@
 {
-  "versao": 10,
-  "notas": "Correção: meta concluída não ficava salva na versão online"
+  "versao": 11,
+  "notas": "Base do site com login individual"
 }

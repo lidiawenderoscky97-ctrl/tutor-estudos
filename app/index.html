@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="10">
+<meta name="versao" content="11">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tutor de Estudos</title>
@@ -254,7 +254,7 @@ function load(){
 let projetando = false;
 /* Online: os dados ficam na conta do Claude, divididos em partes para caber nos limites do armazenamento:
    tutor/estado (configuração, edital, revisões), tutor/estado/sessoes/AAAA-MM e tutor/estado/metas/AAAA-MM. */
-let ONLINE = null, ultimoSalvo = {}, filaSalvar = null, gravando = false, pendente = false;
+let ONLINE = null, ultimoSalvo = {}, filaSalvar = null, gravando = false, pendente = false, sujo = false, ultimaLeitura = 0;
 const mesDe = d => (d && /^\d{4}-\d{2}/.test(d)) ? d.slice(0,7) : 'sem-data';
 function dividirEstado(){
   const feitas = S.revisoes.filter(r=>r.feita).sort((a,b)=>a.feita<b.feita?1:-1).slice(0,120);
@@ -289,6 +289,7 @@ async function gravarOnline(){
       await ONLINE.db.doc(path).set(JSON.parse(j)); ultimoSalvo[path] = j;
     }
     for(const path of Object.keys(ultimoSalvo)) if(!(path in docs)){ await ONLINE.db.doc(path).delete(); delete ultimoSalvo[path]; }
+    if(!pendente) sujo = false;
     statusSync('Salvo na sua conta ✓');
   }catch(e){ statusSync('Não salvo'); avisar('Não foi possível salvar online ('+(e.code||e.message)+'). Suas mudanças continuam nesta tela; confira a internet.'); }
   gravando = false;
@@ -298,12 +299,13 @@ document.addEventListener('visibilitychange', async () => {
   if(!ONLINE) return;
   if(document.visibilityState === 'hidden'){ clearTimeout(filaSalvar); gravarOnline(); return; }
   // voltou para a tela: traz o que foi feito em outro aparelho
-  if(gravando || pendente || ONLINE.somenteLeitura) return;
+  if(gravando || pendente || sujo || ONLINE.somenteLeitura || Date.now()-ultimaLeitura < 30000) return;
+  ultimaLeitura = Date.now();
   try{ const d = await carregarOnline(); if(d){ const atual = JSON.stringify(dividirEstado()); S = d; migrar(); if(JSON.stringify(dividirEstado()) !== atual) render(); } }catch(e){}
 });
 function save(){
   if(projetando) return;
-  if(ONLINE){ if(!ONLINE.somenteLeitura){ statusSync('Salvando…'); clearTimeout(filaSalvar); filaSalvar = setTimeout(gravarOnline, 700); } return; }
+  if(ONLINE){ if(!ONLINE.somenteLeitura){ sujo = true; statusSync('Salvando…'); clearTimeout(filaSalvar); filaSalvar = setTimeout(gravarOnline, 700); } return; }
   const json = JSON.stringify(S);
   if(DESK){ if(!DESK.gravar(json)) avisar('Não foi possível salvar o arquivo de dados em Documentos\\Tutor de Estudos.'); return; }
   try{ localStorage.setItem(KEY, json); }
@@ -734,7 +736,7 @@ function render(){
   const lvl = nivel(xpTotal());
   document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Tutor de Estudos</div>` +
     ABAS.map(([k,n]) => `<button class="${k===aba?'on':''}" onclick="ir('${k}')" title="${n}">${ICON[k]}<span>${n}</span></button>`).join('') +
-    `<div class="sep"></div><div class="mini">Nível ${lvl.n} · versão ${VERSAO}</div>`;
+    `<div class="sep"></div><div class="mini">${ONLINE && ONLINE.usuario ? esc(curto(ONLINE.usuario.nome||ONLINE.usuario.email,24))+'<br>' : ''}Nível ${lvl.n} · versão ${VERSAO}</div>`;
   document.getElementById('titulo').textContent = (ABAS.find(x=>x[0]===aba)||['',''])[1];
   const ct = document.getElementById('contagem');
   ct.innerHTML = S.config.dataProva ? (d => d>=0 ? `<span class="chip">Prova em <b>${d}</b> dias</span>` : '')(diff(hoje(),S.config.dataProva)) : '';
@@ -1258,9 +1260,10 @@ function vConfig(){
       <li><b>Foco e pausas</b> (Barbara Oakley, <i>Aprendendo a Aprender</i>): blocos divididos em focos de até ~50 min com pausas curtas.</li>
       <li><b>Os 4 pilares da aprendizagem</b> (Stanislas Dehaene): atenção, engajamento ativo, retorno sobre o erro e consolidação (1ª revisão no dia seguinte, depois do sono).</li>
       <li><b>Constância</b>: sequência de dias e XP tornam o progresso visível e ajudam a manter o hábito.</li></ul></div>
-    <div class="card"><h2>Dados e backup</h2><p class="mut">${ONLINE ? 'Seus dados ficam salvos na sua conta do Claude e aparecem em todos os aparelhos em que você abrir este link (computador, celular, tablet).' : DESK ? 'Seus dados são salvos automaticamente em <b>Documentos\\Tutor de Estudos\\dados.json</b> (com uma cópia da versão anterior).' : 'Os dados ficam salvos neste navegador. Faça backup regularmente.'}</p>
+    <div class="card"><h2>Dados e backup</h2><p class="mut">${ONLINE && ONLINE.tipo==='firebase' ? 'Seus dados ficam salvos na sua conta (login Google) e aparecem em todos os aparelhos em que você entrar: computador, celular e tablet.' : ONLINE ? 'Seus dados ficam salvos na sua conta do Claude e aparecem em todos os aparelhos em que você abrir este link (computador, celular, tablet).' : DESK ? 'Seus dados são salvos automaticamente em <b>Documentos\\Tutor de Estudos\\dados.json</b> (com uma cópia da versão anterior).' : 'Os dados ficam salvos neste navegador. Faça backup regularmente.'}</p>
     <button class="b" onclick="exportar()">Baixar backup (.json)</button> ${DESK ? '<button class="g" onclick="DESK.abrirPasta()">Abrir pasta dos dados</button>' : ''}
-    <label>${ONLINE ? 'Trazer dados do programa do computador (arquivo de backup .json)' : 'Restaurar backup'}</label><input type="file" accept=".json" onchange="restaurar(this.files[0])">
+    <label>${ONLINE ? 'Trazer dados de outra versão (arquivo de backup .json do programa ou do link do Claude)' : 'Restaurar backup'}</label><input type="file" accept=".json" onchange="restaurar(this.files[0])">
+    ${ONLINE && ONLINE.tipo==='firebase' ? `<h3>Conta</h3><p class="mut">Conectada como <b>${esc(ONLINE.usuario.nome)}</b> (${esc(ONLINE.usuario.email)}).</p><button class="g" onclick="sairConta()">Sair da conta</button>` : ''}
     <h3>Versão do programa</h3><p class="mut" id="infoVersao">Versão ${VERSAO}.${DESK ? ' As atualizações chegam automaticamente quando você abre o programa.' : ''}</p>
     ${DESK ? '<button class="g" onclick="verificarAtualizacao()">Verificar atualizações agora</button>' : ''}
     <h3>Zona de perigo</h3><button class="g" style="color:var(--bad)" onclick="confirmar('Apagar TODOS os dados?').then(ok=>{if(ok){S=padrao();save();render();}})">Apagar todos os dados</button></div></div>`;
@@ -1294,13 +1297,73 @@ window.__atualizacao = function(v, notas, erro){
   f.style.display = 'flex';
 };
 
+/* ============ Site com login (Firebase) ============
+   Cada pessoa entra com a conta Google; os dados ficam em usuarios/<id da pessoa>,
+   e as regras do banco só deixam cada um ler e gravar a própria pasta. */
+let FB = null;
+function adaptadorFirebase(fs, uid){
+  const mapa = p => p.replace(/^tutor\/estado/, 'usuarios/'+uid);
+  return { doc: p => fs.doc(mapa(p)) };
+}
+function telaLogin(msg){
+  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Tutor de Estudos</div>`;
+  document.getElementById('titulo').textContent = 'Entrar';
+  ['cron','contagem','sync'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = ''; });
+  document.getElementById('app').innerHTML = `<div class="card" style="max-width:560px">
+    <h2>Seu tutor de estudos para concursos</h2>
+    <p>Edital verticalizado, metas do dia com pomodoro, cronograma da semana, revisões espaçadas e análise de desempenho por assunto.</p>
+    <p class="mut">Entre com sua conta Google. Cada pessoa tem o próprio espaço: ninguém vê os seus dados, e você acessa o mesmo progresso no celular, no tablet e no computador.</p>
+    ${msg?`<div class="alert bad">${esc(msg)}</div>`:''}
+    <button class="b" id="btnEntrar" onclick="entrarGoogle()" style="margin-top:6px">Entrar com Google</button></div>`;
+}
+async function entrarGoogle(){
+  const prov = new firebase.auth.GoogleAuthProvider(); prov.setCustomParameters({prompt:'select_account'});
+  const b = document.getElementById('btnEntrar'); if(b){ b.disabled = true; b.textContent = 'Abrindo o login…'; }
+  try{ await FB.auth.signInWithPopup(prov); }
+  catch(e){
+    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){ try{ await FB.auth.signInWithRedirect(prov); return; }catch(e2){ e = e2; } }
+    if(e.code==='auth/popup-closed-by-user'){ telaLogin(); return; }
+    telaLogin(e.code==='auth/unauthorized-domain' ? 'Este endereço ainda não foi autorizado no Firebase (Authentication → Configurações → Domínios autorizados).' : 'Não foi possível entrar: '+(e.message||e.code));
+  }
+}
+async function sairConta(){
+  if(!(await confirmar('Sair da sua conta neste aparelho? Seus dados continuam salvos e aparecem quando você entrar de novo.'))) return;
+  clearTimeout(filaSalvar); try{ await gravarOnline(); }catch(e){}
+  await FB.auth.signOut();
+}
+async function iniciarFirebase(){
+  document.getElementById('app').innerHTML = '<div class="card"><h2>Carregando…</h2></div>';
+  try{
+    firebase.initializeApp(window.FIREBASE_CONFIG);
+    FB = {auth: firebase.auth(), fs: firebase.firestore()};
+    try{ await FB.fs.enablePersistence({synchronizeTabs:true}); }catch(e){}
+  }catch(e){ document.getElementById('app').innerHTML = '<div class="card"><h2>Não foi possível iniciar</h2><p class="mut">'+esc(e.message)+'</p></div>'; return; }
+  FB.auth.onAuthStateChanged(async u => {
+    clearTimeout(filaSalvar); ultimoSalvo = {}; sujo = false; pendente = false;
+    if(!u){ ONLINE = null; S = padrao(); telaLogin(); return; }
+    ONLINE = {tipo:'firebase', db: adaptadorFirebase(FB.fs, u.uid), usuario:{nome:u.displayName||'', email:u.email||''}};
+    document.getElementById('app').innerHTML = '<div class="card"><h2>Carregando seus dados…</h2></div>';
+    try{ const d = await carregarOnline(); S = d || padrao(); ultimaLeitura = Date.now(); }
+    catch(e){ S = padrao(); ONLINE.somenteLeitura = true; avisar('Não consegui ler seus dados agora ('+(e.code||e.message)+'). Nada será salvo até recarregar a página.'); }
+    migrar(); aba = 'painel'; render(); statusSync(ONLINE.somenteLeitura ? 'Sem conexão com seus dados' : 'Salvo na sua conta ✓');
+  });
+  // aviso de versão nova do site
+  const checar = async () => { try{ const r = await fetch('versao.json?t='+Date.now()); if(!r.ok) return; const v = await r.json();
+    if(v.versao > VERSAO) window.__atualizacao(v.versao, v.notas, ''); }catch(e){} };
+  setInterval(checar, 30*60000); document.addEventListener('visibilitychange', () => { if(document.visibilityState==='visible') checar(); });
+}
+
 async function iniciar(){
+  if(window.FIREBASE_CONFIG){
+    try{ await window.SDK_PRONTO; }catch(e){ document.getElementById('app').innerHTML = '<div class="card"><h2>Não foi possível carregar o login</h2><p class="mut">Confira a internet e recarregue a página.</p></div>'; return; }
+    return iniciarFirebase();
+  }
   const noClaude = !DESK && window.claude && typeof window.claude.use === 'function';
   if(noClaude){
     document.getElementById('app').innerHTML = '<div class="card"><h2>Carregando seus dados…</h2><p class="mut">Buscando seu progresso salvo na sua conta.</p></div>';
     let db = null; try{ db = await window.claude.use('db'); }catch(e){}
     if(db){
-      ONLINE = {db};
+      ONLINE = {tipo:'claude', db};
       try{ const d = await carregarOnline(); S = d || padrao(); }
       catch(e){ S = padrao(); ONLINE.somenteLeitura = true; avisar('Não consegui ler seus dados online agora ('+(e.code||e.message)+'). Nada será salvo até recarregar a página.'); }
       migrar(); render(); statusSync(ONLINE.somenteLeitura ? 'Sem conexão com seus dados' : 'Salvo na sua conta ✓');
