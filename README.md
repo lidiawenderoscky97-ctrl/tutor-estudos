@@ -15,3 +15,8 @@ Os dados de estudo ficam apenas no computador, em `Documentos\Tutor de Estudos\d
 
 1. Edite `app/index.html` e aumente `<meta name="versao" content="N">`.
 2. Atualize `versao.json` com o mesmo número e uma nota curta.
+
+## Versão online (celular, tablet, computador)
+
+- `online/gerar.py` gera `online/tutor-estudos.html` a partir de `app/index.html`, com o catálogo de concursos embutido.
+- Essa página é publicada no Claude (privada) e guarda o progresso na conta: `tutor/estado` e, por mês, `tutor/estado/sessoes/AAAA-MM` e `tutor/estado/metas/AAAA-MM`.
