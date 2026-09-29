@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="16">
+<meta name="versao" content="17">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -261,7 +261,9 @@ function migrar(){
   if(daV1){ S.config.blocoMin = 30; S.config.blocoMax = 120; }
   if(!S.metas) S.metas = {};
   S.materias.forEach(m => { m.peso = m.peso||3; m.nivel = m.nivel||3; m.curso = m.curso||'';
-    m.topicos.forEach(t => { t.incid = t.incid||2; t.paginas = +t.paginas||0; t.feitos = +t.feitos||0; t.status = t.status||'nao'; t.aula = t.aula||''; }); });
+    m.topicos.forEach(t => { t.incid = t.incid||2; t.paginas = +t.paginas||0; t.feitos = +t.feitos||0; t.status = t.status||'nao'; t.aula = t.aula||''; });
+    // curso do TJSP que ficou de um edital anterior (versões antigas não limpavam ao trocar de edital)
+    if(/pr[ée]-edital tj-sp/i.test(m.curso) && S.config.concurso && !/tj-?sp|s[ãa]o paulo/i.test(S.config.concurso)){ m.curso = ''; m.topicos.forEach(t => t.aula = ''); } });
 }
 function load(){
   try{
@@ -904,7 +906,7 @@ function cardMeta(x,i){
     <div style="min-width:0"><div><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <span class="mut">${hm(x.min)} · ${focos(x.min)}</span></div>
       <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
-      ${(t.aula||m.curso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><b style="color:var(--acc)">Estratégia</b>${m.curso?' · '+esc(curto(m.curso,60)):''}${t.aula?' · <b>'+esc(t.aula)+'</b>':''}</div>`:''}
+      ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(buscaEstrategia(m))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')} ↗</a>${t.aula?' · <b>'+esc(t.aula)+'</b>':''}</div>`:''}
       ${linkTec(m) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div><a class="aula" style="text-decoration:none" href="${esc(linkTec(m))}" target="_blank" rel="noopener"><b style="color:var(--ok)">Abrir caderno no TEC</b> ↗</a></div>` : ''}</div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`+
     (maisTempo!==x.id ? `<button class="g" onclick="maisTempo='${x.id}';render()">+ Adicionar tempo</button>` : '');
@@ -1042,6 +1044,9 @@ function limparSemHistorico(texto){
   const ids = new Set(S.materias.flatMap(m=>m.topicos.map(t=>t.id)));
   S.revisoes = S.revisoes.filter(r => ids.has(r.topicoId));
   S.materias = S.materias.filter(m => m.topicos.length || mats.has(m.nome.toLowerCase()) || S.sessoes.some(s=>s.materiaId===m.id));
+  // curso do Estratégia, aulas e cadernos do TEC eram do concurso anterior: o novo edital traz os seus
+  S.materias.forEach(m => { m.curso = ''; m.tecLink = ''; delete m.tecAtualizado; m.topicos.forEach(t => { t.aula = ''; delete t.tecQ; }); });
+  S.config.tecLinkGeral = '';
 }
 
 /* ---------- Importar edital em PDF ----------
@@ -1130,7 +1135,20 @@ function editalParaTexto(linhas){
     m.peso = m.q==null ? 3 : m.q>=15 ? 5 : m.q>=9 ? 4 : m.q>=5 ? 3 : m.q>=3 ? 2 : 1;
   });
   const txt = out.map(m => `${m.nome} | ${m.peso} | 3\n` + m.tops.map(x=>`- ${x.replace(/[\[\]#*]/g,'')} *2`).join('\n')).join('\n\n');
-  return {texto: txt, materias: out.length, assuntos: out.reduce((s,m)=>s+m.tops.length,0), comPeso: out.filter(m=>m.q!=null).length, achou: ini>=0};
+  const id = identificarEdital(linhas);
+  return {texto: txt, concurso: id.concurso, banca: id.banca, materias: out.length, assuntos: out.reduce((s,m)=>s+m.tops.length,0), comPeso: out.filter(m=>m.q!=null).length, achou: ini>=0};
+}
+const BANCAS = [['VUNESP',/vunesp/],['FGV',/\bfgv\b|fundacao getulio vargas/],['CEBRASPE',/cebraspe|\bcespe\b/],['FCC',/\bfcc\b|fundacao carlos chagas/],['IBFC',/\bibfc\b/],['IADES',/\biades\b/],['QUADRIX',/quadrix/],['AOCP',/\baocp\b/],['IDECAN',/idecan/],['FUNDATEC',/fundatec/],['CONSULPLAN',/consulplan/],['SELECON',/selecon/],['IBADE',/\bibade\b/],['FEPESE',/fepese/],['CESGRANRIO',/cesgranrio/],['FUMARC',/fumarc/],['OBJETIVA',/instituto objetiva/],['LEGALLE',/legalle/],['IGEDUC',/igeduc/],['COMPERVE',/comperve/],['NC-UFPR',/nc-?ufpr|nucleo de concursos/],['Instituto AOCP',/instituto aocp/],['Instituto Acesso',/instituto acesso/],['FAPEC',/\bfapec\b/],['CETREDE',/cetrede/]];
+function identificarEdital(linhas){
+  const txt = norm(linhas.slice(0, 400).join('\n'));
+  let banca = '', mx = 0;
+  BANCAS.forEach(([nome, re]) => { const n = (txt.match(new RegExp(re.source, 'g'))||[]).length; if(n > mx){ mx = n; banca = nome; } });
+  const ORGAO = /^(tribunal|prefeitura|secretaria|policia|ministerio|assembleia|camara|defensoria|procuradoria|banco|receita|instituto|universidade|companhia|departamento|agencia|governo|municipio|estado d|conselho|fundacao|empresa|corpo de bombeiros|superior tribunal|supremo)/;
+  const orgao = linhas.slice(0, 80).find(l => l.length >= 8 && l.length <= 110 && ORGAO.test(norm(l)) && !/banca|organizadora/i.test(l));
+  let cargo = ''; const mc = linhas.slice(0, 200).join(' ').match(/cargos? (?:de|:)\s*([A-ZÀ-Þa-zà-ÿ ]{4,60}?)(?=[,.;\-–(]|\s+(?:do|da|para|n[ºo°]|e\s|com)\b)/i);
+  if(mc) cargo = tituloMat(mc[1].trim());
+  const concurso = orgao ? tituloMat(orgao.replace(/[.,;:\-–]+$/,'').trim()) + (cargo ? ' – ' + cargo : '') : '';
+  return {concurso: concurso.slice(0, 120), banca};
 }
 async function lerEditalPdf(file){
   if(!file) return;
@@ -1140,7 +1158,10 @@ async function lerEditalPdf(file){
     if(linhas.join('').length < 200) throw new Error('o PDF parece ser uma imagem escaneada, sem texto selecionável');
     const r = editalParaTexto(linhas);
     if(!r.materias) throw new Error('não encontrei matérias e assuntos no texto. Copie o conteúdo programático e cole em “Importar edital em texto”, mais abaixo');
-    pdfEstado.texto = `// Lido de ${file.name}. Revise: corrija nomes, junte ou apague linhas. Formato: Matéria | peso | nível, e assuntos com "-".\n` + r.texto;
+    const conc = r.concurso || file.name.replace(/\.pdf$/i,'').replace(/[_-]+/g,' ').trim();
+    pdfEstado.texto = `// Lido de ${file.name}. Revise: corrija nomes, junte ou apague linhas. Formato: Matéria | peso | nível, e assuntos com "-".\n`
+      + `// Confira o nome do concurso e a banca: eles aparecem nas metas e servem para achar o curso do Estratégia.\n`
+      + `@concurso: ${conc}\n@banca: ${r.banca || ''}\n\n` + r.texto;
     pdfEstado.resumo = `${r.materias} matérias e ${r.assuntos} assuntos encontrados${r.achou?' no conteúdo programático':''}. `+
       (r.comPeso ? `Pesos calculados pelo nº de questões em ${r.comPeso} matérias; as demais ficaram com peso 3.` : 'Não encontrei o nº de questões por matéria: todas ficaram com peso 3 (ajuste se souber).');
     pdfEstado.msg = '';
@@ -1148,9 +1169,11 @@ async function lerEditalPdf(file){
   render();
 }
 async function importarPdf(substituir){
-  const txt = document.getElementById('pdfimp').value;
+  let txt = document.getElementById('pdfimp').value;
+  if(!substituir) txt = txt.split('\n').filter(l => !/^\s*@(concurso|banca)\s*:/i.test(l)).join('\n'); // só acrescenta matérias: mantém o concurso atual
   if(substituir){ if(S.materias.length && !(await confirmar('Substituir o edital atual por este? Assuntos com estudo registrado são mantidos.'))) return; limparSemHistorico(txt); }
   const nome = (pdfEstado.arquivo||'').replace(/\.pdf$/i,'');
+  if(substituir && !/^\s*@concurso\s*:\s*\S/im.test(txt)){ S.config.concurso = nome; S.config.banca = ''; }
   if(!S.config.concurso && nome) S.config.concurso = nome;
   const msg = importar(txt, true);
   pdfEstado = {msg:'Edital importado: '+msg+' O cronograma e as metas já seguem este edital. Ajuste o nível (1–5) de cada matéria e, se quiser, a incidência dos assuntos.', texto:'', resumo:'', arquivo:''};
@@ -1450,7 +1473,8 @@ function vEdital(){
       <div class="row" style="margin-bottom:8px"><div><label>Nome</label><input value="${esc(m.nome)}" onchange="setMat('${m.id}','nome',this.value)"></div>
         <div><label>Peso (1–5)</label><input type="number" min="1" max="5" value="${m.peso}" onchange="setMat('${m.id}','peso',+this.value)"></div>
         <div><label>Meu nível (1–5)</label><input type="number" min="1" max="5" value="${m.nivel}" onchange="setMat('${m.id}','nivel',+this.value)"></div></div>
-      ${m.curso?`<div class="mut" style="margin-bottom:6px">Curso Estratégia: ${esc(m.curso)}</div>`:''}
+      <div class="inl" style="margin:0 0 8px"><div style="flex:1;min-width:220px"><label>Curso no Estratégia</label><input value="${esc(m.curso||'')}" placeholder="${esc('Curso de '+m.nome+(S.config.concurso?' para '+S.config.concurso:''))}" onchange="setMatCurso('${m.id}',this.value)"></div>
+        <a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(buscaEstrategia(m))}" target="_blank" rel="noopener">Procurar no Estratégia</a></div>
       <div class="inl" style="margin:0 0 8px"><div style="flex:1;min-width:220px"><label>Link do caderno no TEC</label><input value="${esc(m.tecLink||'')}" placeholder="https://www.tecconcursos.com.br/..." onchange="setMatLink('${m.id}',this.value)"></div>
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
@@ -1475,6 +1499,12 @@ Língua Portuguesa | 5 | 4
     <div style="margin-top:10px"><button class="b" onclick="importar()">Importar</button></div></div>`;
   return h;
 }
+// Pesquisa o curso da matéria para o concurso atual no site do Estratégia
+function buscaEstrategia(m){
+  const q = m.curso ? m.curso : [S.config.concurso, m.nome].filter(Boolean).join(' ');
+  return 'https://www.google.com/search?q=' + encodeURIComponent('site:estrategiaconcursos.com.br curso ' + q);
+}
+function setMatCurso(id,v){ mat(id).curso = v.trim(); save(); render(); }
 function setMatLink(id,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; } mat(id).tecLink = v; save(); render(); }
 function setMat(id,k,v){const m=mat(id); if(k!=='nome') v=Math.min(5,Math.max(1,v||1)); m[k]=v; save(); render();}
 function setTop(mid,tid,k,v){const t=topico(mat(mid),tid); t[k]=v; if(k==='status'&&v==='nao') t.feitos=0; save(); render();}
