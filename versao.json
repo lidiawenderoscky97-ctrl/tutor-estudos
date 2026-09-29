@@ -1,4 +1,4 @@
 {
-  "versao": 6,
-  "notas": "Horas líquidas: cronograma recalculado ao mudar as horas, sem ultrapassar o total"
+  "versao": 7,
+  "notas": "Botão + Adicionar tempo nas metas concluídas (15 min a 2 h)"
 }
