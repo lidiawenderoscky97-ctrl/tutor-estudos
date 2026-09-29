@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="21">
+<meta name="versao" content="22">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -874,10 +874,11 @@ const ICON = {
   edital:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>',
   revisoes:'<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
   desempenho:'<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/></svg>',
+  questoes:'<svg viewBox="0 0 24 24"><path d="M9 11l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 17h10"/></svg>',
   registrar:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
   config:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
 };
-const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['registrar','Registro avulso'],['config','Configurações']];
+const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['questoes','Lançar questões'],['registrar','Registro avulso'],['config','Configurações']];
 let aba = 'painel';
 function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHoje=''; } if(a!=='config') avisoCfg=''; render(); window.scrollTo(0,0); }
 function render(){
@@ -889,9 +890,10 @@ function render(){
   const ct = document.getElementById('contagem');
   ct.innerHTML = S.config.dataProva ? (d => d>=0 ? `<span class="chip">Prova em <b>${d}</b> dias</span>` : '')(diff(hoje(),S.config.dataProva)) : '';
   desenharCron();
-  const V = {painel:vPainel, hoje:vHoje, semana:vSemana, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, registrar:vRegistrar, config:vConfig};
+  const V = {painel:vPainel, hoje:vHoje, semana:vSemana, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, questoes:vQuestoes, registrar:vRegistrar, config:vConfig};
   document.getElementById('app').innerHTML = V[aba]();
   if(aba==='registrar') atualizaTopicos();
+  if(aba==='questoes' && lqFoco){ const el = document.getElementById('lq_q'); if(el) el.focus(); lqFoco = false; }
   if(caixaAberta){ const el = document.getElementById('cq'); if(el) el.focus(); }
 }
 const vazio = () => cardBusca() + cardPdf() + `<div class="card" style="margin-top:16px"><h2>Ou monte o edital você mesmo</h2><p class="mut">Cadastre as matérias e os assuntos, ou importe o edital verticalizado. O tutor calcula o tempo, monta os blocos, as metas diárias e o cronograma.</p><button class="b" onclick="ir('edital')">Ir para o Edital</button></div>`;
@@ -1843,6 +1845,53 @@ function vDesempenho(){
       <h3>Acerto por semana</h3><div class="weeks" style="height:90px">${semanas.map(s=>`<div><span>${s.q?pct(s.p):''}</span><b style="height:${(s.p||0)*100}%;background:var(--${corP(s.p)||'line'})"></b>${br(s.ini).slice(0,5)}</div>`).join('')}</div>
       <h3>Tempo por atividade (total)</h3>${tpt?`<div class="stack"><i style="width:${tp.conteudo/tpt*100}%;background:var(--acc)"></i><i style="width:${tp.questoes/tpt*100}%;background:var(--ok)"></i><i style="width:${tp.revisao/tpt*100}%;background:var(--rev)"></i></div>
       <div class="leg"><span style="--c:var(--acc)">Teoria + questões ${hm(tp.conteudo)}</span><span style="--c:var(--ok)">Questões ${hm(tp.questoes)}</span><span style="--c:var(--rev)">Revisão ${hm(tp.revisao)}</span></div>`:''}</div></div>`;
+}
+
+/* ---------- Lançar questões ---------- */
+let lqMat = null, lqTop = '', lqData = null, lqFoco = false;
+const somaQ = f => S.sessoes.filter(s => (+s.q||0) > 0 && f(s)).reduce((o,s) => (o.q += +s.q, o.a += +s.a||0, o), {q:0, a:0});
+function vQuestoes(){
+  if(!S.materias.length) return vazio();
+  if(!lqMat || !mat(lqMat)) lqMat = S.materias[0].id;
+  const m = mat(lqMat); if(lqTop && !topico(m, lqTop)) lqTop = '';
+  const pctTag = o => o.q ? `<span class="tag ${corP(o.a/o.q)}">${pct(o.a/o.q)}</span>` : '<span class="mut">—</span>';
+  // uma caixa por matéria
+  let h = `<div class="card"><h2>Matéria</h2><p class="mut" style="margin-top:-4px">Escolha a matéria, depois o assunto, e lance quantas questões você fez e quantas acertou.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">${S.materias.map(mm => { const o = somaQ(s => s.materiaId===mm.id);
+      return `<button onclick="lqMat='${mm.id}';lqTop='';render()" style="text-align:left;cursor:pointer;font:inherit;padding:11px 12px;border-radius:12px;border:${mm.id===lqMat?'2px solid var(--acc)':'1px solid var(--line)'};background:${mm.id===lqMat?'var(--acc2)':'var(--card)'};color:var(--ink)">
+        <b style="display:block;font-size:14px">${esc(mm.nome)}</b><span class="mut" style="font-size:12px">${o.q ? `${o.a}/${o.q} acertos` : 'sem questões'}</span> ${o.q?pctTag(o):''}</button>`; }).join('')}</div></div>`;
+  const hojeQ = somaQ(s => s.materiaId===m.id && s.data===hoje());
+  h += `<div class="g2" style="margin-top:16px"><div class="col"><div class="card"><h2>${esc(m.nome)}</h2>
+    <label for="lq_t">Assunto</label><select id="lq_t" onchange="lqTop=this.value">${m.topicos.map(t => `<option value="${t.id}" ${t.id===lqTop?'selected':''}>${esc(curto(t.nome,90))}</option>`).join('')}<option value="" ${!lqTop&&!m.topicos.length?'selected':''}>(sem assunto específico)</option></select>
+    <div class="row"><div><label for="lq_q">Questões realizadas</label><input id="lq_q" type="number" min="0" inputmode="numeric" oninput="lqPrev()" onkeydown="if(event.key==='Enter')document.getElementById('lq_a').focus()"></div>
+      <div><label for="lq_a">Questões acertadas</label><input id="lq_a" type="number" min="0" inputmode="numeric" oninput="lqPrev()" onkeydown="if(event.key==='Enter')lancarQuestoes()"></div></div>
+    <div class="row"><div><label for="lq_d">Data</label><input id="lq_d" type="date" value="${lqData||hoje()}" onchange="lqData=this.value"></div>
+      <div><label for="lq_m">Tempo (min, opcional)</label><input id="lq_m" type="number" min="0" inputmode="numeric" placeholder="—"></div></div>
+    <div class="inl"><button class="b" onclick="lancarQuestoes()">Lançar</button><span id="lq_prev" class="mut"></span></div>
+    ${hojeQ.q ? `<p class="mut" style="margin:8px 0 0">Hoje nesta matéria: <b>${hojeQ.a}/${hojeQ.q}</b> (${pct(hojeQ.a/hojeQ.q)}).</p>` : ''}</div>`;
+  const ult = S.sessoes.filter(s => s.materiaId===m.id && (+s.q||0) > 0).sort((a,b) => (b.ts||0)-(a.ts||0)).slice(0,12);
+  h += `<div class="card"><h2>Últimos lançamentos</h2>${ult.length ? `<table><tr><th>Data</th><th>Assunto</th><th class="n">Realizadas</th><th class="n">Acertadas</th><th class="n">%</th><th></th></tr>
+    ${ult.map(s => { const t = topico(m, s.topicoId); return `<tr><td>${br(s.data).slice(0,5)}</td><td>${esc(t?curto(t.nome,50):'—')}</td><td class="n">${s.q}</td><td class="n">${s.a}</td><td class="n">${pctTag(s)}</td>
+      <td><button class="x" title="Excluir" onclick="delSessao('${s.id}')">✕</button></td></tr>`; }).join('')}</table>` : '<div class="empty">Nenhuma questão lançada nesta matéria.</div>'}</div></div>`;
+  // por assunto
+  const tot = somaQ(s => s.materiaId===m.id);
+  h += `<div class="col"><div class="card"><h2>Por assunto <span class="mut">${tot.q ? `${tot.a}/${tot.q} · ${pct(tot.a/tot.q)}` : ''}</span></h2>
+    <table><tr><th>Assunto</th><th class="n">Realizadas</th><th class="n">Acertadas</th><th class="n">%</th></tr>
+    ${m.topicos.map(t => { const o = somaQ(s => s.topicoId===t.id);
+      return `<tr style="cursor:pointer" onclick="lqTop='${t.id}';lqFoco=true;render()" title="Lançar neste assunto"><td>${esc(curto(t.nome,60))}${t.id===lqTop?' <span class="tag">selecionado</span>':''}</td><td class="n">${o.q||'<span class="mut">0</span>'}</td><td class="n">${o.q?o.a:'<span class="mut">0</span>'}</td><td class="n">${pctTag(o)}</td></tr>`; }).join('')}</table>
+    <p class="mut" style="margin:8px 0 0">Clique num assunto para lançar nele. Os lançamentos contam no índice de acerto, nas revisões, nos reforços e no Desempenho.</p></div></div></div>`;
+  return h;
+}
+function lqPrev(){ const q = +document.getElementById('lq_q').value||0, a = +document.getElementById('lq_a').value||0, el = document.getElementById('lq_prev');
+  if(el) el.textContent = q ? (a > q ? 'acertos maiores que as realizadas' : `${a}/${q} · ${pct(a/q)}`) : ''; }
+function lancarQuestoes(){
+  const q = +document.getElementById('lq_q').value||0, a = +document.getElementById('lq_a').value||0, min = +document.getElementById('lq_m').value||0;
+  const tid = document.getElementById('lq_t').value, data = document.getElementById('lq_d').value || hoje();
+  if(!q) return avisar('Informe quantas questões você fez.');
+  if(a > q) return avisar('Acertos não podem ser maiores que o número de questões.');
+  if(data > hoje()) return avisar('A data não pode ser no futuro.');
+  S.sessoes.push({id:uid(), ts:Date.now(), data, materiaId:lqMat, topicoId:tid||null, tipo:'questoes', fonte:'TEC Concursos', min, q, a, obs:'Lançamento de questões'});
+  lqTop = tid; lqFoco = true; save(); render(); avisar(`Lançado: ${a}/${q} (${pct(a/q)}).`);
 }
 
 /* ---------- Registro avulso ---------- */
