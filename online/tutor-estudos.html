@@ -1,5 +1,5 @@
 <title>Estudo Guiado</title>
-<meta name="versao" content="23">
+<meta name="versao" content="24">
 
 <style>
 :root{
@@ -1107,7 +1107,7 @@ function exportarEditalTexto(){
     L.push('', `${limpa(m.nome)} | ${m.peso} | ${m.nivel} | ${limpa(m.curso)}`);
     if(m.estCurso) L.push(`@estrategia: ${m.estCurso} ` + Object.entries(m.estAulas||{}).map(([a,b]) => a+'='+b).join(','));
     if(m.tecLink) L.push(`@tec: ${m.tecLink}`);
-    m.topicos.forEach(t => L.push(`- ${limpa(t.nome)} *${t.incid||2}${t.paginas?' #'+t.paginas:''}${t.aula?' ['+limpa(t.aula)+']':''}`));
+    m.topicos.forEach(t => L.push(`- ${limpa(t.nome).replace(/%/g,' por cento')} *${t.incid||2}${t.paginas?' #'+t.paginas:''}${t.aula?' ['+limpa(t.aula)+']':''}${t.tecQ!=null?' %'+t.tecQ:''}`));
   });
   return L.join('\n');
 }
@@ -1166,7 +1166,7 @@ async function carregarConcurso(arq){
     delete S.metas[hoje()]; save(); render();
   }catch(e){ avisar('Não foi possível baixar o edital: '+e.message); }
 }
-const limpaNomeTopico = l => l.replace(/^[-•*]\s*/,'').replace(/\[[^\]]*\]/,'').replace(/#\s*\d+/,'').replace(/\*\s*[123](?!\d)/,'').replace(/\s+/g,' ').trim();
+const limpaNomeTopico = l => l.replace(/^[-•*]\s*/,'').replace(/%\s*\d+\s*$/,'').replace(/\[[^\]]*\]/,'').replace(/#\s*\d+/,'').replace(/\*\s*[123](?!\d)/,'').replace(/\s+/g,' ').trim();
 function limparSemHistorico(texto){
   const novos = new Set(), mats = new Set(); let atual = null;
   texto.split('\n').forEach(l => { l = l.trim(); if(!l || l.startsWith('//') || l.startsWith('@')) return;
@@ -1411,7 +1411,7 @@ function tecLerIndice(L){
 // cada uma com os nomes dos grupos acima como contexto. Um item só é grupo quando os itens seguintes somam
 // o total dele (com uma pequena folga para questões marcadas direto no grupo) e, havendo artigos de lei nos nomes,
 // quando os artigos dos filhos estão dentro da faixa do grupo.
-function tecSoFolhas(itens){
+function tecSoFolhas(itens, arvore){
   const n = itens.length, memo = new Map(), escolha = new Map(), fimPai = new Map();
   const arts = itens.map(x => tecArtigos(x.nome));
   const folga = p => { const q = itens[p].q; return Math.max(Math.min(3, Math.floor(q * 0.1)), Math.floor(q * 0.03)); };
@@ -1440,13 +1440,14 @@ function tecSoFolhas(itens){
     if(fim === p + 2 && itens[p + 1].q !== itens[p].q) fim = -1;   // um filho só, sem bater o total: não é grupo
     fimPai.set(p, fim); return fim;
   }
-  const folhas = [];
-  function montar(p, pais){
+  const folhas = [], raizes = [];
+  function montar(p, pais, no){
     let i = p + 1, alvo = itens[p].q;
     while(true){
       const fim = escolha.get(i + '|' + alvo + '|' + p);
       if(fim === undefined) break;
-      if(fim > i + 1) montar(i, pais.concat(itens[i].nome));
+      const filho = {nome:itens[i].nome, q:itens[i].q, filhos:[]}; no.filhos.push(filho);
+      if(fim > i + 1) montar(i, pais.concat(itens[i].nome), filho);
       else folhas.push({nome:itens[i].nome, q:itens[i].q, contexto:pais.join(' '), caminho:pais.slice()});
       alvo -= itens[i].q; i = fim;
     }
@@ -1454,11 +1455,62 @@ function tecSoFolhas(itens){
   }
   let i = 0;
   while(i < n){
-    const fp = paiAte(i);
-    if(fp > i + 1){ montar(i, [itens[i].nome]); i = fp; }
+    const fp = paiAte(i), no = {nome:itens[i].nome, q:itens[i].q, filhos:[]}; raizes.push(no);
+    if(fp > i + 1){ montar(i, [itens[i].nome], no); i = fp; }
     else { folhas.push({nome:itens[i].nome, q:itens[i].q, contexto:'', caminho:[]}); i++; }
   }
-  return folhas;
+  return arvore ? raizes : folhas;
+}
+// Edital verticalizado a partir do Guia do TEC: cada caderno por matéria vira uma matéria; os assuntos saem da árvore
+// do caderno (abrindo os grupos maiores até ~12–25 assuntos) e a incidência é o nº de questões de cada um.
+function tecItensBrutos(txt){
+  const L = String(txt).split(/\r?\n/).map(s=>s.replace(/\s+/g,' ').trim().replace(/^uma quest(ão|ao)\b/i,'1 questão')).filter(Boolean), itens = [];
+  for(let i=1;i<L.length;i++){ const m = L[i].match(/^(\d{1,6})\s+quest(?:ões|oes|ão|ao)\b/i); if(m && !/quest(?:ões|oes|ão|ao)\b/i.test(L[i-1]) && !/^@@/.test(L[i-1])) itens.push({nome:L[i-1], q:+m[1]}); }
+  return itens;
+}
+function tecAssuntosDaArvore(raizes){
+  const total = raizes.reduce((s,r)=>s+r.q,0) || 1;
+  let nos = raizes.flatMap(r => r.filhos.length ? r.filhos : [r]);   // a raiz é o nome da matéria no TEC
+  for(let k = 0; k < 80 && nos.length < 40; k++){
+    const sh = x => x.q / total;
+    const cand = nos.filter(x => x.filhos.length >= 2 && (sh(x) > .2 || (nos.length < 12 && sh(x) > .04) || (nos.length < 25 && sh(x) > .1))).sort((a,b)=>b.q-a.q)[0];
+    if(!cand) break;
+    const i = nos.indexOf(cand); nos.splice(i, 1, ...cand.filhos);
+  }
+  nos = nos.filter(x => x.q > 0);
+  const pouco = nos.filter(x => x.q < Math.max(3, total * .012));   // assuntos com pouquíssimas questões viram um só
+  if(pouco.length >= 2){ nos = nos.filter(x => !pouco.includes(x)); nos.push({nome:'Demais assuntos (pouco cobrados): ' + pouco.map(x=>x.nome.replace(/\s*\(.*?\)\s*/g,' ').trim()).slice(0,6).join('; ') + (pouco.length>6?'…':''), q: pouco.reduce((s,x)=>s+x.q,0), filhos:[]}); }
+  return nos;
+}
+function editalDoGuia(txt){
+  const guia = (txt.match(/^@@guia (.*)$/m)||[])[1] || '', banca = ((txt.match(/^@@banca (.*)$/m)||[])[1] || '').trim();
+  const blocos = txt.split(/^(?=@@caderno )/m).filter(b => /^@@caderno /.test(b));
+  const mats = [];
+  blocos.forEach(b => {
+    const cab = b.match(/^@@caderno (\S+)(?: \| (.*))?/); const titulo = (cab[2]||'').trim();
+    if(/^(in[ée]ditas|simulado|quest[õo]es in[ée]ditas|revis[ãa]o)/i.test(titulo)) return;
+    const nome = titulo.replace(/\s+para\s+.*$/i, '').replace(/\s+-\s+.*\b(19|20)\d{2}\s*$/, '').trim() || titulo;
+    const nos = tecAssuntosDaArvore(tecSoFolhas(tecItensBrutos(b), true));
+    if(nos.length) mats.push({nome, link: cab[1], nos, total: nos.reduce((s,x)=>s+x.q,0)});
+  });
+  // concurso: "Guia TC DF / 2026 para concurso Analista ..." → "TC DF 2026 – Analista ..."
+  let concurso = guia.replace(/^Guia\s+/i,'').replace(/\s*\/\s*/,' ').replace(/\s+para concurso\s+/i,' – ').trim();
+  if(!concurso && blocos.length){ const t = (blocos[0].match(/ \| (.*)/)||[])[1]||''; concurso = (t.match(/\s+para\s+(.*)$/i)||[])[1] || ''; }
+  const L = [`// Criado a partir dos cadernos do Guia do TEC. Incidência = nº de questões de cada assunto nos cadernos.`, `@concurso: ${concurso}`, `@banca: ${banca}`];
+  mats.forEach(m => { const media = m.total / m.nos.length;
+    L.push('', `${m.nome.replace(/\|/g,'/')} | 3 | 3`, `@tec: ${m.link}`);
+    m.nos.forEach(x => L.push(`- ${x.nome.replace(/[\[\]]/g, s => s==='['?'(':')').replace(/[#*|]/g,' ').replace(/\s+/g,' ').trim()} *${tecNivel(x.q, media)} %${x.q}`));
+  });
+  return {texto: L.join('\n'), materias: mats.length, assuntos: mats.reduce((s,m)=>s+m.nos.length,0), concurso};
+}
+function criarEditalDoGuia(){
+  const txt = document.getElementById('tecTxt').value;
+  if(!/^@@caderno /m.test(txt)) return avisar('Para criar o edital, use o favorito “Estudo Guiado ← TEC” na página do Guia do seu cargo e cole o resultado aqui.');
+  const r = editalDoGuia(txt);
+  if(!r.materias) return avisar('Não encontrei cadernos com assuntos no texto colado.');
+  pdfEstado = {msg:'', texto: r.texto, arquivo: r.concurso || 'Guia do TEC',
+    resumo: `${r.materias} matérias e ${r.assuntos} assuntos montados a partir do Guia do TEC, com a incidência de cada assunto pelo nº de questões. Confira o nome do concurso, a banca e ajuste o peso (1–5) de cada matéria pela quantidade de questões dela na prova.`};
+  render(); const el = document.getElementById('pdfimp'); if(el && el.scrollIntoView) el.scrollIntoView({block:'center'});
 }
 // Planilha exportada do caderno: conta as questões por valor da coluna "Assunto"
 async function tecLerPlanilha(file){
@@ -1581,7 +1633,7 @@ function cardTec(){
       <li><b>Seu caderno (uma ou todas as matérias):</b> abra o caderno, aba <b>Índice</b>, clique em <b>Expandir</b> (para abrir todos os assuntos), aperte <b>Ctrl+A</b>, <b>Ctrl+C</b> e cole abaixo.</li>
       <li>O link sozinho não basta: o TEC só abre o caderno para quem está logado, então o site não consegue ler a página por conta própria.</li></ol></details>
     <label for="tecTxt">Conteúdo copiado da página</label><textarea id="tecTxt" style="min-height:110px" placeholder="Cole aqui (Ctrl+V)"></textarea>
-    <div class="inl"><button class="b" onclick="tecProcessar('texto')">Cruzar com o edital</button>
+    <div class="inl"><button class="b" onclick="tecProcessar('texto')">Cruzar com o edital</button><button class="g" onclick="criarEditalDoGuia()" title="Monta matérias e assuntos pelos cadernos do Guia do TEC">Criar o edital pelo Guia</button>
       <span class="mut">ou planilha exportada:</span><input id="tecArq" type="file" accept=".xlsx,.xls,.csv" style="width:auto" onchange="tecProcessar('planilha')"></div>`;
   if(tecEstado){
     const tot = tecTotais(), ms = tecMateriasDoResultado(), varias = tecEstado.materiaId === '*';
@@ -1623,7 +1675,8 @@ async function tecColetor(){
     }catch(e){ falhas++; }
     feitos++; msg('Lendo os cadernos… (' + feitos + '/' + urls.length + ')'); } };
   await Promise.all([trabalhar(), trabalhar(), trabalhar()]);
-  const txt = 'ESTUDO-GUIADO-TEC\n' + blocos.filter(Boolean).join('\n');
+  const banca = ((document.body.innerText.match(/Banca\s+([^\n]+?)\s*(\(p[áa]gina|\n|$)/) || [])[1] || '').trim();
+  const txt = 'ESTUDO-GUIADO-TEC\n@@guia ' + document.title.replace(/\s+/g,' ').trim() + '\n@@banca ' + banca + '\n' + blocos.filter(Boolean).join('\n');
   box.querySelector('#eg-msg').innerHTML = 'Pronto: ' + (urls.length - falhas) + ' cadernos lidos' + (falhas ? ' (' + falhas + ' com erro — clique de novo se precisar)' : '') + '. Clique em <b>Copiar</b> e cole no Estudo Guiado (Edital → Incidência pelo caderno do TEC).';
   const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'width:100%;height:70px;font-size:11px'; box.appendChild(ta);
   const bt = document.createElement('button'); bt.textContent = 'Copiar'; bt.style.cssText = 'margin-top:8px;padding:7px 16px;background:#4f46e5;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer';
@@ -1845,10 +1898,11 @@ function importar(texto, silencioso){
       if((mm = nome.match(/\[([^\]]*)\]/))){ aula = mm[1].trim(); nome = nome.replace(mm[0],''); }
       if((mm = nome.match(/#\s*(\d+)/))){ pag = +mm[1]; nome = nome.replace(mm[0],''); }
       if((mm = nome.match(/\*\s*([123])(?!\d)/))){ incid = +mm[1]; nome = nome.replace(mm[0],''); }
+      let tecQ = null; if((mm = nome.match(/%\s*(\d+)\s*$/))){ tecQ = +mm[1]; nome = nome.replace(mm[0],''); }
       nome = nome.replace(/\s+/g,' ').trim(); if(!nome) return;
       const ex = atual.topicos.find(t=>t.nome.toLowerCase()===nome.toLowerCase());
-      if(ex){ if(incid) ex.incid=incid; if(pag!=null) ex.paginas=pag; if(aula!=null) ex.aula=aula; nU++; }
-      else { atual.topicos.push({id:uid(),nome,status:'nao',incid:incid||2,paginas:pag||0,feitos:0,aula:aula||''}); nT++; }
+      if(ex){ if(incid) ex.incid=incid; if(pag!=null) ex.paginas=pag; if(aula!=null) ex.aula=aula; if(tecQ!=null) ex.tecQ=tecQ; nU++; }
+      else { const nt = {id:uid(),nome,status:'nao',incid:incid||2,paginas:pag||0,feitos:0,aula:aula||''}; if(tecQ!=null) nt.tecQ = tecQ; atual.topicos.push(nt); nT++; }
     } else {
       const [nome,peso,nivel,curso] = l.replace(/^#+\s*/,'').split('|').map(x=>x.trim());
       if(!nome) return;
