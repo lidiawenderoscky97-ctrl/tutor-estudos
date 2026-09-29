@@ -1,4 +1,4 @@
 {
-  "versao": 9,
-  "notas": "Cronômetro pomodoro nas metas e pomodoro livre"
+  "versao": 10,
+  "notas": "Correção: meta concluída não ficava salva na versão online"
 }

@@ -1,5 +1,5 @@
 <title>Tutor de Estudos</title>
-<meta name="versao" content="9">
+<meta name="versao" content="10">
 
 <style>
 :root{
@@ -267,8 +267,9 @@ async function carregarOnline(){
   const d = JSON.parse(JSON.stringify(e.data())); ultimoSalvo = {'tutor/estado': JSON.stringify(e.data())};
   const [ses, met] = await Promise.all([db.doc('tutor/estado').collection('sessoes').get(), db.doc('tutor/estado').collection('metas').get()]);
   d.sessoes = []; d.metas = {};
-  ses.docs.forEach(x => { d.sessoes.push(...((x.data()||{}).lista||[])); ultimoSalvo['tutor/estado/sessoes/'+x.id] = JSON.stringify(x.data()); });
-  met.docs.forEach(x => { Object.assign(d.metas, (x.data()||{}).dias||{}); ultimoSalvo['tutor/estado/metas/'+x.id] = JSON.stringify(x.data()); });
+  // os documentos lidos vêm congelados (somente leitura): copia tudo antes de usar
+  ses.docs.forEach(x => { const j = JSON.stringify(x.data()||{}); d.sessoes.push(...(JSON.parse(j).lista||[])); ultimoSalvo['tutor/estado/sessoes/'+x.id] = j; });
+  met.docs.forEach(x => { const j = JSON.stringify(x.data()||{}); Object.assign(d.metas, JSON.parse(j).dias||{}); ultimoSalvo['tutor/estado/metas/'+x.id] = j; });
   return d;
 }
 async function gravarOnline(){
@@ -636,6 +637,8 @@ function concluirMeta(id){
   const q = +document.getElementById('cq').value||0, a = +document.getElementById('ca').value||0, min = +document.getElementById('cm').value||meta.min;
   if(a > q) return avisar('Acertos não podem ser maiores que o número de questões.');
   const m = mat(meta.materiaId), t = topico(m, meta.topicoId); if(!t) return;
+  if(meta.feita) return;
+  if(Object.isFrozen(meta)){ const i = S.metas[hoje()].indexOf(meta); S.metas[hoje()] = S.metas[hoje()].slice(); S.metas[hoje()][i] = Object.assign({}, meta); return concluirMeta(id); }
   const s = {id:uid(), ts:Date.now(), data:hoje(), materiaId:m.id, topicoId:t.id, tipo:(meta.tipo==='extra' && meta.origem!=='conteudo') ? meta.origem : meta.tipo, fonte:meta.tipo==='conteudo'?'Estratégia (PDF)':'TEC Concursos', min, q, a,
              obs: meta.tipo==='extra' ? 'Tempo extra' : meta.tipo==='conteudo' ? `Bloco ${meta.parte}/${meta.n}` : meta.tipo==='revisao' ? `Revisão etapa ${meta.etapa+1}` : 'Reforço'};
   S.sessoes.push(s);
