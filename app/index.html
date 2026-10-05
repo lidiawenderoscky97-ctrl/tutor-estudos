@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="26">
+<meta name="versao" content="27">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -964,9 +964,11 @@ function vPainel(){
   const ini = segunda(hoje()), sem = stats(s=>s.data>=ini), meta = minSemana();
   const tp = tempoPorTipo(addDias(hoje(),-6)), tpt = tp.conteudo+tp.questoes+tp.revisao;
   const d = parse(hoje()).getDay();
-  let h = `<div class="card hero"><div style="flex:1;min-width:240px"><h2>Olá! ${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}</h2>
+  const tm = temaAtual(), escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  let h = `<div class="card hero">
+    <div style="flex:1;min-width:240px"><h2>Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! 👋</h2><div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
-      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span></div>
+      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span><button onclick="alternarNoite()" title="${escuro?'Usar o modo dia':'Usar o modo noite'}" aria-label="${escuro?'Modo dia':'Modo noite'}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer">${escuro?'☀️ Modo dia':'🌙 Modo noite'}</button></div>
       ${semanaChecks()}
       <div class="mut" style="margin-top:10px">${(()=>{ const r = conteudoRestante(), f = r && minSemana() ? dataTermino(r) : null, pz = pausaDe(hoje());
         return (pz ? `<b>Plano pausado até ${br(pz.ate)}.</b> ` : '') + (r ? `Progresso do plano: <b>${pct(cob)}</b> · seu planejamento acaba em <b>${f?br(f):'—'}</b>${S.config.dataProva && f && f > S.config.dataProva ? ' (depois da prova: <button class="lk" style="color:#fff" onclick="ir(\'plano\')">ajustar</button>)' : ''}` : 'Todo o conteúdo do edital foi estudado. Agora é revisão e questões.'); })()}</div></div>
@@ -2377,6 +2379,13 @@ function trocarTema(){ const ord = ['auto','claro','escuro'], t = ord[(ord.index
 aplicarTema(temaAtual());
 
 /* ---------- Constância: semana com ✓ e dias estudados ---------- */
+// Primeiro nome de quem está usando: conta Google do site ou o nome informado em Configurações
+function nomeUsuario(){
+  const n = (S.config.nome || (ONLINE && ONLINE.usuario && ONLINE.usuario.nome) || '').trim();
+  return n.split(/\s+/)[0] || '';
+}
+function alternarNoite(){ const tm = temaAtual(), escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  const t = escuro ? 'claro' : 'escuro'; try{ localStorage.setItem('eg-tema', t); }catch(e){} aplicarTema(t); render(); }
 function diasEstudados(){ return new Set(S.sessoes.filter(s=>(+s.min||0)>0 || (+s.q||0)>0).map(s=>s.data)).size; }
 function semanaChecks(){
   const ini = addDias(hoje(), -parse(hoje()).getDay()), dias = new Set(S.sessoes.map(s=>s.data));
@@ -2388,6 +2397,7 @@ function semanaChecks(){
 function vConfig(){
   const c = S.config;
   return `<div class="grid"><div class="card"><h2>Planejamento</h2>
+    <label>Seu nome</label><input value="${esc(c.nome||'')}" placeholder="${esc((ONLINE&&ONLINE.usuario&&ONLINE.usuario.nome)||'Como quer ser chamada no Painel')}" onchange="setCfg('nome',this.value.trim())">
     <div class="row"><div><label>Concurso / cargo</label><input value="${esc(c.concurso)}" onchange="setCfg('concurso',this.value)"></div>
       <div><label>Banca</label><input value="${esc(c.banca)}" onchange="setCfg('banca',this.value)"></div></div>
     <label>Data da prova</label><input type="date" value="${c.dataProva}" onchange="setCfg('dataProva',this.value)">
