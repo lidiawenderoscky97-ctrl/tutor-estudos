@@ -1,5 +1,5 @@
 <title>Estudo Guiado</title>
-<meta name="versao" content="28">
+<meta name="versao" content="29">
 
 <style>
 :root{
@@ -150,7 +150,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--sb);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 /* Metas de hoje: página inteira, letra maior */
-body.larga .top,body.larga main{max-width:none}
+.top,main{max-width:none!important}
 .hoje{font-size:16px}
 .hoje .mut{font-size:15px}
 .hk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:18px}
@@ -192,6 +192,51 @@ body.larga .top,body.larga main{max-width:none}
   .hk{grid-template-columns:1fr 1fr;gap:10px}.hk>div{padding:12px;gap:10px}.hk .ic{display:none}.hk b{font-size:18px}
   .hoje .meta{padding:16px;grid-template-columns:32px 1fr;gap:12px}.hoje .meta .ck{width:30px;height:30px}.hoje .meta .tit{font-size:18px}
 }
+/* padrão de letra maior em todas as abas (igual a Metas de hoje) */
+main{font-size:16px}
+main .mut{font-size:15px}
+main .card{padding:22px 26px;border-radius:16px}
+main .card h2{font-size:18px}
+main .card h3{font-size:16px}
+.top h1{font-size:26px}
+.chip,.chip button{font-size:14px}
+aside button{font-size:15px}
+main .tag{font-size:13px;padding:3px 10px}
+main .tipo{font-size:13px;padding:4px 11px;border-radius:8px}
+main button.b{font-size:16px;padding:10px 20px;border-radius:11px}
+main button.g{font-size:15px;padding:9px 15px;border-radius:11px}
+main button.lk{font-size:14px}
+main label{font-size:14px}
+main input,main select{font-size:16px;padding:9px 11px}
+main textarea{font-size:14px}
+main .alert{font-size:15px;padding:12px 16px}
+main .pl{font-size:15px}
+main .empty{font-size:15px}
+main .aula{font-size:15px;padding:6px 12px;border-radius:9px}
+main .brow{font-size:15px;padding:7px 0;grid-template-columns:minmax(130px,260px) 1fr 100px}
+main table{font-size:15px}
+main th{font-size:13px}
+main th,main td{padding:9px 8px}
+main .tp{font-size:15px;padding:8px 0}
+main .tp.hd{font-size:13px}
+main .tp select,main .tp input[type=number]{font-size:14px;padding:5px 7px}
+main .tp .nm small{font-size:13px}
+main .item{padding:12px 0}
+main .leg{font-size:14px}
+main .kpi{padding:18px 20px;border-radius:16px}
+main .kpi .big{font-size:26px}
+main .hero h2{font-size:24px}
+main .badge{font-size:14px}
+main .dia{padding:12px;min-height:200px}
+main .dia h4{font-size:15px}
+main .dia .mut{font-size:13px}
+main .bl{font-size:14px;padding:8px 10px}
+main .bl b{font-size:14px}
+main .weeks div{font-size:13px}
+main .caixa{padding:16px 18px}
+main .mat summary{padding:14px 18px}
+main code{font-size:14px}
+@media (max-width:800px){main .card{padding:16px}main .brow{grid-template-columns:110px 1fr 70px}}
 code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:4px}
 @media (max-width:800px){
   .app{grid-template-columns:1fr}
@@ -1006,19 +1051,19 @@ function vPainel(){
   let h = `<div class="card hero">
     <div style="flex:1;min-width:240px"><h2>Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! 👋</h2><div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
-      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span><button onclick="alternarNoite()" title="${escuro?'Usar o modo dia':'Usar o modo noite'}" aria-label="${escuro?'Modo dia':'Modo noite'}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer">${escuro?'☀️ Modo dia':'🌙 Modo noite'}</button></div>
+      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span><button onclick="alternarNoite()" title="${escuro?'Usar o modo dia':'Usar o modo noite'}" aria-label="${escuro?'Modo dia':'Modo noite'}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer">${escuro?'☀️ Modo dia':'🌙 Modo noite'}</button></div>
       ${semanaChecks()}
       <div class="mut" style="margin-top:10px">${(()=>{ const r = conteudoRestante(), f = r && minSemana() ? dataTermino(r) : null, pz = pausaDe(hoje());
         return (pz ? `<b>Plano pausado até ${br(pz.ate)}.</b> ` : '') + (r ? `Progresso do plano: <b>${pct(cob)}</b> · seu planejamento acaba em <b>${f?br(f):'—'}</b>${S.config.dataProva && f && f > S.config.dataProva ? ' (depois da prova: <button class="lk" style="color:#fff" onclick="ir(\'plano\')">ajustar</button>)' : ''}` : 'Todo o conteúdo do edital foi estudado. Agora é revisão e questões.'); })()}</div></div>
     <div class="xp"><div class="mut" style="display:flex;justify-content:space-between"><span>${xp} XP</span><span>próximo nível: ${lv.fim} XP</span></div>
       <div class="bar" style="height:10px;margin-top:6px"><i style="width:${lv.p*100}%"></i></div>
-      <div class="mut" style="margin-top:6px;font-size:12px">XP = minutos estudados + 2 por acerto + 20 por meta concluída</div></div></div>`;
+      <div class="mut" style="margin-top:6px;font-size:13.5px">XP = minutos estudados + 2 por acerto + 20 por meta concluída</div></div></div>`;
   h += `<div class="kpis" style="margin-top:16px">
     <div class="kpi">${anel(plan?feitoMin/plan:0)}<div><div class="mut">Meta de hoje</div><div class="big">${hm(feitoMin)}</div><div class="mut">de ${hm(plan)} · ${metas.filter(x=>x.feita).length}/${metas.length} metas</div></div></div>
     <div class="kpi">${anel(meta?sem.min/meta:0,'var(--rev)')}<div><div class="mut">Semana</div><div class="big">${hm(sem.min)}</div><div class="mut">de ${hm(meta)} planejadas</div></div></div>
     <div class="kpi">${anel(sem.p||0,'var(--ok)',64,sem.q?pct(sem.p):'—')}<div><div class="mut">Acerto na semana</div><div class="big">${sem.q}</div><div class="mut">questões resolvidas</div></div></div>
     <div class="kpi">${anel(cob,'var(--gold)')}<div><div class="mut">Cobertura do edital</div><div class="big">${pct(cob)}</div><div class="mut">do conteúdo estudado</div></div></div></div>
-    ${(alvoQ => alvoQ ? `<div class="kpi">${anel(Math.min(1, sem.q/alvoQ),'var(--ok)',64,sem.q>=alvoQ?'✓':Math.round(sem.q/alvoQ*100)+'%')}<div><div class="mut">Meta semanal de questões</div><div class="big">${sem.q}<span class="mut" style="font-size:14px"> / ${alvoQ}</span></div><div class="mut">${sem.q>=alvoQ?'meta batida!':'faltam '+(alvoQ-sem.q)} · <button class="lk" onclick="ir('plano')">alterar</button></div></div></div>` : '')(+S.config.metaQSemana||0)}`;
+    ${(alvoQ => alvoQ ? `<div class="kpi">${anel(Math.min(1, sem.q/alvoQ),'var(--ok)',64,sem.q>=alvoQ?'✓':Math.round(sem.q/alvoQ*100)+'%')}<div><div class="mut">Meta semanal de questões</div><div class="big">${sem.q}<span class="mut" style="font-size:15.5px"> / ${alvoQ}</span></div><div class="mut">${sem.q>=alvoQ?'meta batida!':'faltam '+(alvoQ-sem.q)} · <button class="lk" onclick="ir('plano')">alterar</button></div></div></div>` : '')(+S.config.metaQSemana||0)}`;
   h += cardPomodoro() + (!S.timer ? `<div class="card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>Pomodoro livre</b><div class="mut">Para estudar fora das metas. Ao terminar, o tempo de foco vai para o Registro avulso.</div></div><button class="b" onclick="iniciarLivre()">▶ Iniciar pomodoro</button></div>` : '');
   const pend = metas.filter(x=>!x.feita).slice(0,4);
   h += `<div class="g2"><div class="col"><div class="card"><h2>Próximas metas de hoje <button class="g" onclick="ir('hoje')">Ver todas</button></h2>
@@ -1097,7 +1142,7 @@ function cardFixa(x,i){
     if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';render()">Concluir</button>`; }
   h += `</div>`;
   if(!x.feita && caixaAberta===x.id){ const minT = ativa ? Math.max(1, Math.round(tempoTimer()/60000)) : x.min;
-    h += `<div class="caixa"><b style="font-size:14px">Quanto tempo levou?</b><div class="inl"><div><label>Tempo real (min)</label><input id="cm" type="number" min="0" value="${minT}"></div>
+    h += `<div class="caixa"><b style="font-size:15.5px">Quanto tempo levou?</b><div class="inl"><div><label>Tempo real (min)</label><input id="cm" type="number" min="0" value="${minT}"></div>
       <button class="b" onclick="concluirMeta('${x.id}')">Salvar</button><button class="g" onclick="caixaAberta=null;render()">Cancelar</button></div></div>`; }
   return h + `</div>`;
 }
@@ -1113,7 +1158,7 @@ function cardMeta(x,i){
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
       ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
       ${linkTec(m) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div><a class="aula" style="text-decoration:none" href="${esc(linkTec(m))}" target="_blank" rel="noopener"><b style="color:var(--ok)">Abrir caderno no TEC</b> ↗</a></div>` : ''}
-      <div><button class="aula" style="border:0;cursor:pointer;font:inherit;font-size:13px" onclick="abrirCaderno('${m.id}')"><b style="color:var(--rev)">Anotações</b> · caderno de ${esc(curto(m.nome,40))}${(S.cadernos[m.id]||'').length?'':' (vazio)'}</button></div></div><div class="acts">`;
+      <div><button class="aula" style="border:0;cursor:pointer;font:inherit;font-size:14.5px" onclick="abrirCaderno('${m.id}')"><b style="color:var(--rev)">Anotações</b> · caderno de ${esc(curto(m.nome,40))}${(S.cadernos[m.id]||'').length?'':' (vazio)'}</button></div></div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`+
     (maisTempo!==x.id ? `<button class="g" onclick="maisTempo='${x.id}';render()">+ Adicionar tempo</button>` : '');
   else {
@@ -1124,7 +1169,7 @@ function cardMeta(x,i){
   h += `</div>`;
   if(x.feita && maisTempo===x.id){
     const assuntoFechado = t.status==='concluido';
-    h += `<div class="caixa"><b style="font-size:14px">Você já terminou ${x.tipo==='conteudo'||x.origem==='conteudo' ? (!teoriaConcluida(m,t)&&!assuntoFechado ? 'a teoria' : 'o assunto') : ''} ou precisa de mais tempo?</b>
+    h += `<div class="caixa"><b style="font-size:15.5px">Você já terminou ${x.tipo==='conteudo'||x.origem==='conteudo' ? (!teoriaConcluida(m,t)&&!assuntoFechado ? 'a teoria' : 'o assunto') : ''} ou precisa de mais tempo?</b>
       <div class="inl">${x.tipo==='conteudo'||x.origem==='conteudo' ? (assuntoFechado ? '<span class="tag ok">assunto já concluído</span>' : !teoriaConcluida(m,t) ? `<button class="g" onclick="terminouTeoria('${x.id}')">Terminei a teoria</button>` : `<button class="g" onclick="terminouAssunto('${x.id}')">Terminei o assunto</button>`) : `<button class="g" onclick="maisTempo=null;render()">Terminei</button>`}
       <div><label for="mt_${x.id}">Mais tempo</label><select id="mt_${x.id}" style="width:auto">${[15,30,45,60,75,90,105,120].map(v=>`<option value="${v}" ${v===30?'selected':''}>${hm(v)}</option>`).join('')}</select></div>
       <button class="b" onclick="adicionarTempo('${x.id}', +document.getElementById('mt_${x.id}').value)">Adicionar tempo</button>
@@ -1134,7 +1179,7 @@ function cardMeta(x,i){
   if(!x.feita && caixaAberta===x.id){
     const minT = ativa ? Math.max(1, Math.round(tempoTimer()/60000)) : x.min;
     const soTeoria = x.tipo==='conteudo' && x.fase==='teoria';
-    h += `<div class="caixa"><b style="font-size:14px">Meta finalizada! ${soTeoria?'Quanto tempo levou?':'Como foi?'}</b>
+    h += `<div class="caixa"><b style="font-size:15.5px">Meta finalizada! ${soTeoria?'Quanto tempo levou?':'Como foi?'}</b>
       <div class="inl">${soTeoria ? '' : `<div><label>Questões feitas</label><input id="cq" type="number" min="0" inputmode="numeric"></div>
       <div><label>Acertos</label><input id="ca" type="number" min="0" inputmode="numeric" onkeydown="if(event.key==='Enter')concluirMeta('${x.id}')"></div>`}
       <div><label>Tempo real (min)</label><input id="cm" type="number" min="0" value="${minT}"></div>
@@ -1769,7 +1814,7 @@ function cardTec(){
     if(varias){ const faltam = S.materias.filter(m => !ms.includes(m)); if(faltam.length) h += `<p class="mut">Sem questões no caderno (mantêm a incidência atual): ${faltam.map(m=>esc(m.nome)).join(', ')}.</p>`; }
     h += `<details ${semPar?'open':''} style="margin-top:10px"><summary style="cursor:pointer"><b>Assuntos do TEC e para onde foram</b> <span class="mut">${tecEstado.itens.length} assuntos${semPar?` · ${semPar} sem correspondência`:''}</span></summary>
       <div style="overflow-x:auto"><table><tr><th>Assunto no TEC</th><th class="n">Questões</th><th>Assunto do edital</th></tr>
-      ${tecEstado.itens.map((x,i)=>`<tr><td>${esc(x.nome)}${varias&&x.caminho&&x.caminho.length?`<div class="mut" style="font-size:12px">${esc(curto(x.caminho[0],50))}</div>`:''}</td><td class="n">${x.q}</td><td><select onchange="tecEscolher(${i},this.value)" style="max-width:320px">${topOpt(x)}</select></td></tr>`).join('')}</table></div></details>
+      ${tecEstado.itens.map((x,i)=>`<tr><td>${esc(x.nome)}${varias&&x.caminho&&x.caminho.length?`<div class="mut" style="font-size:13.5px">${esc(curto(x.caminho[0],50))}</div>`:''}</td><td class="n">${x.q}</td><td><select onchange="tecEscolher(${i},this.value)" style="max-width:320px">${topOpt(x)}</select></td></tr>`).join('')}</table></div></details>
       <div class="inl"><button class="b" onclick="tecAplicar()">Aplicar incidência e refazer o plano</button><button class="g" onclick="tecEstado=null;render()">Descartar</button></div>`;
   }
   return h + `</div>`;
@@ -2058,8 +2103,8 @@ function cardPrioridades(n){
   const temTec = S.materias.some(m => m.topicos.some(t => t.tecQ != null));
   return `<div class="card"><h2>Onde focar</h2><p class="mut" style="margin-top:-4px">Assuntos que mais pesam na prova${temTec ? ' pela frequência nos cadernos do TEC' : ' pela incidência do edital'}, considerando o peso da matéria e o seu acerto. O planejamento dá mais tempo e questões a eles.${temTec ? '' : ' Importe os cadernos do Guia do TEC (tela Edital) para usar a frequência real.'}</p>
     <div style="overflow-x:auto"><table><tr><th>#</th><th>Assunto</th><th class="n">${temTec?'% no TEC':'Incidência'}</th><th class="n">Seu acerto</th><th>Situação</th></tr>
-    ${pr.map((x,i) => `<tr><td>${i+1}</td><td>${esc(curto(x.t.nome,60))}<div class="mut" style="font-size:12px">${esc(x.m.nome)}</div></td>
-      <td class="n">${x.usaTec ? pct(x.share) : INCID[x.t.incid||2]}</td><td class="n">${x.p==null?'<span class="mut">—</span>':`<span class="tag ${corP(x.p)}">${pct(x.p)}</span> <span class="mut" style="font-size:12px">${x.q}q</span>`}</td>
+    ${pr.map((x,i) => `<tr><td>${i+1}</td><td>${esc(curto(x.t.nome,60))}<div class="mut" style="font-size:13.5px">${esc(x.m.nome)}</div></td>
+      <td class="n">${x.usaTec ? pct(x.share) : INCID[x.t.incid||2]}</td><td class="n">${x.p==null?'<span class="mut">—</span>':`<span class="tag ${corP(x.p)}">${pct(x.p)}</span> <span class="mut" style="font-size:13.5px">${x.q}q</span>`}</td>
       <td>${x.t.status==='concluido' ? (x.p!=null && x.p<lim() ? '<span class="tag warn">revisar</span>' : '<span class="tag ok">concluído</span>') : x.t.status==='estudando' ? '<span class="tag">estudando</span>' : '<span class="mut">a estudar</span>'}</td></tr>`).join('')}</table></div></div>`;
 }
 function vDesempenho(){
@@ -2101,7 +2146,7 @@ function vQuestoes(){
   let h = `<div class="card"><h2>Matéria</h2><p class="mut" style="margin-top:-4px">Escolha a matéria, depois o assunto, e lance quantas questões você fez e quantas acertou.</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">${S.materias.map(mm => { const o = somaQ(s => s.materiaId===mm.id);
       return `<button onclick="lqMat='${mm.id}';lqTop='';render()" style="text-align:left;cursor:pointer;font:inherit;padding:11px 12px;border-radius:12px;border:${mm.id===lqMat?'2px solid var(--acc)':'1px solid var(--line)'};background:${mm.id===lqMat?'var(--acc2)':'var(--card)'};color:var(--ink)">
-        <b style="display:block;font-size:14px">${esc(mm.nome)}</b><span class="mut" style="font-size:12px">${o.q ? `${o.a}/${o.q} acertos` : 'sem questões'}</span> ${o.q?pctTag(o):''}</button>`; }).join('')}</div></div>`;
+        <b style="display:block;font-size:15.5px">${esc(mm.nome)}</b><span class="mut" style="font-size:13.5px">${o.q ? `${o.a}/${o.q} acertos` : 'sem questões'}</span> ${o.q?pctTag(o):''}</button>`; }).join('')}</div></div>`;
   const hojeQ = somaQ(s => s.materiaId===m.id && s.data===hoje());
   h += `<div class="g2" style="margin-top:16px"><div class="col"><div class="card"><h2>${esc(m.nome)}</h2>
     <label for="lq_t">Assunto</label><select id="lq_t" onchange="lqTop=this.value">${m.topicos.map(t => `<option value="${t.id}" ${t.id===lqTop?'selected':''}>${esc(curto(t.nome,90))}</option>`).join('')}<option value="" ${!lqTop&&!m.topicos.length?'selected':''}>(sem assunto específico)</option></select>
@@ -2295,7 +2340,7 @@ function vPlano(){
   h += `<div class="card"><h2>Ciclo de matérias</h2><p class="mut" style="margin-top:-4px">Quantas matérias entram nas metas ao mesmo tempo. Com um limite, o ciclo segue a ordem abaixo; quando uma matéria termina, a próxima entra no lugar.</p>
     <label for="pv">Matérias por vez</label><select id="pv" onchange="setPorVez(this.value)"><option value="0" ${!pv?'selected':''}>Todas ao mesmo tempo (${pend.length})</option>${Array.from({length:Math.max(0,S.materias.length-1)},(_,i)=>i+1).map(n=>`<option value="${n}" ${pv===n?'selected':''}>${n} por vez</option>`).join('')}</select>
     <div style="margin-top:10px">${S.materias.map((m,i)=>{ const fe = !m.topicos.some(t=>t.status!=='concluido');
-      return `<div class="item" style="padding:6px 0"><div style="min-width:0"><span class="mut">${i+1}.</span> ${esc(curto(m.nome,46))} ${fe?'<span class="tag ok">concluída</span>':noCiclo.has(m.id)?'<span class="tag">no ciclo</span>':'<span class="mut" style="font-size:12px">aguardando</span>'}</div>
+      return `<div class="item" style="padding:6px 0"><div style="min-width:0"><span class="mut">${i+1}.</span> ${esc(curto(m.nome,46))} ${fe?'<span class="tag ok">concluída</span>':noCiclo.has(m.id)?'<span class="tag">no ciclo</span>':'<span class="mut" style="font-size:13.5px">aguardando</span>'}</div>
       <div class="inl" style="margin:0"><button class="x" title="Subir" onclick="moverMat('${m.id}',-1)" ${i?'':'disabled'}>↑</button><button class="x" title="Descer" onclick="moverMat('${m.id}',1)" ${i<S.materias.length-1?'':'disabled'}>↓</button></div></div>`; }).join('')}</div></div></div>`;
   // atividades fixas e meta semanal de questões
   const DS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -2314,12 +2359,12 @@ function vPlano(){
   concl.sort((a,b)=>(a.p??2)-(b.p??2));
   h += `<div class="grid" style="margin-top:16px"><div class="card"><h2>Sinalizar assuntos já estudados</h2><p class="mut" style="margin-top:-4px">Já estudou algum assunto antes (outro curso, outro concurso)? Marque aqui: ele sai do estudo teórico do cronograma e conta no progresso.</p>
     ${aEstudar.map(({m,ts})=>`<details class="mat" ${planoAberto.has('e'+m.id)?'open':''} ontoggle="this.open?planoAberto.add('e${m.id}'):planoAberto.delete('e${m.id}')"><summary><b style="flex:1">${esc(m.nome)}</b><span class="mut">${ts.length} a estudar</span></summary><div class="body">
-      ${ts.map(t=>`<label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);font-size:14px;margin:6px 0"><input type="checkbox" data-est="${t.id}" style="width:17px;height:17px;flex:none;margin-top:2px;accent-color:var(--acc)">${esc(t.nome)}${t.status==='estudando'?' <span class="tag">estudando</span>':''}</label>`).join('')}</div></details>`).join('') || '<div class="empty">Todos os assuntos já estão concluídos.</div>'}
+      ${ts.map(t=>`<label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);font-size:15.5px;margin:6px 0"><input type="checkbox" data-est="${t.id}" style="width:17px;height:17px;flex:none;margin-top:2px;accent-color:var(--acc)">${esc(t.nome)}${t.status==='estudando'?' <span class="tag">estudando</span>':''}</label>`).join('')}</div></details>`).join('') || '<div class="empty">Todos os assuntos já estão concluídos.</div>'}
     ${aEstudar.length?`<label style="display:flex;gap:8px;align-items:center;color:var(--ink);margin-top:10px"><input id="me_rev" type="checkbox" checked style="width:17px;height:17px;accent-color:var(--acc)">Agendar as revisões desses assuntos (recomendado)</label>
     <div class="inl"><button class="b" onclick="marcarEstudados()">Marcar como estudados</button></div>`:''}</div>
     <div class="card"><h2>Rever assuntos</h2><p class="mut" style="margin-top:-4px">Traz de volta ao cronograma um assunto que você já concluiu, com teoria e questões de novo. A lista começa pelos de menor acerto.</p>
     ${concl.length ? `<div style="max-height:420px;overflow:auto"><table><tr><th></th><th>Assunto</th><th class="n">Acerto</th></tr>${concl.map(x=>`<tr><td><input type="checkbox" data-rev="${x.t.id}" style="width:17px;height:17px;accent-color:var(--acc)" aria-label="Rever ${esc(x.t.nome)}"></td>
-      <td>${esc(curto(x.t.nome,70))}<div class="mut" style="font-size:12px">${esc(x.m.nome)}${x.t.estudadoFora?' · marcado como já estudado':''}${x.t.revisto?' · revisto '+x.t.revisto+'x':''}</div></td><td class="n">${x.p==null?'<span class="mut">—</span>':`<span class="tag ${corP(x.p)}">${pct(x.p)}</span>`}</td></tr>`).join('')}</table></div>
+      <td>${esc(curto(x.t.nome,70))}<div class="mut" style="font-size:13.5px">${esc(x.m.nome)}${x.t.estudadoFora?' · marcado como já estudado':''}${x.t.revisto?' · revisto '+x.t.revisto+'x':''}</div></td><td class="n">${x.p==null?'<span class="mut">—</span>':`<span class="tag ${corP(x.p)}">${pct(x.p)}</span>`}</td></tr>`).join('')}</table></div>
       <div class="inl"><button class="b" onclick="reverAssuntos()">Trazer de volta ao cronograma</button></div>` : '<div class="empty">Nenhum assunto concluído ainda.</div>'}</div></div>`;
   return h;
 }
@@ -2356,11 +2401,11 @@ function vCadernos(){
   const m = mat(cadMat), txt = S.cadernos[cadMat] || '';
   return `<div class="g2"><div class="col"><div class="card"><h2>Caderno de ${esc(m.nome)} <span class="inl" style="margin:0"><button class="g" onclick="inserirNoCaderno()">+ Data de hoje</button><button class="g" onclick="baixarCaderno('${m.id}')">Baixar</button></span></h2>
     <p class="mut" style="margin-top:-4px">Anote os pontos importantes, as pegadinhas da banca e o que errou nas questões. Fica salvo sozinho e serve de base para os resumos e as revisões.</p>
-    <textarea id="cad_txt" style="min-height:440px;font-family:inherit;font-size:14px;line-height:1.55" placeholder="Ex.: Crase antes de “Vossa Senhoria”: nunca. A banca costuma trocar ‘sempre’ por ‘nunca’…" oninput="editarCaderno(this.value)">${esc(txt)}</textarea>
+    <textarea id="cad_txt" style="min-height:440px;font-family:inherit;font-size:15.5px;line-height:1.55" placeholder="Ex.: Crase antes de “Vossa Senhoria”: nunca. A banca costuma trocar ‘sempre’ por ‘nunca’…" oninput="editarCaderno(this.value)">${esc(txt)}</textarea>
     <div class="mut" style="margin-top:6px"><span id="cad_n">${txt.length.toLocaleString('pt-BR')} caracteres</span> · salvo automaticamente</div></div></div>
     <div class="col"><div class="card"><h2>Suas matérias <button class="g" onclick="baixarTodosCadernos()">Baixar todos</button></h2>
     ${S.materias.map(mm => { const n = (S.cadernos[mm.id]||'').length;
-      return `<button onclick="cadMat='${mm.id}';render()" style="display:block;width:100%;text-align:left;cursor:pointer;font:inherit;padding:9px 11px;margin:6px 0;border-radius:10px;border:${mm.id===cadMat?'2px solid var(--acc)':'1px solid var(--line)'};background:${mm.id===cadMat?'var(--acc2)':'var(--card)'};color:var(--ink)"><b style="font-size:14px">${esc(curto(mm.nome,44))}</b><div class="mut" style="font-size:12px">${n?n.toLocaleString('pt-BR')+' caracteres':'vazio'}</div></button>`; }).join('')}</div></div></div>`;
+      return `<button onclick="cadMat='${mm.id}';render()" style="display:block;width:100%;text-align:left;cursor:pointer;font:inherit;padding:9px 11px;margin:6px 0;border-radius:10px;border:${mm.id===cadMat?'2px solid var(--acc)':'1px solid var(--line)'};background:${mm.id===cadMat?'var(--acc2)':'var(--card)'};color:var(--ink)"><b style="font-size:15.5px">${esc(curto(mm.nome,44))}</b><div class="mut" style="font-size:13.5px">${n?n.toLocaleString('pt-BR')+' caracteres':'vazio'}</div></button>`; }).join('')}</div></div></div>`;
 }
 
 /* ---------- Simulados ---------- */
@@ -2402,7 +2447,7 @@ function vSimulados(){
     <div class="row"><div><label for="si_err">${cespe?'Erradas (Cebraspe: uma errada anula uma certa)':'Erradas (opcional)'}</label><input id="si_err" type="number" min="0"></div><div><label for="si_nota">Nota final (opcional)</label><input id="si_nota" inputmode="decimal"></div><div><label for="si_min">Tempo (min)</label><input id="si_min" type="number" min="0"></div></div>
     <div class="inl"><button class="b" onclick="salvarSimulado()">Salvar simulado</button><button class="g" onclick="simForm=false;render()">Cancelar</button></div>`;
   } else if(L.length){
-    h += `<div style="overflow-x:auto"><table><tr><th>Data</th><th>Simulado</th><th class="n">Acertos</th><th class="n">%</th><th class="n">Nota</th><th></th></tr>${L.slice().reverse().map(s=>`<tr><td>${br(s.data).slice(0,5)}</td><td>${esc(s.nome)}${s.min?`<div class="mut" style="font-size:12px">${hm(s.min)}</div>`:''}</td><td class="n">${s.a}/${s.q}</td><td class="n"><span class="tag ${corP(s.a/s.q)}">${pct(s.a/s.q)}</span></td><td class="n">${s.nota!=null?String(s.nota).replace('.',','):'—'}</td><td><button class="x" title="Excluir" onclick="delSimulado('${s.id}')">✕</button></td></tr>`).join('')}</table></div>`;
+    h += `<div style="overflow-x:auto"><table><tr><th>Data</th><th>Simulado</th><th class="n">Acertos</th><th class="n">%</th><th class="n">Nota</th><th></th></tr>${L.slice().reverse().map(s=>`<tr><td>${br(s.data).slice(0,5)}</td><td>${esc(s.nome)}${s.min?`<div class="mut" style="font-size:13.5px">${hm(s.min)}</div>`:''}</td><td class="n">${s.a}/${s.q}</td><td class="n"><span class="tag ${corP(s.a/s.q)}">${pct(s.a/s.q)}</span></td><td class="n">${s.nota!=null?String(s.nota).replace('.',','):'—'}</td><td><button class="x" title="Excluir" onclick="delSimulado('${s.id}')">✕</button></td></tr>`).join('')}</table></div>`;
   } else h += `<div class="empty">Nenhum simulado registrado. Registre cada simulado que fizer para acompanhar a evolução e ver as matérias que mais tiram pontos.</div>`;
   h += `</div>`;
   if(L.length >= 1){ const ul = L.slice(-10);
@@ -2436,7 +2481,7 @@ function diasEstudados(){ return new Set(S.sessoes.filter(s=>(+s.min||0)>0 || (+
 function semanaChecks(){
   const ini = addDias(hoje(), -parse(hoje()).getDay()), dias = new Set(S.sessoes.map(s=>s.data));
   return `<div style="display:flex;gap:6px;margin-top:10px">${[0,1,2,3,4,5,6].map(i=>{ const d = addDias(ini,i), ok = dias.has(d), fut = d > hoje(), pz = pausaDe(d);
-    return `<div style="text-align:center;font-size:11px;color:rgba(255,255,255,.75)"><div title="${br(d)}${pz?' · pausa':''}" style="width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;${ok?'background:var(--gold);color:#1b1d2a':fut?'border:2px dashed rgba(255,255,255,.3)':pz?'background:rgba(255,255,255,.12)':'border:2px solid rgba(255,255,255,.3)'};${d===hoje()?'outline:2px solid #fff;outline-offset:2px':''}">${ok?'✓':pz?'–':''}</div>${'DSTQQSS'[i]}</div>`; }).join('')}</div>`;
+    return `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,.75)"><div title="${br(d)}${pz?' · pausa':''}" style="width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14.5px;${ok?'background:var(--gold);color:#1b1d2a':fut?'border:2px dashed rgba(255,255,255,.3)':pz?'background:rgba(255,255,255,.12)':'border:2px solid rgba(255,255,255,.3)'};${d===hoje()?'outline:2px solid #fff;outline-offset:2px':''}">${ok?'✓':pz?'–':''}</div>${'DSTQQSS'[i]}</div>`; }).join('')}</div>`;
 }
 
 /* ---------- Configurações ---------- */
