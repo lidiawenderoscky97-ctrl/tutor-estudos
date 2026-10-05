@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="27">
+<meta name="versao" content="28">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -172,6 +172,49 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 #modal p{white-space:pre-wrap;margin:0 0 16px;line-height:1.5}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--sb);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+/* Metas de hoje: página inteira, letra maior */
+body.larga .top,body.larga main{max-width:none}
+.hoje{font-size:16px}
+.hoje .mut{font-size:15px}
+.hk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:18px}
+.hk>div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:flex;gap:14px;align-items:center}
+.hk .ic{flex:none;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--acc2)}
+.hk small{display:block;color:var(--mut);font-size:14px}
+.hk b{display:block;font-size:24px;letter-spacing:-.02em;line-height:1.25}
+.prog{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin-bottom:18px}
+.prog .cab{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.prog h2{font-size:20px;margin:0}
+.prog .pc{font-size:26px;font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums}
+.prog .bar{height:16px}
+.hoje .meta{padding:22px 26px;margin:14px 0;border-radius:16px;grid-template-columns:40px 1fr auto;gap:18px;border-left:6px solid var(--acc)}
+.hoje .meta.revisao{border-left-color:var(--rev)}.hoje .meta.reforco{border-left-color:var(--ref)}.hoje .meta.questoes{border-left-color:var(--ok)}.hoje .meta.fixa{border-left-color:var(--gold)}.hoje .meta.extra{border-left-color:var(--mut)}
+.hoje .meta.feita{border-left-color:var(--ok)}
+.hoje .meta .ck{width:38px;height:38px;font-size:17px}
+.hoje .meta .tit{font-size:21px;line-height:1.3;letter-spacing:-.01em;margin:8px 0 4px!important}
+.hoje .meta .dia-m{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px}
+.hoje .tipo{font-size:13px;padding:4px 11px;border-radius:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--acc);color:var(--accink);border-radius:99px;padding:4px 13px;font-size:14px;font-weight:600}
+.hoje .tag{font-size:13px;padding:3px 10px}
+.hoje .aula{font-size:15px!important;padding:6px 12px;margin-top:10px;border-radius:9px}
+.hoje button.b{font-size:16px;padding:10px 20px;border-radius:11px}
+.hoje button.g{font-size:15px;padding:9px 15px;border-radius:11px}
+.hoje button.lk{font-size:14px}
+.hoje .meta .acts{gap:10px}
+.hoje .caixa{padding:16px 18px}
+.hoje .caixa b{font-size:16px!important}
+.hoje label{font-size:14px}
+.hoje input,.hoje select{font-size:16px;padding:9px 11px}
+.hoje .inl input{width:120px}
+.hoje .pausa{font-size:14px;margin:0}
+.hoje .alert{font-size:15px;padding:12px 16px}
+.hoje .card h2{font-size:18px}
+.hoje .pl{font-size:15px}
+.hoje .g3 .card{height:100%}
+@media (max-width:1100px){.hk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:800px){
+  .hk{grid-template-columns:1fr 1fr;gap:10px}.hk>div{padding:12px;gap:10px}.hk .ic{display:none}.hk b{font-size:18px}
+  .hoje .meta{padding:16px;grid-template-columns:32px 1fr;gap:12px}.hoje .meta .ck{width:30px;height:30px}.hoje .meta .tit{font-size:18px}
+}
 code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:4px}
 @media (max-width:800px){
   .app{grid-template-columns:1fr}
@@ -959,6 +1002,7 @@ function render(){
   ct.innerHTML = S.config.dataProva ? (d => d>=0 ? `<span class="chip">Prova em <b>${d}</b> dias</span>` : '')(diff(hoje(),S.config.dataProva)) : '';
   desenharCron();
   const V = {painel:vPainel, hoje:vHoje, semana:vSemana, plano:vPlano, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, questoes:vQuestoes, simulados:vSimulados, cadernos:vCadernos, registrar:vRegistrar, config:vConfig};
+  document.body.classList.toggle('larga', aba==='hoje');
   document.getElementById('app').innerHTML = V[aba]();
   if(aba==='registrar') atualizaTopicos();
   if(aba==='questoes' && lqFoco){ const el = document.getElementById('lq_q'); if(el) el.focus(); lqFoco = false; }
@@ -1027,21 +1071,29 @@ function vHoje(){
   if(!S.metas[hoje()]) gerarMetas(false); else atualizarMetasAntigas();
   const metas = S.metas[hoje()] || [];
   const plan = metas.reduce((s,x)=>s+x.min,0), feitoMin = metas.filter(x=>x.feita).reduce((s,x)=>s+(x.minReal||x.min),0);
-  let h = cardPomodoro() + `<div class="g2"><div class="col"><div class="card"><h2><span>${DIAS[parse(hoje()).getDay()][0].toUpperCase()+DIAS[parse(hoje()).getDay()].slice(1)}, ${br(hoje())} · <span class="mut">${hm(feitoMin)} de ${hm(plan)}</span></span>
-      <button class="g" onclick="confirmar('Refazer as metas pendentes de hoje? As concluídas ficam.').then(ok=>{if(ok){gerarMetas(true);render();}})">Refazer pendentes</button></h2>
-      <div class="bar" style="height:10px"><i style="width:${plan?Math.min(100,feitoMin/plan*100):0}%"></i></div>${avisoHoje?`<div class="alert info" style="margin-top:10px">${esc(avisoHoje)}</div>`:''}`;
+  const dsem = DIAS[parse(hoje()).getDay()], nMat = new Set(metas.filter(x=>x.materiaId).map(x=>x.materiaId)).size;
+  const estudado = stats(s=>s.data===hoje()).min||0, p = plan ? Math.min(1, feitoMin/plan) : 0, nFeitas = metas.filter(x=>x.feita).length;
+  let h = `<div class="hoje"><div class="hk">
+      <div><span class="ic">📅</span><span><small>Você está no dia</small><b>${br(hoje())}</b><small>${dsem[0].toUpperCase()+dsem.slice(1)}</small></span></div>
+      <div><span class="ic">📚</span><span><small>Matérias hoje</small><b>${nMat} ${nMat===1?'matéria':'matérias'}</b><small>${metas.length} ${metas.length===1?'meta':'metas'} no dia</small></span></div>
+      <div><span class="ic">🎯</span><span><small>Metas do dia</small><b>${hm(plan)}</b><small>${nFeitas} de ${metas.length} concluídas</small></span></div>
+      <div><span class="ic">⏱️</span><span><small>Estudo de hoje</small><b>${hm(estudado)}</b><small>tempo registrado</small></span></div></div>`
+    + cardPomodoro() + `<div class="prog"><div class="cab"><h2>Progresso diário</h2><span style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="mut">${hm(feitoMin)} de ${hm(plan)}</span><span class="pc">${Math.round(p*100)}%</span>
+      <button class="g" onclick="confirmar('Refazer as metas pendentes de hoje? As concluídas ficam.').then(ok=>{if(ok){gerarMetas(true);render();}})">Refazer pendentes</button></span></div>
+      <div class="bar"><i style="width:${p*100}%"></i></div>${avisoHoje?`<div class="alert info" style="margin-top:12px">${esc(avisoHoje)}</div>`:''}`;
   const atr = metasAtrasadas();
   if(atr.length){ const dias = [...new Set(atr.map(a=>a.dia))].sort();
     h += `<div class="alert warn" style="margin-top:10px"><b>${atr.length} meta${atr.length>1?'s':''} atrasada${atr.length>1?'s':''}</b> de ${dias.map(d=>br(d).slice(0,5)).join(', ')}: ${atr.slice(0,4).map(a=>{ const m=mat(a.meta.materiaId), t=topico(m,a.meta.topicoId); return esc(rotuloMeta(a.meta)+' · '+curto(t.nome,40)); }).join(' · ')}${atr.length>4?' …':''}
       <div class="inl" style="margin-top:8px"><button class="b" onclick="replanejarAtrasados()">Replanejar para hoje</button><button class="g" onclick="descartarAtrasados()">Descartar</button></div></div>`; }
+  h += `</div>`;
   if(!metas.length){ const pz = pausaDe(hoje());
-    h += `<div class="empty" style="margin-top:10px">Sem metas para hoje: ${pz ? `plano pausado até ${br(pz.ate)}${pz.motivo?' ('+esc(pz.motivo)+')':''}. As metas voltam sozinhas depois da pausa; as revisões vencidas entram primeiro.` : capacidade(hoje())? 'todo o conteúdo do ciclo está concluído.' : 'dia sem horas de estudo em Meu plano.'}</div>`; }
+    h += `<div class="empty card" style="margin-top:10px">Sem metas para hoje: ${pz ? `plano pausado até ${br(pz.ate)}${pz.motivo?' ('+esc(pz.motivo)+')':''}. As metas voltam sozinhas depois da pausa; as revisões vencidas entram primeiro.` : capacidade(hoje())? 'todo o conteúdo do ciclo está concluído.' : 'dia sem horas de estudo em Meu plano.'}</div>`; }
   metas.forEach((x,i) => { h += cardMeta(x,i); if(i<metas.length-1 && !x.feita) h += `<div class="pausa">pausa de 10 min · levante, beba água, sem celular</div>`; });
   const pend = metas.filter(x=>!x.feita).length;
-  h += `<div class="caixa" style="margin-top:12px"><b style="font-size:14px">Adiantar amanhã</b>
-    <p class="mut" style="margin:4px 0 8px">${pend ? `Ainda há ${pend} meta${pend>1?'s':''} de hoje. Se quiser, já puxe as de amanhã; o plano de amanhã continua de onde você parar.` : 'Metas de hoje concluídas! Quer continuar? Puxe as metas de amanhã para hoje.'}</p>
+  h += `<div class="g3" style="margin-top:20px"><div class="card"><h2>⏩ Adiantar amanhã</h2>
+    <p class="mut" style="margin:0 0 10px">${pend ? `Ainda há ${pend} meta${pend>1?'s':''} de hoje. Se quiser, já puxe as de amanhã; o plano de amanhã continua de onde você parar.` : 'Metas de hoje concluídas! Quer continuar? Puxe as metas de amanhã para hoje.'}</p>
     <div class="inl" style="margin:0"><button class="${pend?'g':'b'}" onclick="adiantar(false)">Adiantar a próxima meta</button><button class="g" onclick="adiantar(true)">Adiantar o dia de amanhã</button></div></div>`;
-  h += `</div></div><div class="col"><div class="card"><h2>Como fazer cada meta</h2><ul class="pl mut" style="padding-left:18px;margin:0">
+  h += `<div class="card"><h2>Como fazer cada meta</h2><ul class="pl mut" style="padding-left:18px;margin:0">
     <li><b>Teoria:</b> estude a aula indicada do Estratégia e faça seu resumo. Quando toda a teoria do assunto acabar, entra a meta de questões.</li>
     <li><b>Questões:</b> caderno do TEC só da banca do concurso, sobre o assunto, lendo os comentários dos erros.</li>
     <li><b>Revisão:</b> antes de reler, tente lembrar e resolva questões; só depois consulte o resumo nos pontos em que errou.</li>
@@ -1060,8 +1112,8 @@ function detalheMeta(x,m,t){
 }
 function cardFixa(x,i){
   const ativa = S.timer && S.timer.metaId===x.id, m = mat(x.materiaId);
-  let h = `<div class="meta ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
-    <div style="min-width:0"><div><span class="tipo fixa">Atividade fixa</span> <span class="mut">${hm(x.min)} · ${focos(x.min)}</span></div>
+  let h = `<div class="meta fixa ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
+    <div style="min-width:0"><div class="dia-m">Meta ${i+1} do dia ${br(hoje()).slice(0,5)}${x.feita?' · concluída ✓':''}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tipo fixa">Atividade fixa</span> <span class="pill">⏱ ${x.min} minutos de atividade</span> <span class="mut">${focos(x.min)}</span></div>
       <div class="tit" style="margin-top:4px">${esc(x.nome)}${m?` <span class="mut">· ${esc(m.nome)}</span>`:''}</div>
       <div class="mut">Atividade que se repete no seu plano (ajuste em Meu plano → Atividades fixas).</div></div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${hm(x.minReal)}</b><div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div></div>`;
@@ -1079,8 +1131,8 @@ function cardMeta(x,i){
   if(!m || !t) return '';
   const ix = indice(t.id), [cl, cc] = classe(ix.p);
   const ativa = S.timer && S.timer.metaId===x.id;
-  let h = `<div class="meta ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
-    <div style="min-width:0"><div><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <span class="mut">${hm(x.min)} · ${focos(x.min)}</span>${x.atrasada?` <span class="tag warn">atrasada de ${br(x.atrasada).slice(0,5)}</span>`:''}${x.adiantada?` <span class="tag rev">adiantada de ${br(x.adiantada).slice(0,5)}</span>`:''}</div>
+  let h = `<div class="meta ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
+    <div style="min-width:0"><div class="dia-m">Meta ${i+1} do dia ${br(hoje()).slice(0,5)}${x.feita?' · concluída ✓':''}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <span class="pill">⏱ ${x.min} minutos de atividade</span> <span class="mut">${focos(x.min)}</span>${x.atrasada?` <span class="tag warn">atrasada de ${br(x.atrasada).slice(0,5)}</span>`:''}${x.adiantada?` <span class="tag rev">adiantada de ${br(x.adiantada).slice(0,5)}</span>`:''}</div>
       <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
       ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
