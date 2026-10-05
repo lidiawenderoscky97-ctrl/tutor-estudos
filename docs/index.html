@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="24">
+<meta name="versao" content="25">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -142,6 +142,10 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .tipo{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--acc2);color:var(--acc)}
 .tipo.revisao{background:var(--revbg);color:var(--rev)}.tipo.reforco{background:var(--refbg);color:var(--ref)}
 .tipo.extra{background:var(--soft);color:var(--ink)}
+.semdots{display:flex;gap:6px;margin-top:10px}.semdots span{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--mut);gap:2px}
+.semdots i{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:700}
+.semdots .ok i{background:var(--ok);border-color:var(--ok);color:#fff}.semdots .hj i{border-color:var(--acc)}
+.tipo.fixa{background:var(--refbg);color:var(--gold)}.bl.fixa{border-color:var(--gold)}
 .tipo.questoes{background:var(--okbg);color:var(--ok)}
 .aula{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--ink);background:var(--soft);border-radius:7px;padding:3px 9px;margin-top:6px}
 .caixa{margin-top:4px;padding:12px;border-radius:10px;background:var(--acc2)}
@@ -242,7 +246,7 @@ const lim = () => (+S.config.limiar||75)/100;
 const corP = p => p==null ? '' : p<.6 ? 'bad' : p<lim() ? 'warn' : 'ok';
 const curto = (s,n) => (s=String(s||'')).length>n ? s.slice(0,n-1)+'…' : s;
 
-const TIPOS = {extra:'Tempo extra', conteudo:'Conteúdo novo', teoria:'Teoria', questoes:'Questões', ambos:'Teoria + questões', revisao:'Revisão', reforco:'Reforço'};
+const TIPOS = {fixa:'Atividade fixa', simulado:'Simulado', extra:'Tempo extra', conteudo:'Conteúdo novo', teoria:'Teoria', questoes:'Questões', ambos:'Teoria + questões', revisao:'Revisão', reforco:'Reforço'};
 const FONTES = ['Estratégia (PDF)','Estratégia (vídeo)','TEC Concursos','Resumo próprio','Outro'];
 const STATUS = {nao:'Não iniciado', estudando:'Estudando', concluido:'Concluído'};
 const INCID = {1:'Baixa',2:'Média',3:'Alta'};
@@ -250,7 +254,9 @@ const INCID = {1:'Baixa',2:'Média',3:'Alta'};
 /* ============ Dados ============ */
 const padrao = () => ({
   config:{concurso:'',banca:'',horasUtil:3,horasFds:4,dataProva:'',intervalos:[1,7,15,30,60,90],
-          ritmoPag:2,blocoMin:30,blocoMax:120,limiar:75,cicloTs:Date.now(),pomodoro:{ativo:true,foco:25,curta:5,longa:15,ciclos:4}},
+          ritmoPag:2,blocoMin:30,blocoMax:120,limiar:75,cicloTs:Date.now(),pomodoro:{ativo:true,foco:25,curta:5,longa:15,ciclos:4},
+          pausas:[], fixas:[], materiasPorVez:0, metaQSemana:100},
+  simulados:[],
   materias:[], sessoes:[], revisoes:[], metas:{}, timer:null
 });
 let S;
@@ -260,6 +266,8 @@ function migrar(){
   S.config = Object.assign(padrao().config, S.config);
   if(daV1){ S.config.blocoMin = 30; S.config.blocoMax = 120; }
   if(!S.metas) S.metas = {};
+  if(!Array.isArray(S.simulados)) S.simulados = [];
+  ['pausas','fixas'].forEach(k => { if(!Array.isArray(S.config[k])) S.config[k] = []; });
   S.materias.forEach(m => { m.peso = m.peso||3; m.nivel = m.nivel||3; m.curso = m.curso||'';
     m.topicos.forEach(t => { t.incid = t.incid||2; t.paginas = +t.paginas||0; t.feitos = +t.feitos||0; t.status = t.status||'nao'; t.aula = t.aula||''; });
     // curso do TJSP que ficou de um edital anterior (versões antigas não limpavam ao trocar de edital)
@@ -404,6 +412,22 @@ function blocosTopico(m,t){
 }
 const nTeoria = (m,t) => blocosTopico(m,t).filter(b=>b.fase==='teoria').length;
 const teoriaConcluida = (m,t) => t.feitos >= nTeoria(m,t);
+// Previsão de término do conteúdo: tempo restante ÷ horas livres (descontando atividades fixas, pausas e ~25% para revisões)
+function previsaoTermino(){
+  let rest = S.materias.reduce((s,m)=>s+tempoMateriaRestante(m),0);
+  if(!rest) return null;
+  let d = hoje(), n = 0;
+  while(rest > 0 && n < 1500){ const cap = capacidade(d) - fixasDoDia(d).reduce((s,f)=>s+(+f.min||0),0); rest -= Math.max(0, cap) * .75; if(rest > 0){ d = addDias(d, 1); n++; } }
+  return n >= 1500 ? null : d;
+}
+// Horas por dia para terminar até a data: mantém a proporção entre dia útil e fim de semana
+function horasParaData(alvo){
+  const rest = S.materias.reduce((s,m)=>s+tempoMateriaRestante(m),0); if(!rest || !alvo || alvo <= hoje()) return null;
+  const u = +S.config.horasUtil||0, f = +S.config.horasFds||0, r = u ? f/u : 1; let pesoU = 0, pesoF = 0, fixas = 0;
+  for(let d = hoje(); d <= alvo; d = addDias(d,1)){ if(emPausa(d)) continue; const w = parse(d).getDay(); if(w===0||w===6) pesoF++; else pesoU++; fixas += fixasDoDia(d).reduce((s,x)=>s+(+x.min||0),0); }
+  const precisa = rest / .75 + fixas; const util = precisa / (pesoU + pesoF * r || 1) / 60;
+  return {util: Math.ceil(util*2)/2, fds: Math.ceil(util*r*2)/2};
+}
 const tempoMateriaRestante = m => m.topicos.filter(t=>t.status!=='concluido')
   .reduce((s,t)=>{const b=blocosTopico(m,t); return s + b.slice(Math.min(t.feitos,b.length)).reduce((a,x)=>a+x.min,0);},0);
 
@@ -435,10 +459,11 @@ const minSemana = () => (5*(+S.config.horasUtil||0) + 2*(+S.config.horasFds||0))
 const TIPOS_CONTEUDO = ['conteudo','teoria','questoes','ambos','extra'];
 function ciclo(extra){
   extra = extra || {};
-  const ativos = S.materias.filter(m => m.topicos.some(t => t.status!=='concluido'));
+  let ativos = S.materias.filter(m => !m.foraCiclo && m.topicos.some(t => t.status!=='concluido'));
+  const nVez = +S.config.materiasPorVez || 0; if(nVez > 0) ativos = ativos.slice(0, nVez); // estuda N matérias por vez, na ordem do ciclo
   const ws = ativos.map(m => ({m, w:(+m.peso||1) * (6-(+m.nivel||3)) * fatorMateria(m)}));
   const tot = ws.reduce((s,x)=>s+x.w,0) || 1;
-  const unid = Math.floor(minSemana()/5);
+  const unid = Math.floor(Math.max(0, minSemana() - minFixasSemana())/5);
   const cotas = ws.map(x => unid*x.w/tot), base = cotas.map(Math.floor);
   let sobra = unid - base.reduce((s,x)=>s+x,0);
   cotas.map((c,i)=>({i, f:c-base[i]})).sort((a,b)=>b.f-a.f).forEach(x=>{ if(sobra>0){ base[x.i]++; sobra--; } });
@@ -478,12 +503,17 @@ function proxBloco(m, planejados){
    Metas do dia — revisões vencidas primeiro, 1 reforço do assunto mais fraco,
    conteúdo novo intercalando matérias (máx. 2 blocos da mesma no dia).
    ===================================================================== */
-function capacidade(dia){ const d = parse(dia).getDay(); return ((d===0||d===6) ? +S.config.horasFds : +S.config.horasUtil) * 60 || 0; }
+const emPausa = dia => (S.config.pausas||[]).find(p => dia >= p.ini && dia <= p.fim);
+function capacidade(dia){ if(emPausa(dia)) return 0; const d = parse(dia).getDay(); return ((d===0||d===6) ? +S.config.horasFds : +S.config.horasUtil) * 60 || 0; }
+// Atividades fixas (Lei Seca todo dia, caderno de erros no domingo...): entram primeiro no dia e usam as horas líquidas
+const fixasDoDia = dia => emPausa(dia) ? [] : (S.config.fixas||[]).filter(f => (f.dias||[]).includes(parse(dia).getDay()));
+const minFixasSemana = () => (S.config.fixas||[]).reduce((s,f) => s + (+f.min||0) * (f.dias||[]).length, 0);
 function montarMetas(dia, base){
   const cap = capacidade(dia);
   const metas = (base||[]).slice();
+  fixasDoDia(dia).forEach(f => { if(!metas.some(x => x.fixaId===f.id)) metas.unshift({id:uid(), tipo:'fixa', fixaId:f.id, nome:f.nome, min:+f.min||30, materiaId:f.materiaId||null, topicoId:null}); });
   let usado = metas.reduce((s,x)=>s+(x.min||0),0);
-  let revUsado = metas.filter(x=>x.tipo!=='conteudo').reduce((s,x)=>s+(x.min||0),0);
+  let revUsado = metas.filter(x=>x.tipo!=='conteudo' && x.tipo!=='fixa').reduce((s,x)=>s+(x.min||0),0);
   const ja = new Set(metas.map(x=>x.revisaoId).filter(Boolean));
   const c0 = ciclo(); if(c0.length && c0.every(x=>x.r>=1)){ S.config.cicloTs = Date.now(); }
   const revs = S.revisoes.filter(r => !r.feita && r.due<=dia && !ja.has(r.id)).sort((a,b)=>a.due<b.due?-1:1);
@@ -608,7 +638,7 @@ async function iniciarMeta(id){
   if(S.timer && S.timer.metaId!==id && tempoTimer()>60000 && !(await confirmar('Já há um cronômetro rodando em outra atividade. Trocar para esta meta? (o tempo anterior será descartado)'))) return;
   const m = mat(meta.materiaId), t = topico(m, meta.topicoId);
   if(S.timer && S.timer.metaId===id){ if(!rodando()) pausarTimer(); return; }
-  S.timer = novoTimer(id, (m?m.nome:'')+' › '+(t?t.nome:''));
+  S.timer = novoTimer(id, meta.tipo==='fixa' ? meta.nome : (m?m.nome:'')+' › '+(t?t.nome:''));
   somAviso(true); save(); render();
 }
 async function iniciarLivre(){
@@ -812,6 +842,10 @@ function concluirMeta(id){
   const meta = (S.metas[hoje()]||[]).find(x=>x.id===id); if(!meta) return;
   const cq = document.getElementById('cq'), ca = document.getElementById('ca');
   const q = cq ? (+cq.value||0) : 0, a = ca ? (+ca.value||0) : 0, min = +document.getElementById('cm').value||meta.min;
+  if(meta.tipo==='fixa'){ if(meta.feita) return;
+    const s = {id:uid(), ts:Date.now(), data:hoje(), materiaId:meta.materiaId||null, topicoId:null, tipo:'fixa', fonte:'Atividade fixa', min, q:0, a:0, obs:meta.nome};
+    S.sessoes.push(s); Object.assign(meta, {feita:true, minReal:min, desfazer:{sessaoId:s.id}});
+    if(S.timer && S.timer.metaId===id) S.timer = null; caixaAberta = null; save(); render(); return; }
   if(a > q) return avisar('Acertos não podem ser maiores que o número de questões.');
   const m = mat(meta.materiaId), t = topico(m, meta.topicoId); if(!t) return;
   if(meta.feita) return;
@@ -855,6 +889,8 @@ function xpTotal(){
   return Math.round(S.sessoes.reduce((s,x)=>s+(+x.min||0)+2*(+x.a||0),0) + 20*metas);
 }
 function nivel(xp){ const n = Math.floor(Math.sqrt(xp/100))+1; const ini = 100*(n-1)**2, fim = 100*n**2; return {n, ini, fim, p:(xp-ini)/(fim-ini)}; }
+const domingo = d => addDias(d, -parse(d).getDay());
+function mudarMetaQ(){ ir('config'); setTimeout(()=>{ const el = document.getElementById('cfg_metaq'); if(el){ el.focus(); if(el.select) el.select(); } }, 50); }
 function sequencia(){
   const dias = new Set(S.sessoes.map(s=>s.data)); let d = hoje(), n = 0;
   if(!dias.has(d)) d = addDias(d,-1);
@@ -869,7 +905,7 @@ function cobertura(){
 function tempoPorTipo(desde){
   const g = {conteudo:0, questoes:0, revisao:0};
   S.sessoes.filter(s=>s.data>=desde).forEach(s=>{
-    const k = ['conteudo','teoria','ambos','extra'].includes(s.tipo) ? 'conteudo' : s.tipo==='revisao' ? 'revisao' : 'questoes';
+    const k = ['conteudo','teoria','ambos','extra','fixa'].includes(s.tipo) ? 'conteudo' : s.tipo==='revisao' ? 'revisao' : 'questoes';
     g[k] += +s.min||0; });
   return g;
 }
@@ -900,10 +936,12 @@ const ICON = {
   revisoes:'<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
   desempenho:'<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/></svg>',
   questoes:'<svg viewBox="0 0 24 24"><path d="M9 11l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 17h10"/></svg>',
+  simulados:'<svg viewBox="0 0 24 24"><path d="M9 3h6l1 4H8z"/><rect x="4" y="7" width="16" height="14" rx="2"/><path d="M8 12h8M8 16h5"/></svg>',
+  cadernos:'<svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5"/></svg>',
   registrar:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
   config:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
 };
-const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['questoes','Lançar questões'],['registrar','Registro avulso'],['config','Configurações']];
+const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['questoes','Lançar questões'],['simulados','Simulados'],['cadernos','Cadernos'],['registrar','Registro avulso'],['config','Configurações']];
 let aba = 'painel';
 function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHoje=''; } if(a!=='config') avisoCfg=''; render(); window.scrollTo(0,0); }
 function render(){
@@ -915,7 +953,7 @@ function render(){
   const ct = document.getElementById('contagem');
   ct.innerHTML = S.config.dataProva ? (d => d>=0 ? `<span class="chip">Prova em <b>${d}</b> dias</span>` : '')(diff(hoje(),S.config.dataProva)) : '';
   desenharCron();
-  const V = {painel:vPainel, hoje:vHoje, semana:vSemana, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, questoes:vQuestoes, registrar:vRegistrar, config:vConfig};
+  const V = {painel:vPainel, hoje:vHoje, semana:vSemana, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, questoes:vQuestoes, simulados:vSimulados, cadernos:vCadernos, registrar:vRegistrar, config:vConfig};
   document.getElementById('app').innerHTML = V[aba]();
   if(aba==='registrar') atualizaTopicos();
   if(aba==='questoes' && lqFoco){ const el = document.getElementById('lq_q'); if(el) el.focus(); lqFoco = false; }
@@ -941,7 +979,10 @@ function vPainel(){
   const d = parse(hoje()).getDay();
   let h = `<div class="card hero"><div style="flex:1;min-width:240px"><h2>Olá! ${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}</h2>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
-      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span></div></div>
+      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span></div>
+      <div class="semdots">${[0,1,2,3,4,5,6].map(i => { const dd = addDias(domingo(hoje()), i), fez = S.sessoes.some(s=>s.data===dd);
+        return `<span class="${fez?'ok':''} ${dd===hoje()?'hj':''}" title="${br(dd)}"><i>${fez?'✓':''}</i>${'DSTQQSS'[i]}</span>`; }).join('')}</div>
+      ${(f => f ? `<div class="mut" style="margin-top:8px">No seu ritmo, você termina o conteúdo do edital em <b>${br(f)}</b>${S.config.dataProva ? (f > S.config.dataProva ? ' <span class="tag bad">depois da prova</span>' : ` · ${diff(f, S.config.dataProva)} dias antes da prova`) : ''}.</div>` : '')(previsaoTermino())}</div>
     <div class="xp"><div class="mut" style="display:flex;justify-content:space-between"><span>${xp} XP</span><span>próximo nível: ${lv.fim} XP</span></div>
       <div class="bar" style="height:10px;margin-top:6px"><i style="width:${lv.p*100}%"></i></div>
       <div class="mut" style="margin-top:6px;font-size:12px">XP = minutos estudados + 2 por acerto + 20 por meta concluída</div></div></div>`;
@@ -949,11 +990,13 @@ function vPainel(){
     <div class="kpi">${anel(plan?feitoMin/plan:0)}<div><div class="mut">Meta de hoje</div><div class="big">${hm(feitoMin)}</div><div class="mut">de ${hm(plan)} · ${metas.filter(x=>x.feita).length}/${metas.length} metas</div></div></div>
     <div class="kpi">${anel(meta?sem.min/meta:0,'var(--rev)')}<div><div class="mut">Semana</div><div class="big">${hm(sem.min)}</div><div class="mut">de ${hm(meta)} planejadas</div></div></div>
     <div class="kpi">${anel(sem.p||0,'var(--ok)',64,sem.q?pct(sem.p):'—')}<div><div class="mut">Acerto na semana</div><div class="big">${sem.q}</div><div class="mut">questões resolvidas</div></div></div>
-    <div class="kpi">${anel(cob,'var(--gold)')}<div><div class="mut">Cobertura do edital</div><div class="big">${pct(cob)}</div><div class="mut">do conteúdo estudado</div></div></div></div>`;
+    <div class="kpi">${anel(cob,'var(--gold)')}<div><div class="mut">Cobertura do edital</div><div class="big">${pct(cob)}</div><div class="mut">do conteúdo estudado</div></div></div>
+    ${(alvoQ => alvoQ ? `<div class="kpi">${anel(Math.min(1, sem.q/alvoQ),'var(--ok)',64,sem.q>=alvoQ?'✓':Math.round(sem.q/alvoQ*100)+'%')}<div><div class="mut">Meta semanal de questões</div><div class="big">${sem.q}<span class="mut" style="font-size:14px"> / ${alvoQ}</span></div><div class="mut">${sem.q>=alvoQ?'meta batida!':'faltam '+(alvoQ-sem.q)} · <button class="lk" onclick="mudarMetaQ()">alterar</button></div></div></div>` : '')(+S.config.metaQSemana||0)}</div>`;
   h += cardPomodoro() + (!S.timer ? `<div class="card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>Pomodoro livre</b><div class="mut">Para estudar fora das metas. Ao terminar, o tempo de foco vai para o Registro avulso.</div></div><button class="b" onclick="iniciarLivre()">▶ Iniciar pomodoro</button></div>` : '');
   const pend = metas.filter(x=>!x.feita).slice(0,4);
   h += `<div class="g2"><div class="col"><div class="card"><h2>Próximas metas de hoje <button class="g" onclick="ir('hoje')">Ver todas</button></h2>
-    ${pend.length ? pend.map(x=>{const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!t) return '';
+    ${pend.length ? pend.map(x=>{ if(x.tipo==='fixa') return `<div class="item"><div style="min-width:0"><span class="tipo fixa">Atividade fixa</span> <b>${esc(x.nome)}</b><div class="mut">${hm(x.min)}</div></div><button class="g" onclick="iniciarMeta('${x.id}');ir('hoje')">▶ Iniciar</button></div>`;
+      const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!t) return '';
       return `<div class="item"><div style="min-width:0"><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <b>${esc(m.nome)}</b><div class="mut">${esc(curto(t.nome,80))} · ${hm(x.min)}</div></div>
       <button class="g" onclick="iniciarMeta('${x.id}');ir('hoje')">▶ Iniciar</button></div>`}).join('') : '<div class="empty">Tudo concluído por hoje.</div>'}</div>`;
   h += `<div class="card"><h2>Tempo por atividade <span class="mut">últimos 7 dias · ${hm(tpt)}</span></h2>
@@ -984,7 +1027,7 @@ function vHoje(){
   if(atr.length){ const dias = [...new Set(atr.map(a=>a.dia))].sort();
     h += `<div class="alert warn" style="margin-top:10px"><b>${atr.length} meta${atr.length>1?'s':''} atrasada${atr.length>1?'s':''}</b> de ${dias.map(d=>br(d).slice(0,5)).join(', ')}: ${atr.slice(0,4).map(a=>{ const m=mat(a.meta.materiaId), t=topico(m,a.meta.topicoId); return esc(rotuloMeta(a.meta)+' · '+curto(t.nome,40)); }).join(' · ')}${atr.length>4?' …':''}
       <div class="inl" style="margin-top:8px"><button class="b" onclick="replanejarAtrasados()">Replanejar para hoje</button><button class="g" onclick="descartarAtrasados()">Descartar</button></div></div>`; }
-  if(!metas.length) h += `<div class="empty" style="margin-top:10px">Sem metas para hoje: ${capacidade(hoje())? 'todo o conteúdo do ciclo está concluído.' : 'dia sem horas de estudo em Configurações.'}</div>`;
+  if(!metas.length) h += `<div class="empty" style="margin-top:10px">Sem metas para hoje: ${emPausa(hoje()) ? 'plano pausado ('+esc(emPausa(hoje()).motivo||'pausa')+') até '+br(emPausa(hoje()).fim)+'.' : capacidade(hoje())? 'todo o conteúdo do ciclo está concluído.' : 'dia sem horas de estudo em Configurações.'}</div>`;
   metas.forEach((x,i) => { h += cardMeta(x,i); if(i<metas.length-1 && !x.feita) h += `<div class="pausa">pausa de 10 min · levante, beba água, sem celular</div>`; });
   const pend = metas.filter(x=>!x.feita).length;
   h += `<div class="caixa" style="margin-top:12px"><b style="font-size:14px">Adiantar amanhã</b>
@@ -1007,7 +1050,23 @@ function detalheMeta(x,m,t){
   if(x.tipo==='revisao') return `Revisão ${x.etapa+1} · questões do TEC, depois resumo dos erros`;
   return `Assunto abaixo de ${S.config.limiar}% · caderno de questões do TEC`;
 }
+function cardFixa(x,i){
+  const ativa = S.timer && S.timer.metaId===x.id, m = mat(x.materiaId);
+  let h = `<div class="meta ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
+    <div style="min-width:0"><div><span class="tipo fixa">Atividade fixa</span> <span class="mut">${hm(x.min)} · ${focos(x.min)}</span></div>
+      <div class="tit" style="margin-top:4px">${esc(x.nome)}${m?` <span class="mut">· ${esc(m.nome)}</span>`:''}</div>
+      <div class="mut">Atividade que se repete no seu plano (configure em Configurações → Atividades fixas).</div></div><div class="acts">`;
+  if(x.feita) h += `<div style="text-align:right"><b>${hm(x.minReal)}</b><div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div></div>`;
+  else { h += ativa ? `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>` : `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
+    if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';render()">Concluir</button>`; }
+  h += `</div>`;
+  if(!x.feita && caixaAberta===x.id){ const minT = ativa ? Math.max(1, Math.round(tempoTimer()/60000)) : x.min;
+    h += `<div class="caixa"><b style="font-size:14px">Quanto tempo levou?</b><div class="inl"><div><label>Tempo real (min)</label><input id="cm" type="number" min="0" value="${minT}"></div>
+      <button class="b" onclick="concluirMeta('${x.id}')">Salvar</button><button class="g" onclick="caixaAberta=null;render()">Cancelar</button></div></div>`; }
+  return h + `</div>`;
+}
 function cardMeta(x,i){
+  if(x.tipo==='fixa') return cardFixa(x,i);
   const m = mat(x.materiaId), t = topico(m, x.topicoId);
   if(!m || !t) return '';
   const ix = indice(t.id), [cl, cc] = classe(ix.p);
@@ -1056,13 +1115,15 @@ function vSemana(){
   const c = ciclo(); const tA = c.reduce((s,x)=>s+x.alvo,0), tF = c.reduce((s,x)=>s+Math.min(x.feito,x.alvo),0);
   const restante = S.materias.reduce((s,m)=>s+tempoMateriaRestante(m),0), ms = minSemana();
   let prev = '';
-  if(ms && restante){ const semanas = restante/ms, fim = addDias(hoje(), Math.ceil(semanas*7));
-    prev = `Conteúdo restante: <b>${hm(restante)}</b> ≈ ${semanas.toFixed(1)} semanas no seu ritmo · término previsto do 1º ciclo de conteúdo: <b>${br(fim)}</b>`;
+  const fimPrev = previsaoTermino();
+  if(ms && restante && fimPrev){ const semanas = diff(hoje(), fimPrev)/7, fim = fimPrev;
+    prev = `Conteúdo restante: <b>${hm(restante)}</b> ≈ ${semanas.toFixed(1)} semanas no seu ritmo (já contando atividades fixas, pausas e revisões) · término previsto do 1º ciclo de conteúdo: <b>${br(fim)}</b>`;
     if(S.config.dataProva && fim > S.config.dataProva) prev += ` <span class="tag bad">passa da data da prova</span>`; }
   let h = `<div class="card"><h2>Próximos 7 dias</h2><p class="mut" style="margin-top:-6px">Projeção automática supondo que você cumpra as metas. Ela se ajusta sozinha a cada meta concluída, ao seu acerto e às revisões.</p>
     <div class="semana">${sem.map((d,i)=>{const tot=d.metas.reduce((s,x)=>s+x.min,0); const pd=parse(d.dia);
-      return `<div class="dia ${i===0?'hj':''}"><h4>${i===0?'Hoje':DIAS3[pd.getDay()]} <span class="mut">${br(d.dia).slice(0,5)}</span></h4><div class="mut">${capacidade(d.dia)?hm(tot)+' de '+hm(capacidade(d.dia)):'descanso'}</div>
-      ${d.metas.map(x=>{const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!m||!t) return ''; return `<div class="bl ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''}"><b>${esc(curto(m.nome,24))}</b>${esc(curto(t.nome,48))}<div class="mut">${rotuloMeta(x)} · ${hm(x.min)}${t.aula && x.fase!=='questoes'?' · '+esc(t.aula):''}</div></div>`}).join('')}</div>`}).join('')}</div></div>`;
+      return `<div class="dia ${i===0?'hj':''}"><h4>${i===0?'Hoje':DIAS3[pd.getDay()]} <span class="mut">${br(d.dia).slice(0,5)}</span></h4><div class="mut">${capacidade(d.dia)?hm(tot)+' de '+hm(capacidade(d.dia)):emPausa(d.dia)?'pausa':'descanso'}</div>
+      ${emPausa(d.dia)?`<div class="mut">pausa: ${esc(emPausa(d.dia).motivo||'plano pausado')}</div>`:''}${d.metas.map(x=>{ if(x.tipo==='fixa') return `<div class="bl fixa ${x.feita?'feita':''}"><b>${esc(curto(x.nome,30))}</b><div class="mut">Atividade fixa · ${hm(x.min)}</div></div>`;
+      const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!m||!t) return ''; return `<div class="bl ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''}"><b>${esc(curto(m.nome,24))}</b>${esc(curto(t.nome,48))}<div class="mut">${rotuloMeta(x)} · ${hm(x.min)}${t.aula && x.fase!=='questoes'?' · '+esc(t.aula):''}</div></div>`}).join('')}</div>`}).join('')}</div></div>`;
   h += `<div class="card" style="margin-top:16px"><h2>Ciclo da semana <button class="g" onclick="confirmar('Zerar o progresso e iniciar um novo ciclo?').then(ok=>{if(ok){S.config.cicloTs=Date.now();save();render();}})">Iniciar novo ciclo</button></h2>
     <p class="mut">${prev}<br>Ciclo iniciado em ${br(iso(new Date(S.config.cicloTs)))} · ${hm(tF)} de ${hm(tA)} (= ${hm(ms)} líquidas por semana). Fatia de cada matéria = peso × dificuldade × desempenho; abaixo de ${S.config.limiar}% ganha mais tempo.</p>
     ${c.sort((a,b)=>b.alvo-a.alvo).map(x => `<div class="brow"><span>${esc(curto(x.m.nome,26))} ${x.fat>1?'<span class="tag bad" title="Acerto baixo: mais tempo">+</span>':x.fat<1?'<span class="tag ok" title="Acerto alto: menos tempo">−</span>':''}</span>
@@ -1863,7 +1924,7 @@ function vEdital(){
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
       ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp"><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
-        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small></span>
+        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}${t.status==='concluido'?` <button class="lk" onclick="reverAssunto('${m.id}','${t.id}')">rever hoje</button>`:''}</small></span>
         <input type="number" min="0" value="${t.paginas||''}" placeholder="?" onchange="setTop('${m.id}','${t.id}','paginas',+this.value||0)">
         <select class="hide" onchange="setTop('${m.id}','${t.id}','incid',+this.value)">${[1,2,3].map(k=>`<option value="${k}" ${k==t.incid?'selected':''}>${INCID[k]}</option>`).join('')}</select>
         <span class="hide mut">${hm(tempoTopico(m,t).total)}</span>
@@ -2039,6 +2100,60 @@ function lancarQuestoes(){
   lqTop = tid; lqFoco = true; save(); render(); avisar(`Lançado: ${a}/${q} (${pct(a/q)}).`);
 }
 
+/* ---------- Cadernos de anotações (um por matéria) ---------- */
+let cadMat = null, cadTimer = null;
+function vCadernos(){
+  if(!S.materias.length) return vazio();
+  if(!cadMat || !mat(cadMat)) cadMat = S.materias[0].id;
+  const m = mat(cadMat);
+  return `<div class="g2"><div class="col"><div class="card"><h2>Cadernos</h2><p class="mut" style="margin-top:-4px">Um caderno de anotações por matéria: macetes, pegadinhas da banca, erros que você não quer repetir. Tudo fica salvo na sua conta.</p>
+    ${S.materias.map(mm => `<div class="item" style="cursor:pointer;${mm.id===cadMat?'background:var(--acc2);border-radius:9px;padding-left:8px':''}" onclick="cadMat='${mm.id}';render()"><div><b>${esc(mm.nome)}</b><div class="mut">${(mm.notas||'').length} caractere(s)</div></div></div>`).join('')}</div></div>
+    <div class="col"><div class="card"><h2>Caderno de ${esc(m.nome)} <span class="mut" id="cad_st"></span></h2>
+    <textarea id="cad_txt" style="min-height:420px;font-size:14px;line-height:1.5" placeholder="Escreva aqui. Salva sozinho enquanto você digita." oninput="cadDigitar(this.value)">${esc(m.notas||'')}</textarea></div></div></div>`;
+}
+function cadDigitar(v){ const m = mat(cadMat); if(!m) return; m.notas = v; const st = document.getElementById('cad_st'); if(st) st.textContent = 'salvando…';
+  clearTimeout(cadTimer); cadTimer = setTimeout(() => { save(); const s2 = document.getElementById('cad_st'); if(s2) s2.textContent = 'salvo ✓'; }, 800); }
+
+/* ---------- Simulados ---------- */
+let simForm = false;
+function vSimulados(){
+  const sims = (S.simulados||[]).slice().sort((a,b) => a.data < b.data ? 1 : -1);
+  const notaP = s => s.total ? s.acertos / s.total : null;
+  let h = `<div class="card"><h2>Simulados <button class="b" onclick="simForm=!simForm;render()">${simForm?'Fechar':'+ Lançar simulado'}</button></h2>
+    <p class="mut" style="margin-top:-4px">Registre cada simulado (nome, data e acertos por matéria) para acompanhar a evolução e ver onde a prova está pegando.</p>`;
+  if(simForm) h += `<div class="caixa"><div class="row"><div><label for="sm_n">Simulado</label><input id="sm_n" placeholder="Ex.: TJSP – Simulado 03"></div><div><label for="sm_d">Data</label><input id="sm_d" type="date" value="${hoje()}"></div></div>
+    <div style="overflow-x:auto"><table><tr><th>Matéria</th><th class="n">Questões</th><th class="n">Acertos</th></tr>
+    ${S.materias.map(m => `<tr><td>${esc(m.nome)}</td><td class="n"><input class="sm_q" data-m="${m.id}" type="number" min="0" style="width:80px"></td><td class="n"><input class="sm_a" data-m="${m.id}" type="number" min="0" style="width:80px"></td></tr>`).join('')}</table></div>
+    <div class="inl"><button class="b" onclick="salvarSimulado()">Salvar simulado</button><span class="mut">Deixe em branco as matérias que não caíram.</span></div></div>`;
+  if(!sims.length) return h + `<div class="empty">Nenhum simulado lançado ainda.</div></div>`;
+  const ev = sims.slice().reverse().slice(-12);
+  h += `<h3>Evolução</h3><div class="weeks" style="height:120px">${ev.map(s => { const p = notaP(s); return `<div title="${esc(s.nome)}"><span>${pct(p)}</span><b style="height:${(p||0)*100}%;background:var(--${corP(p)||'acc'})"></b>${br(s.data).slice(0,5)}</div>`; }).join('')}</div>`;
+  h += `<div style="overflow-x:auto;margin-top:12px"><table><tr><th>Data</th><th>Simulado</th><th class="n">Acertos</th><th class="n">%</th><th>Pior matéria</th><th></th></tr>
+    ${sims.map(s => { const pior = (s.itens||[]).filter(x=>x.q).map(x=>({...x,p:x.a/x.q})).sort((a,b)=>a.p-b.p)[0]; const p = notaP(s);
+      return `<tr><td>${br(s.data).slice(0,5)}</td><td>${esc(s.nome)}</td><td class="n">${s.acertos}/${s.total}</td><td class="n"><span class="tag ${corP(p)}">${pct(p)}</span></td>
+        <td>${pior && mat(pior.materiaId) ? esc(curto(mat(pior.materiaId).nome,30))+' · '+pct(pior.p) : '—'}</td><td><button class="x" title="Excluir" onclick="delSimulado('${s.id}')">✕</button></td></tr>`; }).join('')}</table></div>`;
+  // média por matéria nos simulados
+  const porM = S.materias.map(m => { let q=0,a=0; sims.forEach(s => (s.itens||[]).forEach(x => { if(x.materiaId===m.id){ q+=x.q; a+=x.a; } })); return {m,q,a,p:q?a/q:null}; }).filter(x=>x.q).sort((a,b)=>a.p-b.p);
+  if(porM.length) h += `<h3>Acerto por matéria nos simulados</h3>${porM.map(x=>`<div class="brow"><span>${esc(curto(x.m.nome,26))}</span><div class="bar"><i class="${corP(x.p)}" style="width:${x.p*100}%"></i></div><span>${pct(x.p)}</span></div>`).join('')}`;
+  return h + `</div>`;
+}
+function salvarSimulado(){
+  const nome = document.getElementById('sm_n').value.trim() || 'Simulado', data = document.getElementById('sm_d').value || hoje();
+  const itens = []; let erro = '';
+  document.querySelectorAll('.sm_q').forEach(el => { const q = +el.value||0, a = +(document.querySelector(`.sm_a[data-m="${el.dataset.m}"]`).value)||0; if(q){ if(a > q) erro = 'Acertos não podem passar das questões.'; itens.push({materiaId:el.dataset.m, q, a}); } });
+  if(erro) return avisar(erro); if(!itens.length) return avisar('Informe as questões e os acertos de pelo menos uma matéria.');
+  S.simulados.push({id:uid(), nome, data, itens, total: itens.reduce((s,x)=>s+x.q,0), acertos: itens.reduce((s,x)=>s+x.a,0)});
+  simForm = false; save(); render(); avisar('Simulado salvo.');
+}
+async function delSimulado(id){ if(!(await confirmar('Excluir este simulado?'))) return; S.simulados = S.simulados.filter(s=>s.id!==id); save(); render(); }
+
+// Rever um assunto já concluído: entra uma revisão hoje
+function reverAssunto(mid, tid){
+  if(S.revisoes.some(r => r.topicoId===tid && !r.feita && r.due<=hoje())) return avisar('Este assunto já tem revisão para hoje.');
+  S.revisoes.push({id:uid(), materiaId:mid, topicoId:tid, etapa:0, due:hoje(), feita:null});
+  gerarMetas(true); save(); render(); avisar('Revisão do assunto adicionada às metas de hoje.');
+}
+
 /* ---------- Registro avulso ---------- */
 function vRegistrar(){
   if(!S.materias.length) return vazio();
@@ -2085,6 +2200,7 @@ function vConfig(){
     <label>Data da prova</label><input type="date" value="${c.dataProva}" onchange="setCfg('dataProva',this.value)">
     <div class="row"><div><label>Horas líquidas por dia útil</label><input type="number" step=".5" min="0" value="${c.horasUtil}" onchange="setCfg('horasUtil',+this.value)"></div>
       <div><label>Horas líquidas no sábado e domingo</label><input type="number" step=".5" min="0" value="${c.horasFds}" onchange="setCfg('horasFds',+this.value)"></div></div>
+    <label for="cfg_metaq">Meta semanal de questões</label><input id="cfg_metaq" type="number" min="0" step="10" value="${+c.metaQSemana||0}" onchange="setCfg('metaQSemana',+this.value||0)">
     <p class="mut">Total: <b>${hm(minSemana())}</b> líquidas por semana. O ciclo divide exatamente esse tempo entre as matérias, e nenhum dia passa das horas dele.</p>
     ${avisoCfg?`<div class="alert info">${avisoCfg}</div>`:''}
     <h3>Cálculo dos blocos</h3>
@@ -2106,6 +2222,7 @@ function vConfig(){
     <div class="row"><div><label>Limiar de acerto (%)</label><input type="number" min="50" max="95" value="${c.limiar}" onchange="setCfg('limiar',+this.value||75)"></div>
       <div><label>Intervalos base (dias)</label><input value="${c.intervalos.join(', ')}" onchange="setInt(this.value)"></div></div>
     <p class="mut">Mudanças aqui valem para as próximas metas. Use “Refazer pendentes” em Metas de hoje para aplicar já.</p></div>
+    ${cardPlanoAvancado()}
     <div class="card"><h2>Como o tutor funciona</h2><ul class="pl" style="padding-left:18px;margin:0">
       <li><b>Repetição espaçada</b> (curva do esquecimento de Ebbinghaus): revisões em intervalos crescentes, que encurtam quando o acerto cai.</li>
       <li><b>Prática de recuperação</b> (Roediger e Karpicke; <i>Make It Stick</i>): toda meta termina em questões, e as revisões começam por questões, não por releitura.</li>
@@ -2121,7 +2238,54 @@ function vConfig(){
     ${DESK ? '<button class="g" onclick="verificarAtualizacao()">Verificar atualizações agora</button>' : ''}
     <h3>Zona de perigo</h3><button class="g" style="color:var(--bad)" onclick="confirmar('Apagar TODOS os dados?').then(ok=>{if(ok){S=padrao();save();render();}})">Apagar todos os dados</button></div></div>`;
 }
-const REPLANEJA = ['horasUtil','horasFds','blocoMin','blocoMax','ritmoPag','limiar','ordemEstudo'];
+function cardPlanoAvancado(){
+  const c = S.config, hj = hoje(), DS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const alvo = c.dataAlvo || c.dataProva || '', calc = alvo ? horasParaData(alvo) : null, prev = previsaoTermino();
+  let h = `<div class="card"><h2>Terminar até uma data</h2>
+    <p class="mut">No ritmo atual, o 1º ciclo de todo o conteúdo termina em <b>${prev ? br(prev) : '—'}</b>${c.dataProva && prev ? (prev > c.dataProva ? ' <span class="tag bad">depois da prova</span>' : ` <span class="tag ok">${diff(prev, c.dataProva)} dias antes da prova</span>`) : ''}.</p>
+    <div class="row"><div><label for="cfg_alvo">Quero terminar o conteúdo até</label><input id="cfg_alvo" type="date" value="${alvo}" onchange="S.config.dataAlvo=this.value;save();render()"></div></div>
+    ${calc ? `<p>Para isso você precisa de <b>${String(calc.util).replace('.',',')} h</b> líquidas por dia útil e <b>${String(calc.fds).replace('.',',')} h</b> no fim de semana (hoje: ${String(c.horasUtil).replace('.',',')} h e ${String(c.horasFds).replace('.',',')} h).</p>
+      ${calc.util > 12 ? '<div class="alert bad">Não cabe: escolha uma data mais distante ou tire matérias do ciclo.</div>' : (calc.util !== +c.horasUtil || calc.fds !== +c.horasFds) ? `<button class="b" onclick="S.config.horasUtil=${calc.util};S.config.horasFds=${calc.fds};gerarMetas(true);save();render();avisar('Horas ajustadas: o plano foi refeito para terminar até ${br(alvo)}.')">Ajustar minhas horas</button>` : '<span class="tag ok">suas horas já bastam</span>'}` : '<p class="mut">Escolha uma data (por padrão, a data da prova).</p>'}
+    <p class="mut">Conta o tempo de teoria e questões que falta, descontando atividades fixas, pausas e uma reserva de ~25% para revisões.</p></div>`;
+  // ciclo de matérias
+  h += `<div class="card"><h2>Ciclo de matérias</h2><p class="mut">Ordem em que as matérias entram no ciclo. Com “matérias por vez”, o tutor foca nas primeiras da lista e passa para a próxima quando uma termina.</p>
+    <label for="cfg_vez">Matérias por vez</label><select id="cfg_vez" onchange="setCfg('materiasPorVez',+this.value)">${[0,1,2,3,4,5,6,7,8,10,12].map(n=>`<option value="${n}" ${(+c.materiasPorVez||0)===n?'selected':''}>${n?n+' por vez':'Todas ao mesmo tempo (recomendado)'}</option>`).join('')}</select>
+    ${S.materias.map((m,i) => `<div class="item" style="padding:6px 0"><div style="min-width:0"><b>${i+1}.</b> ${esc(m.nome)} ${m.foraCiclo?'<span class="tag warn">fora do ciclo</span>':''}${m.topicos.every(t=>t.status==='concluido')?' <span class="tag ok">concluída</span>':''}</div>
+      <div class="inl" style="margin:0"><button class="g" ${i?'':'disabled'} onclick="moverMat(${i},-1)" title="Subir">↑</button><button class="g" ${i<S.materias.length-1?'':'disabled'} onclick="moverMat(${i},1)" title="Descer">↓</button>
+      <button class="g" onclick="mat('${m.id}').foraCiclo=!mat('${m.id}').foraCiclo;gerarMetas(true);save();render()">${m.foraCiclo?'Pôr no ciclo':'Tirar do ciclo'}</button></div></div>`).join('')}</div>`;
+  // atividades fixas
+  h += `<div class="card"><h2>Atividades fixas</h2><p class="mut">Atividades que se repetem e entram primeiro no dia, como Lei Seca 30 min por dia ou caderno de erros no domingo. Elas usam as suas horas líquidas.</p>
+    ${(c.fixas||[]).map(f => `<div class="item"><div><b>${esc(f.nome)}</b><div class="mut">${hm(f.min)} · ${(f.dias||[]).map(d=>DS[d]).join(', ')}${f.materiaId&&mat(f.materiaId)?' · '+esc(mat(f.materiaId).nome):''}</div></div><button class="x" title="Excluir" onclick="delFixa('${f.id}')">✕</button></div>`).join('') || '<div class="empty">Nenhuma atividade fixa.</div>'}
+    <div class="row"><div><label for="fx_n">Atividade</label><input id="fx_n" placeholder="Ex.: Lei Seca"></div><div><label for="fx_m">Minutos</label><input id="fx_m" type="number" min="10" step="5" value="30"></div>
+      <div><label for="fx_mat">Matéria (opcional)</label><select id="fx_mat"><option value="">—</option>${S.materias.map(m=>`<option value="${m.id}">${esc(curto(m.nome,40))}</option>`).join('')}</select></div></div>
+    <div class="inl">${DS.map((d,i)=>`<label style="display:inline-flex;gap:4px;align-items:center;margin:0"><input type="checkbox" class="fx_d" value="${i}" ${i>0&&i<6?'checked':''} style="width:auto">${d}</label>`).join('')}</div>
+    <div class="inl"><button class="b" onclick="addFixa()">Adicionar</button><button class="lk" onclick="document.getElementById('fx_n').value='Lei Seca';document.getElementById('fx_m').value=30">sugestão: Lei Seca 30 min</button><button class="lk" onclick="document.getElementById('fx_n').value='Revisão do caderno de erros';document.getElementById('fx_m').value=60;document.querySelectorAll('.fx_d').forEach(x=>x.checked=x.value==='0')">sugestão: caderno de erros no domingo</button></div></div>`;
+  // pausas
+  h += `<div class="card"><h2>Pausar o plano</h2><p class="mut">Viagem, doença, plantão: nos dias de pausa não há metas, e o plano continua depois de onde parou (revisões vencidas voltam primeiro).</p>
+    ${(c.pausas||[]).slice().sort((a,b)=>a.ini<b.ini?-1:1).map(p => `<div class="item"><div><b>${br(p.ini)} a ${br(p.fim)}</b>${p.fim<hj?' <span class="mut">(passou)</span>':p.ini<=hj?' <span class="tag warn">em andamento</span>':''}<div class="mut">${esc(p.motivo||'')}</div></div><button class="x" title="Excluir" onclick="delPausa('${p.id}')">✕</button></div>`).join('') || '<div class="empty">Nenhuma pausa cadastrada.</div>'}
+    <div class="row"><div><label for="pz_i">De</label><input id="pz_i" type="date" value="${hj}"></div><div><label for="pz_f">Até</label><input id="pz_f" type="date" value="${addDias(hj,2)}"></div><div><label for="pz_m">Motivo (opcional)</label><input id="pz_m" placeholder="Ex.: viagem"></div></div>
+    <button class="b" onclick="addPausa()">Cadastrar pausa</button></div>`;
+  return h;
+}
+function moverMat(i, d){ const j = i + d; if(j < 0 || j >= S.materias.length) return; const a = S.materias; [a[i], a[j]] = [a[j], a[i]]; gerarMetas(true); save(); render(); }
+function addFixa(){
+  const nome = document.getElementById('fx_n').value.trim(), min = +document.getElementById('fx_m').value || 0;
+  const dias = [...document.querySelectorAll('.fx_d')].filter(x=>x.checked).map(x=>+x.value), materiaId = document.getElementById('fx_mat').value || null;
+  if(!nome || min < 5 || !dias.length) return avisar('Informe a atividade, os minutos e ao menos um dia da semana.');
+  S.config.fixas.push({id:uid(), nome, min, dias, materiaId}); gerarMetas(true); save(); render(); avisar('Atividade fixa adicionada. As metas foram refeitas.');
+}
+async function delFixa(id){ if(!(await confirmar('Excluir esta atividade fixa?'))) return; S.config.fixas = S.config.fixas.filter(f=>f.id!==id);
+  S.metas[hoje()] = (S.metas[hoje()]||[]).filter(x => x.feita || x.fixaId!==id); gerarMetas(true); save(); render(); }
+function addPausa(){
+  const ini = document.getElementById('pz_i').value, fim = document.getElementById('pz_f').value, motivo = document.getElementById('pz_m').value.trim();
+  if(!ini || !fim || fim < ini) return avisar('Escolha o início e o fim da pausa.');
+  S.config.pausas.push({id:uid(), ini, fim, motivo});
+  if(ini <= hoje() && fim >= hoje()) S.metas[hoje()] = (S.metas[hoje()]||[]).filter(x => x.feita);
+  else gerarMetas(true);
+  save(); render(); avisar(`Plano pausado de ${br(ini)} a ${br(fim)}.`);
+}
+async function delPausa(id){ if(!(await confirmar('Excluir esta pausa?'))) return; S.config.pausas = S.config.pausas.filter(p=>p.id!==id); if(!emPausa(hoje())) gerarMetas(true); save(); render(); }
+const REPLANEJA = ['horasUtil','horasFds','blocoMin','blocoMax','ritmoPag','limiar','ordemEstudo','materiasPorVez'];
 let avisoCfg = '';
 function setCfg(k,v){
   S.config[k]=v;
