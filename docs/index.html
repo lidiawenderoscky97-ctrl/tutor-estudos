@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="31">
+<meta name="versao" content="32">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -280,6 +280,7 @@ p .lsdot{margin:0 4px 0 8px}
 .lsart{border-top:1px solid var(--line);padding:12px 0}
 .lsart.foco{background:var(--acc2);border-radius:10px;padding:12px}
 .lsart-cab{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px;font-size:17px}
+.lsck{width:20px;height:20px;accent-color:var(--acc);flex:none;cursor:pointer}
 .lsdisp{display:flex;gap:10px;align-items:flex-start;padding:3px 0;font-size:15.5px;line-height:1.55}
 .lsleis{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
 .lslei{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
@@ -2951,7 +2952,7 @@ function leiAlvos(indice){
 const leiNaFaixa = (k, faixas) => !faixas.length || faixas.some(([a,b]) => { const o = leiOrdem(k); return o >= a && o <= b; });
 
 /* ---------- Lei seca: estado, sessão de treino e progresso ---------- */
-let LS = {indice:null, leis:{}, preparando:false, pronto:false, erro:'', alvos:[], sessao:null, filtro:'', modo:'edital', qtd:10, ver:'', verTodos:false, verMais:60, pdf:null, outras:false};
+let LS = {artsTxt:'', sel:[], indice:null, leis:{}, preparando:false, pronto:false, erro:'', alvos:[], sessao:null, filtro:'', modo:'edital', qtd:10, ver:'', verTodos:false, verMais:60, pdf:null, outras:false};
 const lsSt = () => S.leiSeca.st;
 function lsTodas(){
   return (LS.indice||[]).concat((S.leisProprias||[]).map(p => ({id:p.id, nome:p.nome, sigla:p.sigla, numero:p.numero||'', propria:true,
@@ -2987,10 +2988,10 @@ function lsInvalidar(){ LS.pronto = false; LS.alvos = []; LS.sessao = null; }
 function lsPool(op){
   op = op || {};
   const out = [], vistos = new Set();
-  const alvos = op.inteira ? [{lei:op.lei, faixas:[], peso:1}] : LS.alvos.filter(a => !op.lei || a.lei === op.lei);
+  const alvos = (op.inteira || op.faixas || op.ks) ? [{lei:op.lei, faixas:op.faixas||[], peso:1}] : LS.alvos.filter(a => !op.lei || a.lei === op.lei);
   alvos.forEach(a => {
     const lei = LS.leis[a.lei]; if(!lei) return;
-    const arts = lei.arts.filter(x => (op.art ? x.k === op.art : leiNaFaixa(x.k, a.faixas)) && (a.faixas.length || op.art || !/^ADCT/.test(x.k)));
+    const arts = lei.arts.filter(x => (op.ks ? op.ks.includes(x.k) : op.art ? x.k === op.art : leiNaFaixa(x.k, a.faixas)) && (a.faixas.length || op.art || op.ks || !/^ADCT/.test(x.k)));
     const elig = [];
     arts.forEach(x => x.d.forEach((d, di) => { if(leiDispOk(x, d)) elig.push([x, di]); }));
     const w = (a.peso || 1) / Math.max(20, elig.length) * 20;
@@ -3013,14 +3014,29 @@ function lsEscolher(pool, n){
 }
 function lsIniciar(op){
   op = op || {};
-  const pool = lsPool({lei: op.lei ?? LS.filtro, art: op.art, inteira: op.inteira ?? (LS.modo === 'inteira' && !!(op.lei ?? LS.filtro)), erros: op.erros ?? LS.modo === 'erros'});
+  // artigos escolhidos por você (campo "Artigos" ou marcados na leitura da lei)
+  if(!op.art && !op.ks && op.lei === undefined && LS.artsTxt.trim()){
+    if(!LS.filtro){ avisar('Escolha a lei antes de digitar os artigos.'); return; }
+    const fx = lsFaixasDigitadas(); if(!fx.length){ avisar('Não entendi os artigos. Use, por exemplo: 5, 37 a 41, 312-A'); return; }
+    op.faixas = fx; op.titulo = op.titulo || LS.leis[LS.filtro].sigla + ', arts. ' + LS.artsTxt.trim(); }
+  const pool = lsPool({lei: op.lei ?? LS.filtro, art: op.art, ks: op.ks, faixas: op.faixas, inteira: op.inteira ?? (LS.modo === 'inteira' && !!(op.lei ?? LS.filtro)), erros: op.erros ?? LS.modo === 'erros'});
   if(!pool.length){ avisar(LS.modo === 'erros' ? 'Nenhum erro para revisar aqui. Ótimo sinal!' : 'Não há dispositivos para treinar com esse filtro.'); return; }
-  const itens = lsEscolher(pool, op.art ? Math.min(pool.length, 15) : LS.qtd).map(it => {
+  const itens = lsEscolher(pool, op.art ? Math.min(pool.length, 15) : Math.min(LS.qtd, op.ks || op.faixas ? Math.max(pool.length, 1) : LS.qtd)).map(it => {
     const lei = LS.leis[it.lei], art = lei.porK[it.k];
     return {...it, q: leiQuestao(lei, art, it.di, it.key + '|' + Date.now() + Math.random())}; });
   LS.sessao = {itens, i:0, resp:null, ac:0, er:0, titulo: op.titulo || ''};
   render(); const el = document.getElementById('lsq'); if(el && el.scrollIntoView) el.scrollIntoView({block:'start', behavior:'smooth'});
 }
+const lsFaixasDigitadas = () => leiFaixas('arts. ' + LS.artsTxt.replace(/art(igo)?s?\.?/gi,'').replace(/;/g,',').trim());
+function lsArtsInfo(){ // prévia do campo "Artigos"
+  if(!LS.artsTxt.trim()) return '';
+  if(!LS.filtro) return '<span class="tag warn">escolha a lei</span>';
+  const L = LS.leis[LS.filtro], fx = lsFaixasDigitadas(); if(!fx.length) return '<span class="tag bad">não entendi os artigos</span>';
+  const arts = L.arts.filter(x => leiNaFaixa(x.k, fx)); if(!arts.length) return '<span class="tag bad">nenhum artigo encontrado nessa lei</span>';
+  const nd = arts.reduce((t,x) => t + x.d.filter(d => leiDispOk(x, d)).length, 0);
+  return `<span class="tag ok">${arts.length} artigo${arts.length>1?'s':''} · ${nd} dispositivos</span> <span class="mut">${esc(arts[0].rot)}${arts.length>1?' a '+esc(arts[arts.length-1].rot):''}</span>`;
+}
+function lsMarcar(k, on){ LS.sel = LS.sel.filter(x => x !== k); if(on) LS.sel.push(k); const b = document.getElementById('lsselbt'); if(b){ b.textContent = '▶ Treinar os ' + LS.sel.length + ' artigos marcados'; b.disabled = !LS.sel.length; } }
 function lsResponder(marcouCerto){
   const s = LS.sessao; if(!s || s.resp) return;
   const it = s.itens[s.i], ok = marcouCerto === it.q.certo, st = lsSt();
@@ -3124,7 +3140,8 @@ function lsCardLer(){
       <button class="g" onclick="LS.busca=document.getElementById('lsbusca').value;render()">Procurar</button>
       ${fx.length ? `<button class="g" onclick="LS.verTodos=!LS.verTodos;LS.verMais=60;render()">${LS.verTodos ? 'Só os artigos do edital' : 'Lei inteira'}</button>` : ''}</div>
     <p class="mut" style="margin:8px 0">${busca ? arts.length + ' resultado(s)' : (LS.verTodos || !fx.length ? 'Lei inteira' : 'Artigos do seu edital') + ' · ' + total + ' artigos'}. A cor mostra o seu domínio: <span class="lsdot" style="background:var(--ok)"></span> dominado <span class="lsdot" style="background:var(--warn)"></span> treinando <span class="lsdot" style="background:var(--bad)"></span> mais erros que acertos <span class="lsdot" style="background:var(--soft)"></span> ainda não treinado.</p>
-    ${arts.map(a => `<div class="lsart${LS.verArt === a.k ? ' foco' : ''}" id="art-${a.k.replace(/\W/g,'_')}"><div class="lsart-cab"><b>${esc(a.rot)}</b>${a.tit?` <span class="mut">· ${esc(a.tit)}</span>`:''}<span style="flex:1"></span><button class="g" onclick="lsIniciar({lei:'${L.id}',art:'${a.k}',inteira:true,titulo:'${esc(L.sigla)}, ${esc(a.rot)}'})">Treinar este artigo</button></div>
+    <div class="inl" style="margin:0 0 6px"><button class="b" id="lsselbt" ${LS.sel.length?'':'disabled'} onclick="lsIniciar({lei:'${L.id}',ks:LS.sel.slice(),titulo:'${esc(L.sigla)}: artigos escolhidos'})">▶ Treinar os ${LS.sel.length} artigos marcados</button>${LS.sel.length?`<button class="g" onclick="LS.sel=[];render()">Desmarcar todos</button>`:''}<span class="mut">Marque os artigos que quer treinar.</span></div>
+    ${arts.map(a => `<div class="lsart${LS.verArt === a.k ? ' foco' : ''}" id="art-${a.k.replace(/\W/g,'_')}"><div class="lsart-cab"><input type="checkbox" class="lsck" ${LS.sel.includes(a.k)?'checked':''} onchange="lsMarcar('${a.k}',this.checked)" aria-label="Marcar ${esc(a.rot)}"><b>${esc(a.rot)}</b>${a.tit?` <span class="mut">· ${esc(a.tit)}</span>`:''}<span style="flex:1"></span><button class="g" onclick="lsIniciar({lei:'${L.id}',art:'${a.k}',inteira:true,titulo:'${esc(L.sigla)}, ${esc(a.rot)}'})">Treinar este artigo</button></div>
       ${a.d.map((d, di) => `<div class="lsdisp"><span class="lsdot" style="background:${lsCor(st[L.id+'|'+a.k+'|'+di])}"></span><span>${d.r!=='caput'?`<b>${esc(d.r === 'Pena' ? 'Pena –' : /^[IVXLC]+$/.test(d.r) ? d.r + ' –' : d.r)}</b> `:''}${esc(d.t)}</span></div>`).join('')}</div>`).join('')}
     ${!busca && total > LS.verMais ? `<button class="g" onclick="LS.verMais+=60;render()">Mostrar mais artigos (${total - LS.verMais} restantes)</button>` : ''}</div>`;
 }
@@ -3170,9 +3187,10 @@ function lsAlternarExtra(id){
   if(ex.includes(id)) S.leiSeca.extras = ex.filter(x => x !== id); else ex.push(id);
   save(); lsInvalidar(); lsPreparar(true);
 }
+function lsIrPdf(){ const c = document.getElementById('lspdf'); if(c && c.scrollIntoView) c.scrollIntoView({block:'center', behavior:'smooth'}); const i = c && c.querySelector('input[type=file]'); if(i) setTimeout(() => i.click(), 350); }
 function lsCardPdf(){
   const p = LS.pdf;
-  let h = `<div class="card"><h2>Adicionar outra lei</h2>
+  let h = `<div class="card" id="lspdf"><h2>📄 Adicionar lei em PDF</h2>
     <p class="mut" style="margin-top:-4px">Envie o PDF de uma lei que não está no catálogo (lei estadual, municipal, regimento, resolução…). O tutor separa os artigos, cria as questões e cruza com o seu edital. A lei fica salva: não precisa enviar de novo.</p>
     <div class="inl"><input type="file" accept="application/pdf,.pdf" onchange="lsPdf(this)" style="width:auto;flex:1;min-width:220px"></div>
     <details style="margin-top:10px"><summary class="mut" style="cursor:pointer">Ou cole o texto da lei</summary>
@@ -3207,10 +3225,11 @@ function vLeiSeca(){
   if(!leis.length) h += `<div class="alert info">Seu edital ainda não cita leis que eu reconheça. Adicione abaixo uma lei do catálogo ou envie o PDF da lei.</div>`;
   if(LS.sessao) h += LS.sessao.fim ? lsCardFim() : lsCardQuestao();
   else h += `<div class="card"><h2>Treinar</h2><p class="mut" style="margin-top:-4px">Afirmações de certo ou errado com o texto da lei. As erradas trocam um detalhe, como as bancas fazem: prazo, número, “poderá/deverá”, competência, pena… Os dispositivos que você erra voltam até você acertar; os que acerta voltam em intervalos cada vez maiores.</p>
-    <div class="row"><div><label>Lei</label><select onchange="LS.filtro=this.value;if(!this.value&&LS.modo==='inteira')LS.modo='edital';render()"><option value="">Todas as leis do edital (pela incidência)</option>${leis.map(id => `<option value="${id}" ${LS.filtro===id?'selected':''}>${esc(LS.leis[id].sigla)} · ${esc(curto(LS.leis[id].nome, 60))}</option>`).join('')}</select></div>
+    <div class="row"><div><label>Lei</label><select onchange="LS.filtro=this.value;LS.artsTxt='';if(!this.value&&LS.modo==='inteira')LS.modo='edital';render()"><option value="">Todas as leis do edital (pela incidência)</option>${leis.map(id => `<option value="${id}" ${LS.filtro===id?'selected':''}>${esc(LS.leis[id].sigla)} · ${esc(curto(LS.leis[id].nome, 60))}</option>`).join('')}</select></div>
       <div><label>Modo</label><select onchange="LS.modo=this.value;render()"><option value="edital" ${LS.modo==='edital'?'selected':''}>Artigos do edital</option><option value="inteira" ${LS.modo==='inteira'?'selected':''} ${LS.filtro?'':'disabled'}>Lei inteira${LS.filtro?'':' (escolha uma lei)'}</option><option value="erros" ${LS.modo==='erros'?'selected':''}>Só os meus erros</option></select></div>
+      <div><label>Artigos (opcional)</label><input id="lsarts" value="${esc(LS.artsTxt)}" placeholder="${LS.filtro ? 'ex.: 5, 37 a 41, 312-A' : 'escolha a lei primeiro'}" oninput="LS.artsTxt=this.value;const e=document.getElementById('lsartsinfo');if(e)e.innerHTML=lsArtsInfo()" onkeydown="if(event.key==='Enter')lsIniciar()"><div id="lsartsinfo" style="margin-top:6px">${lsArtsInfo()}</div></div>
       <div><label>Questões</label><select onchange="LS.qtd=+this.value"><option ${LS.qtd===10?'selected':''}>10</option><option ${LS.qtd===20?'selected':''}>20</option><option ${LS.qtd===30?'selected':''}>30</option><option ${LS.qtd===50?'selected':''}>50</option></select></div></div>
-    <div class="inl"><button class="b" onclick="lsIniciar()" ${leis.length?'':'disabled'}>▶ Começar</button>${G.dev ? `<span class="mut">${G.dev} dispositivo(s) para revisar hoje entram primeiro.</span>` : ''}</div></div>`;
+    <div class="inl"><button class="b" onclick="lsIniciar()" ${leis.length?'':'disabled'}>▶ Começar</button><button class="g" onclick="lsIrPdf()">📄 Adicionar lei em PDF</button>${LS.artsTxt.trim()?`<button class="g" onclick="LS.artsTxt='';render()">Limpar artigos</button>`:''}${G.dev ? `<span class="mut">${G.dev} dispositivo(s) para revisar hoje entram primeiro.</span>` : ''}</div></div>`;
   if(LS.ver) h += lsCardLer();
   const foco = lsFoco();
   h += `<div class="card" style="margin-top:18px"><h2>Suas leis <span class="mut">da mais cobrada para a menos cobrada no seu edital</span></h2><div class="lsleis">
@@ -3219,7 +3238,7 @@ function vLeiSeca(){
         <span class="lslei-p ${pr.p==null?'':pr.p>=.8?'ok':pr.p>=.6?'warn':'bad'}">${pr.p==null?'—':pct(pr.p)}</span></div>
         <div class="brow" style="grid-template-columns:110px 1fr 70px"><span class="mut">Treinados</span><div class="bar"><i style="width:${pr.tot?pr.vistos/pr.tot*100:0}%"></i></div><span>${pr.vistos}/${pr.tot}</span></div>
         <div class="brow" style="grid-template-columns:110px 1fr 70px"><span class="mut">Dominados</span><div class="bar"><i class="ok" style="width:${pr.tot?pr.dom/pr.tot*100:0}%"></i></div><span>${pr.dom}</span></div>
-        <div class="inl" style="margin-top:6px"><button class="g" onclick="LS.filtro='${id}';LS.modo='edital';lsIniciar({lei:'${id}'})">▶ Treinar</button><button class="g" onclick="LS.ver='${id}';LS.verTodos=false;LS.verMais=60;LS.busca='';LS.verArt='';render();setTimeout(()=>{const e=document.getElementById('lsler');if(e&&e.scrollIntoView)e.scrollIntoView({block:'start'})},30)">Ler os artigos</button></div></div>`; }).join('') : '<div class="empty">Nenhuma lei ainda.</div>'}</div></div>
+        <div class="inl" style="margin-top:6px"><button class="g" onclick="LS.filtro='${id}';LS.modo='edital';lsIniciar({lei:'${id}'})">▶ Treinar</button><button class="g" onclick="LS.sel=LS.ver==='${id}'?LS.sel:[];LS.ver='${id}';LS.verTodos=false;LS.verMais=60;LS.busca='';LS.verArt='';render();setTimeout(()=>{const e=document.getElementById('lsler');if(e&&e.scrollIntoView)e.scrollIntoView({block:'start'})},30)">Ler os artigos</button></div></div>`; }).join('') : '<div class="empty">Nenhuma lei ainda.</div>'}</div></div>
     <div class="g3" style="margin-top:18px"><div class="card"><h2>Onde focar</h2>${foco.length ? foco.map(x => { const L = LS.leis[x.lei], a = L.porK[x.k], p = x.a/(x.a+x.e);
         return `<div class="item"><div style="min-width:0"><b>${esc(L.sigla)}, ${esc(a ? a.rot : x.k)}</b>${a&&a.tit?` <span class="mut">· ${esc(curto(a.tit,40))}</span>`:''}<div class="mut">${x.a} certas · ${x.e} erradas</div></div>
           <span class="tag ${p<.5?'bad':'warn'}">${pct(p)}</span><button class="g" onclick="lsIniciar({lei:'${x.lei}',art:'${x.k}',inteira:true,titulo:'${esc(L.sigla)}, ${esc(a?a.rot:x.k)}'})">Treinar</button></div>`; }).join('')
