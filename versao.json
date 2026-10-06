@@ -1,4 +1,4 @@
 {
-  "versao": 40,
-  "notas": "Edital: saem o envio de PDF e a caixa de importar em texto. Agora você cola cada matéria como vem no edital (Matéria - 1. assunto. 2. assunto.) e o tutor separa os assuntos"
+  "versao": 41,
+  "notas": "Edital verticalizado: campo para o link do caderno do TEC em cada assunto; as metas de questões e revisão abrem o caderno do assunto"
 }

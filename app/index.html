@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="40">
+<meta name="versao" content="41">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -226,6 +226,10 @@ main .tp{font-size:15px;padding:8px 0}
 main .tp.hd{font-size:13px}
 main .tp select,main .tp input[type=number]{font-size:14px;padding:5px 7px}
 main .tp .nm small{font-size:13px}
+.inl>div>input{width:100%}
+.tptec{display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap}
+.tptec input{flex:1;min-width:180px;max-width:520px;font-size:13px!important;padding:5px 8px!important}
+.tptec a{font-size:13px;color:var(--ok);font-weight:600;text-decoration:none;white-space:nowrap}
 main .item{padding:12px 0}
 main .leg{font-size:14px}
 main .kpi{padding:18px 20px;border-radius:16px}
@@ -1225,7 +1229,7 @@ function cardMeta(x,i){
       <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
       ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
-      ${linkTec(m) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div><a class="aula" style="text-decoration:none" href="${esc(linkTec(m))}" target="_blank" rel="noopener"><b style="color:var(--ok)">Abrir caderno no TEC</b> ↗</a></div>` : ''}
+      ${linkTec(m,t) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div><a class="aula" style="text-decoration:none" href="${esc(linkTec(m,t))}" target="_blank" rel="noopener"><b style="color:var(--ok)">Abrir caderno no TEC</b>${t.tecLink?' · deste assunto':''} ↗</a></div>` : ''}
       <div><button class="aula" style="border:0;cursor:pointer;font:inherit;font-size:14.5px" onclick="abrirCaderno('${m.id}')"><b style="color:var(--rev)">Anotações</b> · caderno de ${esc(curto(m.nome,40))}${(S.cadernos[m.id]||'').length?'':' (vazio)'}</button></div></div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`+
     (maisTempo!==x.id ? `<button class="g" onclick="maisTempo='${x.id}';render()">+ Adicionar tempo</button>` : '');
@@ -1341,7 +1345,7 @@ function exportarEditalTexto(){
     L.push('', `${limpa(m.nome)} | ${m.peso} | ${m.nivel} | ${limpa(m.curso)}`);
     if(m.estCurso) L.push(`@estrategia: ${m.estCurso} ` + Object.entries(m.estAulas||{}).map(([a,b]) => a+'='+b).join(','));
     if(m.tecLink) L.push(`@tec: ${m.tecLink}`);
-    m.topicos.forEach(t => L.push(`- ${limpa(t.nome).replace(/%/g,' por cento')} *${t.incid||2}${t.paginas?' #'+t.paginas:''}${t.aula?' ['+limpa(t.aula)+']':''}${t.tecQ!=null?' %'+t.tecQ:''}`));
+    m.topicos.forEach(t => { L.push(`- ${limpa(t.nome).replace(/%/g,' por cento')} *${t.incid||2}${t.paginas?' #'+t.paginas:''}${t.aula?' ['+limpa(t.aula)+']':''}${t.tecQ!=null?' %'+t.tecQ:''}`); if(t.tecLink) L.push(`@tecassunto: ${t.tecLink}`); });
   });
   return L.join('\n');
 }
@@ -2087,7 +2091,7 @@ async function tecProcessar(tipo){
     save(); render();
   }catch(e){ avisar('Não foi possível ler: '+e.message); }
 }
-const linkTec = m => (m && m.tecLink) || S.config.tecLinkGeral || '';
+const linkTec = (m, t) => (t && t.tecLink) || (m && m.tecLink) || S.config.tecLinkGeral || '';
 function tecTotais(){      // {topicoId: questões}
   const tot = {}; if(!tecEstado) return tot;
   tecEstado.itens.forEach(x => { if(x.alvo) tot[x.alvo] = (tot[x.alvo]||0) + x.q; });
@@ -2331,7 +2335,8 @@ function vEdital(){
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
       ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp"><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
-        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small></span>
+        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>
+          <span class="tptec"><input value="${esc(t.tecLink||'')}" placeholder="Link do caderno no TEC deste assunto" title="Link do caderno do TEC Concursos para este assunto" onchange="setTopTec('${m.id}','${t.id}',this.value)">${t.tecLink?`<a href="${esc(t.tecLink)}" target="_blank" rel="noopener">Abrir no TEC ↗</a>`:''}</span></span>
         <input type="number" min="0" value="${t.paginas||''}" placeholder="?" onchange="setTop('${m.id}','${t.id}','paginas',+this.value||0)">
         <select class="hide" onchange="setTop('${m.id}','${t.id}','incid',+this.value)">${[1,2,3].map(k=>`<option value="${k}" ${k==t.incid?'selected':''}>${INCID[k]}</option>`).join('')}</select>
         <span class="hide mut">${hm(tempoTopico(m,t).total)}</span>
@@ -2362,6 +2367,7 @@ function setMatEstLink(id, v){
   save(); render();
 }
 function setMatCurso(id,v){ mat(id).curso = v.trim(); save(); render(); }
+function setTopTec(mid,tid,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; } const t = topico(mat(mid), tid); if(!t) return; if(v) t.tecLink = v; else delete t.tecLink; save(); render(); }
 function setMatLink(id,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; } mat(id).tecLink = v; save(); render(); }
 function setMat(id,k,v){const m=mat(id); if(k!=='nome') v=Math.min(5,Math.max(1,v||1)); m[k]=v; save(); render();}
 function setTop(mid,tid,k,v){const t=topico(mat(mid),tid); t[k]=v; if(k==='status'&&v==='nao') t.feitos=0; save(); render();}
@@ -2399,12 +2405,13 @@ function addTop(mid){const i=document.getElementById('nt_'+mid), n=i.value.trim(
 async function delTop(mid,tid){if(!(await confirmar('Excluir assunto e seu histórico?')))return; const m=mat(mid); m.topicos=m.topicos.filter(t=>t.id!==tid); S.revisoes=S.revisoes.filter(r=>r.topicoId!==tid); S.sessoes=S.sessoes.filter(s=>s.topicoId!==tid); save(); render();}
 async function delMat(id){if(!(await confirmar('Excluir a matéria e todo o seu histórico?')))return; S.materias=S.materias.filter(m=>m.id!==id); S.sessoes=S.sessoes.filter(s=>s.materiaId!==id); S.revisoes=S.revisoes.filter(r=>r.materiaId!==id); save(); render();}
 function importar(texto, silencioso){
-  let atual=null, nM=0, nT=0, nU=0;
+  let atual=null, nM=0, nT=0, nU=0, ultTop=null;
   (texto ?? imp.value).split('\n').forEach(l => {
     l = l.trim(); if(!l || l.startsWith('//')) return;
     if(l.startsWith('@')){ const [k,...v] = l.slice(1).split(':'); const val = v.join(':').trim();
       if(k.trim()==='concurso') S.config.concurso = val; if(k.trim()==='banca') S.config.banca = val;
       if(k.trim()==='tec' && atual && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) atual.tecLink = val;
+      if(k.trim()==='tecassunto' && atual && atual.topicos.length && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) (ultTop || atual.topicos[atual.topicos.length-1]).tecLink = val;
       if(k.trim()==='tecgeral' && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) S.config.tecLinkGeral = val;
       if(k.trim()==='estrategia' && atual){ const e = parseEstrategia(val); if(e.id){ atual.estCurso = e.id; atual.estAulas = e.aulas; } }
       return; }
@@ -2417,12 +2424,12 @@ function importar(texto, silencioso){
       let tecQ = null; if((mm = nome.match(/%\s*(\d+)\s*$/))){ tecQ = +mm[1]; nome = nome.replace(mm[0],''); }
       nome = nome.replace(/\s+/g,' ').trim(); if(!nome) return;
       const ex = atual.topicos.find(t=>t.nome.toLowerCase()===nome.toLowerCase());
-      if(ex){ if(incid) ex.incid=incid; if(pag!=null) ex.paginas=pag; if(aula!=null) ex.aula=aula; if(tecQ!=null) ex.tecQ=tecQ; nU++; }
-      else { const nt = {id:uid(),nome,status:'nao',incid:incid||2,paginas:pag||0,feitos:0,aula:aula||''}; if(tecQ!=null) nt.tecQ = tecQ; atual.topicos.push(nt); nT++; }
+      if(ex){ if(incid) ex.incid=incid; if(pag!=null) ex.paginas=pag; if(aula!=null) ex.aula=aula; if(tecQ!=null) ex.tecQ=tecQ; ultTop=ex; nU++; }
+      else { const nt = {id:uid(),nome,status:'nao',incid:incid||2,paginas:pag||0,feitos:0,aula:aula||''}; if(tecQ!=null) nt.tecQ = tecQ; atual.topicos.push(nt); ultTop=nt; nT++; }
     } else {
       const [nome,peso,nivel,curso] = l.replace(/^#+\s*/,'').split('|').map(x=>x.trim());
       if(!nome) return;
-      atual = S.materias.find(m=>m.nome.toLowerCase()===nome.toLowerCase());
+      atual = S.materias.find(m=>m.nome.toLowerCase()===nome.toLowerCase()); ultTop = null;
       const c = v => Math.min(5,Math.max(1,+v||3));
       if(!atual){ atual={id:uid(),nome,peso:c(peso),nivel:c(nivel),curso:curso||'',topicos:[]}; S.materias.push(atual); nM++; }
       else { if(peso) atual.peso=c(peso); if(nivel) atual.nivel=c(nivel); if(curso) atual.curso=curso; }
