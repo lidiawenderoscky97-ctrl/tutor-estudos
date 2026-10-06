@@ -1,4 +1,4 @@
 {
-  "versao": 38,
-  "notas": "Edital em PDF: matérias com título em linha própria (FCC) e todos os assuntos de cada matéria; cargos comuns e específicos separados"
+  "versao": 39,
+  "notas": "Leitura do edital em PDF refeita: reconhece cargos e grupos (comuns e específicos), recupera letras que somem em alguns PDFs (t, ti, fi), junta subtítulos à matéria certa e avisa quando o PDF é lei/vade-mécum"
 }

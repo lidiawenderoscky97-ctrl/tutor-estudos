@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="38">
+<meta name="versao" content="39">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -1441,9 +1441,15 @@ async function carregarPdfJs(){
 async function linhasDoPdfRico(buf){
   const lib = await carregarPdfJs();
   const doc = await lib.getDocument({data:buf}).promise;
-  const out = [];
+  const out = [], glifos = {};
   for(let p = 1; p <= doc.numPages; p++){
-    const pg = await doc.getPage(p), c = await pg.getTextContent();
+    const pg = await doc.getPage(p);
+    let c; try{ c = await pg.getTextContent({disableNormalization:true}); }catch(e){ c = await pg.getTextContent(); }
+    // letras sem mapeamento na fonte do PDF (ex.: "t", "ti", "fi" somem em alguns editais) viram marcadores para recuperar depois
+    c.items.forEach(it => { if(typeof it.str !== 'string') return;
+      let s = it.str.replace(/[-]/g, ch => { const k = (it.fontName||'') + '|' + ch; if(!(k in glifos)) glifos[k] = String.fromCharCode(0xF000 + Object.keys(glifos).length); return '\u0001' + glifos[k]; });
+      try{ s = s.replace(/[\uFB00-\uFB4F\u2000-\u200A\u00A0]/g, ch => ch.normalize('NFKC')); }catch(e){}
+      it.str = s.replace(/\u0001/g,''); });
     const negrito = {};
     try{ await pg.getOperatorList(); Object.keys(c.styles||{}).forEach(fn => { let f = null; try{ f = pg.commonObjs.get(fn); }catch(e){}
       negrito[fn] = !!(f && (f.bold || f.black || /bold|black|heavy|semibold|demi|,b\b|-b\b/i.test(f.name||''))); }); }catch(e){}
@@ -1471,7 +1477,37 @@ async function linhasDoPdfRico(buf){
     fecha();
     out.push({t:'\f', pg:p});
   }
+  if(Object.keys(glifos).length) pdfRecuperarGlifos(out, Object.values(glifos));
   return out;
+}
+// Descobre que letra(s) cada marcador representa: testa "t", "ti", "f", "fi"… e fica com a opção que forma
+// mais palavras conhecidas (palavras inteiras do próprio PDF + vocabulário comum de editais)
+const PDF_VOC_BASE = 'de direito constitucional administrativo penal processual tributário civil trabalho eleitoral ética informática técnico técnica noções fundamentos conceitos conceito estrutura estado artigo artigos atividade atividades gestão controle tribunal justiça autoridade autoridades portuguesa matemática estatística financeira orçamentária contabilidade auditoria atos ato efeitos efeito direitos garantias fundamentais estatuto pessoa deficiência processo partes prática práticas teoria teorias objetivos objetivo planejamento instrumentos instituições institucional institucionais legislação textos texto interpretação pontuação concordância regência sintaxe ortografia acentuação semântica tipologia gêneros vírgula crase verbal nominal tempos sujeito predicado frases frase parte geral especial titulo título capítulo seção interno regimento constituição federal estadual municipal emenda tratados internacionais política políticas públicas pública público sistemas sistema segurança informação dados proteção tecnologia gestores atendimento cidadão transparência efetividade efetivo efetiva eficiência eficácia fiscal fiscais finanças fontes fonte fato fatos função funções funcionamento forma formas formação família filiação fiança falta falência fraude infrações infração interesse interesses meta metas método métodos lógica lógico quantitativo quantitativa estrutural atuação atual atuais competência competências contratos contrato licitações licitação administração tempo total totais vista notas nota ética investigação inquérito testemunhas testemunha prova provas sentença sentenças tutela tutelas recursos recurso execução atos multa pena penas tipicidade antijuridicidade culpabilidade tentativa autoria crimes contra patrimônio fé dignidade vítima vítimas tráfico entorpecentes transações transação território territorial território internet software hardware computação planilhas texto editores navegadores arquivos pastas atalhos tabelas fórmulas filtros gráficos teclas suíte office outlook teams estratégia estratégias estratégico motivação liderança conflitos cultura clima comportamento organizacional organizacionais saúde trabalhador trabalhadores direção fiscalização tutor tutores nota técnico tática táticas artes artística esportes estudantes estudo estudos';
+const PDF_VOC_SET = new Set(PDF_VOC_BASE.split(' '));
+function pdfRecuperarGlifos(linhas, marcas){
+  const reTok = /[A-Za-zÀ-ÿ-]+/g, temM = new RegExp('[' + marcas.join('') + ']');
+  const voc = new Set(PDF_VOC_SET), tri = {};
+  linhas.forEach(l => { if(l.t === '\f') return; (l.t.match(reTok) || []).forEach(w => { if(temM.test(w)) return; const k = w.toLowerCase(); if(k.length >= 3) voc.add(k);
+    const s = '^' + k + '$'; for(let i = 0; i + 3 <= s.length; i++){ const g = s.slice(i, i+3); tri[g] = (tri[g]||0) + 1; } }); });
+  const palavras = []; linhas.forEach(l => { if(l.t !== '\f') (l.t.match(reTok) || []).forEach(w => { if(temM.test(w)) palavras.push(w); }); });
+  const CAND = ['t','ti','tí','f','fi','tt','ff','ft','ffi','fl','tf','th','T','TI','TÍ','F','FI','TT','FF','FT','FFI','FL','TH'];
+  const escolha = {}; marcas.forEach(m => escolha[m] = 't');
+  const troca = (w, m, c) => w.split('').map(ch => ch === m ? c : (escolha[ch] !== undefined ? escolha[ch] : ch)).join('');
+  for(let rodada = 0; rodada < 3; rodada++) marcas.forEach(m => {
+    const ocor = palavras.filter(w => w.includes(m)); if(!ocor.length) return;
+    let melhor = null, mp = -Infinity;
+    CAND.forEach(c => { let pts = 0;
+      ocor.forEach(w => { const r = troca(w, m, c), k = r.toLowerCase();
+        if(voc.has(k)) pts += 10;
+        const s = '^' + k + '$'; for(let i = 0; i + 3 <= s.length; i++) pts += Math.log(1 + (tri[s.slice(i, i+3)]||0)) * .05;
+        // maiúscula/minúscula coerente com as letras vizinhas
+        const i = w.indexOf(m), a = w[i-1] || '', d = w[i+1] || '', up = ch => /[A-ZÀ-Þ]/.test(ch), lo = ch => /[a-zß-ÿ]/.test(ch);
+        if(c === c.toLowerCase() && (up(a) && (up(d) || !d))) pts -= 6;
+        if(c !== c.toLowerCase() && (lo(a) || (!a && lo(d) && c.length > 1))) pts -= 6; });
+      if(pts > mp){ mp = pts; melhor = c; } });
+    escolha[m] = melhor; });
+  const conserta = s => s.replace(new RegExp('[' + marcas.join('') + ']', 'g'), ch => escolha[ch] || '');
+  linhas.forEach(l => { if(l.t === '\f') return; l.t = conserta(l.t).replace(/\b([Ss])ofware\b/g,'$1oftware'); if(l.segs) l.segs.forEach(sg => sg.t = conserta(sg.t)); });
 }
 async function linhasDoPdf(buf){ return (await linhasDoPdfRico(buf)).map(l => l.t); }
 
@@ -1511,6 +1547,7 @@ function edLimparLinhas(linhas){
   const out = [];
   pags.forEach((p, ip) => { p.forEach((l, i) => { let t = l.t.trim();
     if(!t || ehCab(t, i, p.length)) return;
+    t = t.replace(/\b([Tt])[ée]nic(?=[oa]s?\b)/g, '$1écnic');
     if(/^(https?:\/\/|www\.)\S+$/i.test(t) || /^p[áa]gina\s+\d+(\s+(de|\/)\s+\d+)?$/i.test(t) || /^\d{1,4}$/.test(t)) return;
     if(/^(a autenticidade deste documento|documento assinado eletronicamente|publica[çc][ãa]o oficial do|disponibiliza[çc][ãa]o:|\d{2}\/\d{2}\/\d{4},?\s+\d{1,2}:\d{2}\s)/i.test(t)) return;
     if(/^((revis[õoã][oe]?s?|quest[õo]es|acertos|erros|n[ºo°]\.?|data|status|teoria|pdfs?|v[íi]deos?|videoaulas?|lei seca|conte[úu]do|resumos?|leitura|exerc[íi]cios|feito|ok|%|total|\d+\s*(h|dias?)|\d+[ªaº]?)\s*)+$/i.test(t)) return;
@@ -1572,14 +1609,15 @@ function edCabecalhoEmLinha(l, ant){
   const m = t.match(/^(?:\d{1,2}[.)]\s*)?([^:]{3,90}?)\s*:\s+(.+)$/) || t.match(/^([A-ZÀ-Þ][^:\-–]{2,70}?)\s+[-–]\s+(\d.*|[A-ZÀ-Þ].*)$/);
   if(!m) return null;
   const nome = m[1].trim();
-  if(/[.;]/.test(nome) || /^(lei|decreto|resolu[çc][ãa]o|portaria|instru[çc][ãa]o)\b.{0,25}\d/i.test(nome) || /^(lei n|art|s[úu]mula|tomo|cap[íi]tulo|se[çc][ãa]o|t[íi]tulo|item|al[íi]nea|inciso|par[áa]grafo)\b/i.test(nome) || ED_NAO_ESTUDO.test(nome)) return null;
+  if(/[.;]/.test(nome) || /^n[º°o]\.?\s*\d|\d{3,}|^[^(]*\)/i.test(nome) || /^(lei|decreto|resolu[çc][ãa]o|portaria|instru[çc][ãa]o)\b.{0,25}\d/i.test(nome) || /^(lei n|art|s[úu]mula|tomo|cap[íi]tulo|se[çc][ãa]o|t[íi]tulo|item|al[íi]nea|inciso|par[áa]grafo)\b/i.test(nome) || ED_NAO_ESTUDO.test(nome)) return null;
   // o nome em negrito (quando o PDF informa) é o sinal mais forte
   let negNome = false;
   if(l.segs && l.segs.length){ let acc = '', nb = 0, nc = 0; for(const s of l.segs){ if(acc.length >= nome.length) break; acc += s.t; const n = (s.t.match(/[A-Za-zÀ-ÿ]/g)||[]).length; nc += n; if(s.b) nb += n; } negNome = nc && nb / nc >= .7; }
   const antT = (ant && ant.t || '').trim();
+  if(/(^|\s)\d{1,2}(\.\d{1,2})*\.?$/.test(antT) && !edMaius(nome) && !negNome) return null;
   const inicioParag = !antT || antT === '\f' || /[.)!?:]$/.test(antT) || edMaius(antT);
   if(edMaius(nome) || negNome || MATERIA_CONHECIDA.test(nome.toLowerCase()) || (edTitulo(nome) && nome.split(/\s+/).length <= 9 && inicioParag))
-    return {nome, resto: m[2]};
+    return {nome, resto: m[2], neg: negNome};
   return null;
 }
 function edTipoTitulo(t){
@@ -1627,7 +1665,7 @@ function editalParaTexto(linhasBrutas){
       if(pg){ if(mat && mat.cargo === cargo && mat.escopo === escopo && !bloqueio) mat.txt += ' ' + pg[1]; else novaMat('Conhecimentos específicos' + (cargo ? ' – ' + cargo : ''), pg[1], k); continue; }
       // "BLOCO I: Língua Portuguesa"
       const bl = t.match(/^((?:bloco|m[óo]dulo|grupo|eixo|parte)\s+(?:[ivx\d]+|um|dois|tr[êe]s|quatro|cinco|seis))\s*[:\-–(]\s*(.+?)\)?$/i);
-      if(bl){ grupo = bl[1].toUpperCase(); escopo = edEscopo(t);
+      if(bl){ grupo = bl[1].toUpperCase(); escopo = edEscopo(t); if(escopo) cargo = '';
         if(edTipoTitulo(bl[2]) === 'materia' && !/^conhecimentos/i.test(bl[2])) novaMat(bl[2], '', k); else { mat = null; ultTit = k; ultTipo = 'grupo'; } continue; }
       const titulo = edEhTitulo(l, prox, ant, corpoFonte);
       if(titulo && sub && mat && mat.txt.trim() && !edMaius(t) && !MATERIA_CONHECIDA.test(t.toLowerCase()) && edTipoTitulo(t) === 'materia' && !edCabecalhoEmLinha(l, ant)){ mat.txt += ' ' + t + ':'; continue; }
@@ -1637,28 +1675,35 @@ function editalParaTexto(linhasBrutas){
         const antT = (ant && ant.t || '').trim();
         const continua = ultTit === k-1 && ultTipo !== 'nada' && (/([,(–\-]|\b(de|da|do|das|dos|e|em|sem|com|para|ao|à|a|o|os|as))\s*$/i.test(antT) || /^(d[aeo]s?|e|ou|em|a|ao|à|para|com)\b/i.test(t) || (/\([^)]*$/.test(antT)) || (tipo === 'materia' && ultTipo !== 'materia' && edMaius(t) && edMaius(antT) && !MATERIA_CONHECIDA.test(t.toLowerCase())));
         if(continua){
-          if(ultTipo === 'materia' && mat && !mat.txt.trim()){ mat.bruto += ' ' + t; mat.nome = tituloMat(mat.bruto.replace(/^(\d{1,2}(\.\d{1,2})*\.?)\s+/,'').replace(/[:\-–\s]+$/,'')); ultTit = k; continue; }
+          if(ultTipo === 'materia' && mat && !mat.txt.trim()){ mat.bruto = semRep((mat.bruto + ' ' + t).replace(/:\s*$/,'')); mat.nome = tituloMat(mat.bruto.replace(/^(\d{1,2}(\.\d{1,2})*\.?)\s+/,'').replace(/[:\-–\s]+$/,'')); ultTit = k; continue; }
           if(ultTipo === 'cargo'){ cargo = (cargo + ' ' + tituloMat(t.replace(/[:\-–,]\s*$/,''))).trim(); ultTit = k; continue; }
           if(ultTipo === 'grupo'){ const e = edEscopo(grupoBruto + ' ' + t); grupoBruto += ' ' + t; if(e) escopo = e; ultTit = k; continue; }
         }
         if(tipo === 'nada'){ mat = null; bloqueio = true; ultTit = k; ultTipo = 'nada'; continue; }
-        if(tipo === 'grupo'){ grupo = tituloMat(t.replace(/^(\d[\d.\s]*)/,'').replace(/\s*\(.*$/,'').replace(/\s+para\s+(o|os|a|as)\s+.*$/i,'').replace(/[:\-–\s]+$/,''));
+        if(tipo === 'grupo'){ grupo = tituloMat(semRep(t.replace(/:\s*$/,'')).replace(/^(\d[\d.\s]*)/,'').replace(/\s*\(.*$/,'').replace(/\s+para\s+(o|os|a|as)\s+.*$/i,'').replace(/[:\-–\s]+$/,''));
           grupoBruto = t; escopo = edEscopo(t); if(escopo) cargo = ''; mat = null; ultTit = k; ultTipo = 'grupo'; continue; }
-        if(tipo === 'cargo'){ cargo = tituloMat(t.replace(/^cargos?\s*\d*\s*[:\-–]?\s*/i,'').replace(/[:\-–]\s*$/,'')); escopo = ''; mat = null; ultTit = k; ultTipo = 'cargo'; continue; }
+        if(tipo === 'cargo'){ cargo = tituloMat(t.replace(/^cargos?\s*(\d+(\s*(a|e|,|–|-)\s*\d+)*)?\s*[:\-–]?\s*/i,'').replace(/[:\-–]\s*$/,'')); escopo = ''; mat = null; ultTit = k; ultTipo = 'cargo'; continue; }
         // título de matéria com texto na mesma linha ("LÍNGUA PORTUGUESA: …")
         const em = edCabecalhoEmLinha(l, ant);
         if(em && em.resto.length > 15 && !edMaius(em.resto)) novaMat(em.nome, em.resto, k); else novaMat(t, '', k);
         continue;
       }
       const em = edCabecalhoEmLinha(l, ant);
-      if(em && edTipoTitulo(em.nome) === 'materia'){ novaMat(em.nome, em.resto, k); continue; }
+      // "2. Conjuntos Numéricos: …" no meio de uma matéria é item numerado, não matéria nova
+      const itemNum = /^\d{1,2}[.)]\s/.test(t) && !edMaius(em ? em.nome : '') && !(em && em.neg) && mat && mat.txt.trim() && !bloqueio;
+      // "1. Estatística descritiva e …: …" logo depois do cargo: é o 1º item do conteúdo do cargo
+      if(em && !itemNum && !mat && /^1[.)]\s/.test(t) && !edMaius(em.nome) && !em.neg && !edTitulo(em.nome)){ novaMat('Conhecimentos específicos' + (cargo ? ' – ' + cargo : ''), t, k); continue; }
+      if(em && !itemNum && edTipoTitulo(em.nome) === 'materia'){ novaMat(em.nome, em.resto, k); continue; }
       if(mat && !bloqueio) mat.txt += ' ' + t;
     }
-    const lixo = nm => ED_NAO_ESTUDO.test(nm) || /^([IVXL]+\s*[-–.)]|[a-z]\)\s|\d+[ªº]\s|d[oa]s?\s)/i.test(nm) || /\d{2,}$/.test(nm) || /^(circunscri|comarca|munic[íi]pio de|sede\b)/i.test(nm);
-    let out = mats.map(m => ({...m, tops: edItens(m.txt)})).filter(m => m.tops.length && !lixo(m.nome));
+    const lixo = nm => ED_NAO_ESTUDO.test(nm) || /\.\s+\S/.test(nm.replace(/\b(n|art|arts|inc|al)\.\s/gi,'')) || (nm.split(/\s+/).length > 12 && /\b(dever[ãa]o|ser[ãa]o|contempla|considerad|abrange|incluem)/i.test(nm)) || /^([IVXL]+\s*[-–.)]|[a-z]\)\s|\d+[ªº]\s|d[oa]s?\s)/i.test(nm) || /\d{2,}$/.test(nm) || /^(circunscri|comarca|munic[íi]pio de|sede\b)/i.test(nm);
+    let out = mats.map(m => ({...m, tops: edItens(m.txt)}));
+    // pedaço de título quebrado ("de Dados") vira parte da matéria anterior
+    out.forEach((m, i) => { if(i && (/^(de|da|do|das|dos|e|em)\s/i.test(m.bruto.trim()) && !edMaius(m.bruto) || /^[(\[]/.test(m.bruto.trim()))){ out[i-1].tops.push(...m.tops); m.tops = []; } });
+    out = out.filter(m => m.tops.length && !lixo(m.nome));
     out.forEach(m => { if(/^(programas?|conte[úu]dos?( program[áa]tico)?|conhecimentos espec[íi]ficos|mat[ée]rias?)$/i.test(m.nome.trim()) && m.cargo) m.nome = tituloMat('Conhecimentos específicos – ' + m.cargo); });
     // perfil = a quem a matéria se aplica (cargo/área e escopo do grupo)
-    out.forEach(m => { m.perfil = [m.cargo, m.escopo].filter(Boolean).join(' · ');
+    out.forEach(m => { m.perfil = [m.cargo, m.escopo].filter(Boolean).join(' · '); m.perfil = m.perfil.charAt(0).toUpperCase() + m.perfil.slice(1);
       m.comum = !m.perfil || /comum a tod|para todos|todos os cargos|todas as [áa]reas|todas as especialidades/i.test(m.perfil) && !/n[íi]vel\s+(m[ée]dio|superior|fundamental)/i.test(m.perfil); });
     // mesma matéria repetida no mesmo perfil: junta
     const porChave = {}; out = out.filter(m => { const kk = norm(m.nome) + '|' + m.perfil; if(porChave[kk]){ m.tops.forEach(x => { if(!porChave[kk].tops.includes(x)) porChave[kk].tops.push(x); }); if(m.q != null) porChave[kk].q = m.q; return false; } porChave[kk] = m; return true; });
@@ -1668,7 +1713,6 @@ function editalParaTexto(linhasBrutas){
   const tot = r => r.out.reduce((t,m) => t + m.tops.length, 0);
   const cands2 = cands.filter((c, i) => i === 0 || c - cands[i-1] > 3 || /conte[úu]do|program/i.test(txt[c]));
   const res = cands2.slice(0, 80).map(c => analisar(c)), maxA = Math.max(0, ...res.map(tot));
-  if(typeof window !== 'undefined') window.__edDbg = res.map(r => r.ini + ':' + (txt[r.ini]||'').slice(0,50) + ' => ' + r.out.length + '/' + tot(r));
   const fortes = cands2.filter(c => /^(anexo\b.*)?conte[úu]dos? program[áa]tico|^anexo\s+[ivxl\d]+\s*[-–—:]?\s*(conte|program)/i.test(txt[c].trim()) || /^conte[úu]dos? program[áa]tico/i.test((txt[c+1]||'').trim()) && /^anexo/i.test(txt[c].trim()));
   const primeiroForte = fortes.length ? fortes[0] : -1;
   const lixoR = r => r.out.filter(m => /^(x?[ivxl]+\s*[-–]|[a-z]\)|d[oa]s?\s)/i.test(m.nome)).length;
@@ -1676,6 +1720,10 @@ function editalParaTexto(linhasBrutas){
   if(!escolha) escolha = res.find(r => r.out.length >= 2 && tot(r) >= maxA*.6 && lixoR(r) <= 1);
   if(!escolha) escolha = res.find(r => r.out.length >= 2 && tot(r) >= maxA*.6);
   if(!escolha){ const doc = analisar(-1); escolha = doc.out.length ? doc : (res.find(r => r.out.length) || doc); }
+  // texto de lei / vade-mécum (Capítulo I, Seção II…), não edital
+  const estruturaLei = escolha.out.filter(m => /^(cap[íi]tulo|se[çc][ãa]o|subse[çc][ãa]o|t[íi]tulo|livro)\s+[ivxl\d]+\b|^(pena|disposi[çc][õo]es (gerais|finais|transit[óo]rias))$/i.test(m.nome)).length;
+  const naoEdital = escolha.out.length >= 8 && estruturaLei / escolha.out.length > .25;
+  if(naoEdital) escolha = {ini: -1, out: []};
   const ini = escolha.ini, out = escolha.out;
   // pesos: "(16) questões" dentro do conteúdo ou o nº de questões no quadro de provas
   const antes = n.slice(0, ini > 0 ? ini : 0).join('\n');
@@ -1687,7 +1735,7 @@ function editalParaTexto(linhasBrutas){
   const txtDe = lista => lista.map(m => `${m.nome} | ${m.peso} | 3\n` + m.tops.map(x => `- ${x.replace(/[\[\]#*|]/g,'')} *2`).join('\n')).join('\n\n');
   const id = identificarEdital(linhasBrutas.map(l => typeof l === 'string' ? l : l.t).filter(x => x !== '\f'));
   return {texto: txtDe(out), mats: out, cargos: perfis, txtDe, concurso: id.concurso, orgao: id.orgao, banca: id.banca,
-    materias: out.length, assuntos: tot({out}), comPeso: out.filter(m => m.q != null).length, achou: ini >= 0, linhas: txt};
+    materias: out.length, assuntos: tot({out}), comPeso: out.filter(m => m.q != null).length, achou: ini >= 0, naoEdital, linhas: txt};
 }
 const BANCAS = [['VUNESP',/vunesp/],['FGV',/\bfgv\b|fundacao getulio vargas/],['CEBRASPE',/cebraspe|\bcespe\b/],['FCC',/\bfcc\b|fundacao carlos chagas/],['IBFC',/\bibfc\b/],['IADES',/\biades\b/],['QUADRIX',/quadrix/],['AOCP',/\baocp\b/],['IDECAN',/idecan/],['FUNDATEC',/fundatec/],['CONSULPLAN',/consulplan/],['SELECON',/selecon/],['IBADE',/\bibade\b/],['FEPESE',/fepese/],['CESGRANRIO',/cesgranrio/],['FUMARC',/fumarc/],['OBJETIVA',/instituto objetiva/],['LEGALLE',/legalle/],['IGEDUC',/igeduc/],['COMPERVE',/comperve/],['NC-UFPR',/nc-?ufpr|nucleo de concursos/],['Instituto AOCP',/instituto aocp/],['Instituto Acesso',/instituto acesso/],['FAPEC',/\bfapec\b/],['CETREDE',/cetrede/]];
 function identificarEdital(linhas){
@@ -1695,7 +1743,13 @@ function identificarEdital(linhas){
   let banca = '', mx = 0;
   BANCAS.forEach(([nome, re]) => { const n = (txt.match(new RegExp(re.source, 'g'))||[]).length; if(n > mx){ mx = n; banca = nome; } });
   const ORGAO = /^(tribunal|prefeitura|secretaria|policia|ministerio|assembleia|camara|defensoria|procuradoria|banco|receita|instituto|universidade|companhia|departamento|agencia|governo|municipio|estado d|conselho|fundacao|empresa|corpo de bombeiros|superior tribunal|supremo)/;
-  const orgao = linhas.slice(0, 80).find(l => l.length >= 8 && l.length <= 110 && ORGAO.test(norm(l)) && !/banca|organizadora/i.test(l));
+  const linhaOrg = l => l.length >= 8 && l.length <= 110 && ORGAO.test(norm(l)) && !/banca|organizadora/i.test(l);
+  let orgao = linhas.slice(0, 80).find(l => linhaOrg(l) && !/^(estado d|governo|munic[íi]pio)/i.test(norm(l)));
+  if(!orgao){ // órgão citado no preâmbulo: "O Presidente do Tribunal de Justiça do Estado de Santa Catarina, no uso…"
+    const pre = linhas.slice(0, 60).join(' ').replace(/\s+/g,' ');
+    const mo = pre.match(/\b((?:Tribunal (?:de Justi[çc]a|Regional (?:Federal|do Trabalho|Eleitoral)|de Contas|Superior)|Minist[ée]rio P[úu]blico|Defensoria P[úu]blica|Assembleia Legislativa|C[âa]mara (?:Municipal|dos Deputados|Legislativa)|Prefeitura Municipal|Pol[íi]cia (?:Civil|Militar|Federal|Penal)|Procuradoria[- ]Geral)\b[^,;:()]{0,60}?)(?=\s*(?:[,;:(]|\s-\s|\bno uso\b|\btorna\b|\bfaz\b|\bresolve\b|\bcom sede\b|$))/i);
+    if(mo) orgao = mo[1]; }
+  if(!orgao) orgao = linhas.slice(0, 80).find(linhaOrg);
   let cargo = ''; const mc = linhas.slice(0, 200).join(' ').match(/cargos? (?:de|:)\s*([A-ZÀ-Þa-zà-ÿ ]{4,60}?)(?=[,.;\-–(]|\s+(?:do|da|para|n[ºo°]|e\s|com)\b)/i);
   if(mc) cargo = tituloMat(mc[1].trim());
   const org = orgao ? tituloMat(orgao.split(/\s+\|\s+/)[0].replace(/[.,;:\-–]+$/,'').trim()) : '';
@@ -1709,6 +1763,7 @@ async function lerEditalPdf(file){
     const linhas = await linhasDoPdfRico(await file.arrayBuffer());
     if(linhas.map(l => l.t).join('').length < 200) throw new Error('o PDF parece ser uma imagem escaneada, sem texto selecionável');
     const r = editalParaTexto(linhas);
+    if(r.naoEdital) throw new Error('este PDF parece ser um texto de lei ou vade-mécum, não um edital. Para treinar uma lei, use a aba Lei seca → “Adicionar lei em PDF”. Aqui, envie o edital do concurso (o PDF com o conteúdo programático)');
     if(!r.materias){ pdfEstado.bruto = edLimparLinhas(linhas).map(l => l.t).filter(t => t !== '\f').join('\n'); throw new Error('não encontrei matérias e assuntos no texto. Abaixo está o texto que consegui tirar do PDF: copie o conteúdo programático e cole em “Importar edital em texto”, mais abaixo. Se puder, mande este PDF para o suporte do tutor (Claude) para a leitura ser ajustada'); }
     pdfEstado.r = r; pdfEstado.conc = r.concurso || file.name.replace(/\.pdf$/i,'').replace(/[_-]+/g,' ').trim();
     pdfEstado.perfis = r.cargos; pdfEstado.sel = r.cargos.length > 1 ? [] : r.cargos.slice();
@@ -1752,7 +1807,7 @@ function cardPdf(){
     <input id="pdfarq" type="file" accept="application/pdf,.pdf" onchange="lerEditalPdf(this.files[0])">
     ${pdfEstado.msg?`<div class="alert ${/^Não foi/.test(pdfEstado.msg)?'bad':'info'}" style="margin-top:10px">${pdfEstado.msg}</div>`:''}
     ${pdfEstado.bruto && !pdfEstado.texto ? `<details style="margin-top:8px" open><summary style="cursor:pointer"><b>Texto tirado do PDF</b></summary><textarea readonly style="min-height:220px;margin-top:6px">${esc(pdfEstado.bruto)}</textarea></details>` : ''}
-    ${pdfEstado.texto && (pdfEstado.perfis||[]).length > 1 ? `<div class="caixa" style="margin:10px 0"><b>Este edital tem ${pdfEstado.perfis.length} cargos/áreas. Marque o seu</b> <span class="mut">(as matérias comuns a todos já entram):</span>
+    ${pdfEstado.texto && (pdfEstado.perfis||[]).length > 1 ? `<div class="caixa" style="margin:10px 0"><b>Este edital tem ${pdfEstado.perfis.length} cargos/grupos de matérias. Marque o seu cargo e os grupos que valem para ele</b> <span class="mut">(as matérias comuns a todos já entram):</span>
       ${pdfEstado.perfis.map((p,i) => `<label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);margin:6px 0;cursor:pointer"><input type="checkbox" style="width:18px;height:18px;flex:none;margin-top:3px" ${pdfEstado.sel.includes(p)?'checked':''} onchange="edMarcarPerfil(pdfEstado.perfis[${i}],this.checked)"> <span>${esc(p)} <span class="mut">· ${pdfEstado.r.mats.filter(m => m.perfil === p).length} matérias</span></span></label>`).join('')}
       ${pdfEstado.sel.length ? '' : '<div class="alert warn" style="margin-top:8px">Nenhum cargo marcado: abaixo estão só as matérias comuns.</div>'}</div>` : ''}
     ${pdfEstado.texto?`<div class="alert info">${esc(pdfEstado.resumo)} A leitura é automática: confira se cada matéria e assunto está certo antes de importar.</div>
