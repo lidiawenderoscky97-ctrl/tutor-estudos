@@ -1,5 +1,5 @@
 [
- {"id":"cf","nome":"Constituição Federal de 1988","sigla":"CF","numero":"","apelidos":["constitui[çc][ãa]o federal","\\bcf\\b","cf/88","constitucional"],"fonte":"https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm"},
+ {"id":"cf","nome":"Constituição Federal de 1988","sigla":"CF","numero":"","apelidos":["constitui[çc][ãa]o federal","\\bcf\\b","cf/88","direito constitucional"],"fonte":"https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm"},
  {"id":"cp","nome":"Código Penal (Decreto-Lei 2.848/1940)","sigla":"CP","numero":"2.848","apelidos":["c[óo]digo penal","\\bcp\\b","direito penal"],"fonte":"https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm"},
  {"id":"cpp","nome":"Código de Processo Penal (Decreto-Lei 3.689/1941)","sigla":"CPP","numero":"3.689","apelidos":["c[óo]digo de processo penal","\\bcpp\\b","processual penal"],"fonte":"https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm"},
  {"id":"cpc","nome":"Código de Processo Civil (Lei 13.105/2015)","sigla":"CPC","numero":"13.105","apelidos":["c[óo]digo de processo civil","\\bcpc\\b","processual civil"],"fonte":"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm"},
