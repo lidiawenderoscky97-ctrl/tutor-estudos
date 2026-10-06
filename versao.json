@@ -1,4 +1,4 @@
 {
-  "versao": 39,
-  "notas": "Leitura do edital em PDF refeita: reconhece cargos e grupos (comuns e específicos), recupera letras que somem em alguns PDFs (t, ti, fi), junta subtítulos à matéria certa e avisa quando o PDF é lei/vade-mécum"
+  "versao": 40,
+  "notas": "Edital: saem o envio de PDF e a caixa de importar em texto. Agora você cola cada matéria como vem no edital (Matéria - 1. assunto. 2. assunto.) e o tutor separa os assuntos"
 }

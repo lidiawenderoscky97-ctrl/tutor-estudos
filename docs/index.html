@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="39">
+<meta name="versao" content="40">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -1114,7 +1114,7 @@ function render(){
   if(aba==='questoes' && lqFoco){ const el = document.getElementById('lq_q'); if(el) el.focus(); lqFoco = false; }
   if(caixaAberta){ const el = document.getElementById('cq'); if(el) el.focus(); }
 }
-const vazio = () => cardBusca() + cardPdf() + `<div class="card" style="margin-top:16px"><h2>Ou monte o edital você mesmo</h2><p class="mut">Cadastre as matérias e os assuntos, ou importe o edital verticalizado. O tutor calcula o tempo, monta os blocos, as metas diárias e o cronograma.</p><button class="b" onclick="ir('edital')">Ir para o Edital</button></div>`;
+const vazio = () => cardBusca() + `<div class="card" style="margin-top:16px"><h2>Ou monte o edital você mesmo</h2><p class="mut">Cole cada matéria do jeito que vem no edital (ex.: <code>Direito Administrativo - 1. Princípios. 2. Atos administrativos.</code>) e o tutor separa os assuntos. O tutor calcula o tempo, monta os blocos, as metas diárias e o cronograma.</p><button class="b" onclick="ir('edital')">Ir para o Edital</button></div>`;
 function anel(p, cor, tam, txt){
   tam = tam||64; const r = tam/2-6, c = 2*Math.PI*r, v = Math.max(0,Math.min(1,p||0));
   return `<svg class="ring" width="${tam}" height="${tam}" viewBox="0 0 ${tam} ${tam}"><circle cx="${tam/2}" cy="${tam/2}" r="${r}" stroke="var(--soft)" stroke-width="7" fill="none"/>
@@ -1820,11 +1820,11 @@ async function importarPdf(substituir){
   delete S.metas[hoje()]; save(); render();
 }
 function cardPdf(){
-  return `<div class="card" style="margin-top:16px"><h2>Enviar o PDF do edital</h2>
-    <p class="mut">Escolha o arquivo do edital. O tutor encontra o conteúdo programático, separa matérias e assuntos e, quando o quadro de provas traz o nº de questões, calcula os pesos. Você revisa antes de importar.</p>
-    <input id="pdfarq" type="file" accept="application/pdf,.pdf" onchange="lerEditalPdf(this.files[0])">
+  // só aparece para revisar o edital montado a partir do Guia do TEC (o envio de PDF do edital foi retirado)
+  if(!pdfEstado.texto && !pdfEstado.msg) return '';
+  return `<div class="card" style="margin-top:16px"><h2>Revisar edital montado</h2>
     ${pdfEstado.msg?`<div class="alert ${/^Não foi/.test(pdfEstado.msg)?'bad':'info'}" style="margin-top:10px">${pdfEstado.msg}</div>`:''}
-    ${pdfEstado.bruto && !pdfEstado.texto ? `<details style="margin-top:8px" open><summary style="cursor:pointer"><b>Texto tirado do PDF</b></summary><textarea readonly style="min-height:220px;margin-top:6px">${esc(pdfEstado.bruto)}</textarea></details>` : ''}
+    
     ${pdfEstado.texto && (pdfEstado.perfis||[]).length > 1 ? `<div class="caixa" style="margin:10px 0"><b>Este edital tem ${pdfEstado.perfis.length} cargos/grupos de matérias. Marque o seu cargo e os grupos que valem para ele</b> <span class="mut">(as matérias comuns a todos já entram):</span>
       ${pdfEstado.perfis.map((p,i) => `<label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);margin:6px 0;cursor:pointer"><input type="checkbox" style="width:18px;height:18px;flex:none;margin-top:3px" ${pdfEstado.sel.includes(p)?'checked':''} onchange="edMarcarPerfil(pdfEstado.perfis[${i}],this.checked)"> <span>${esc(p)} <span class="mut">· ${pdfEstado.r.mats.filter(m => m.perfil === p).length} matérias</span></span></label>`).join('')}
       ${pdfEstado.sel.length ? '' : '<div class="alert warn" style="margin-top:8px">Nenhum cargo marcado: abaixo estão só as matérias comuns.</div>'}</div>` : ''}
@@ -2357,16 +2357,11 @@ function vEdital(){
       <div class="inl"><input id="nt_${m.id}" placeholder="Novo assunto" style="flex:1;width:auto" onkeydown="if(event.key==='Enter')addTop('${m.id}')"><button class="g" onclick="addTop('${m.id}')">Adicionar</button>
       <button class="g" style="color:var(--bad)" onclick="delMat('${m.id}')">Excluir matéria</button></div></div></details>`;
   }).join('') || '<div class="empty">Nenhuma matéria cadastrada.</div>';
-  h += `<div class="inl"><input id="nm" placeholder="Nova matéria" style="flex:1;width:auto" onkeydown="if(event.key==='Enter')addMat()"><button class="b" onclick="addMat()">Adicionar matéria</button></div></div>
-    <div class="card" style="margin-top:16px"><h2>Importar edital em texto</h2>
-    <p class="mut">Uma matéria por linha: <code>Matéria | peso | nível | curso (opcional)</code>. Assuntos abaixo, começando com <code>-</code>. No fim do assunto: <code>*3</code> incidência alta (<code>*1</code> baixa), <code>#120</code> páginas do PDF (opcional) e <code>[Aula 05]</code> a aula correspondente. Matérias e assuntos existentes são atualizados sem perder histórico.</p>
-    <textarea id="imp" placeholder="Direito Constitucional | 3 | 2 | Pré-Edital TJ-SP Direito Constitucional
-- Direitos e deveres individuais e coletivos *3 [Aulas 01 e 02]
-- Nacionalidade *2 [Aula 04]
-Língua Portuguesa | 5 | 4
-- Interpretação de textos *3 [Aula 09]
-- Crase *2 [Aula 06]"></textarea>
-    <div style="margin-top:10px"><button class="b" onclick="importar()">Importar</button></div></div>`;
+  h += `</div><div class="card" style="margin-top:16px" id="cardnovamat"><h2>Adicionar matérias do edital</h2>
+    <p class="mut">Copie do edital e cole aqui, do jeito que vem: o nome da matéria, um traço (ou dois-pontos) e os assuntos numerados um ao lado do outro. Pode colar várias matérias de uma vez, uma depois da outra. Cada número vira um assunto.</p>
+    <textarea id="nm" style="min-height:160px" placeholder="Noções de Direito Administrativo - 1. Noções de organização administrativa. 2. Administração direta e indireta, centralizada e descentralizada. 3. Desconcentração. 4. Princípios expressos e implícitos da administração pública.
+Noções de Direito Constitucional - 1. Constituição Federal de 1988. Princípios fundamentais. 2. Direitos e garantias fundamentais."></textarea>
+    <div class="inl"><button class="b" onclick="addMat()">Adicionar ao edital</button><span class="mut" id="nmprev"></span></div></div>`;
   return h;
 }
 // Link direto na área do aluno do Estratégia: a aula do assunto, o curso da matéria ou, sem curso definido, "Minhas Matrículas"
@@ -2388,7 +2383,36 @@ function setMatCurso(id,v){ mat(id).curso = v.trim(); save(); render(); }
 function setMatLink(id,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; } mat(id).tecLink = v; save(); render(); }
 function setMat(id,k,v){const m=mat(id); if(k!=='nome') v=Math.min(5,Math.max(1,v||1)); m[k]=v; save(); render();}
 function setTop(mid,tid,k,v){const t=topico(mat(mid),tid); t[k]=v; if(k==='status'&&v==='nao') t.feitos=0; save(); render();}
-function addMat(){const n=nm.value.trim(); if(!n) return; const m={id:uid(),nome:n,peso:3,nivel:3,curso:'',topicos:[]}; S.materias.push(m); abertas.add(m.id); save(); render();}
+// lê matérias no formato do edital: "Matéria - 1. assunto. 2. assunto." (várias matérias em sequência)
+function matsDoTextoEdital(texto){
+  const linhas = String(texto).replace(/\r/g,'').split('\n').map(l => l.trim()).filter(Boolean);
+  const cab = /^(?!\d)(.{2,100}?)(?:\s+[-–—]\s*|\s*:\s*)(\S.*)$/;
+  const novaLinha = l => { const m = l.match(cab); return m && /^\d{1,2}\s*[.)\-–]?\s/.test(m[2]) && !/^(art|arts|lei|§)\b/i.test(m[1]) ? m : null; };
+  const mats = []; let atual = null;
+  linhas.forEach((l, i) => {
+    const m = novaLinha(l);
+    if(m || !atual){
+      if(m) atual = {nome: m[1].replace(/\s+/g,' ').trim(), txt: m[2]};
+      else { const m2 = l.match(cab); atual = m2 && i === 0 ? {nome: m2[1].trim(), txt: m2[2]} : {nome: l.replace(/[:\-–—\s]+$/,''), txt: ''}; }
+      mats.push(atual);
+    } else atual.txt += ' ' + l;
+  });
+  return mats.map(m => ({nome: edMaius(m.nome) ? tituloMat(m.nome) : m.nome, tops: m.txt.trim() ? edItens(m.txt) : []})).filter(m => m.nome);
+}
+function addMat(){
+  const el = document.getElementById('nm'), txt = el ? el.value.trim() : ''; if(!txt) return;
+  const lidas = matsDoTextoEdital(txt); if(!lidas.length) return;
+  let nM = 0, nA = 0;
+  lidas.forEach(l => {
+    let m = S.materias.find(x => norm(x.nome) === norm(l.nome));
+    if(!m){ m = {id:uid(), nome:l.nome, peso:3, nivel:3, curso:'', topicos:[]}; S.materias.push(m); nM++; }
+    l.tops.forEach(t => { if(!m.topicos.some(x => norm(x.nome) === norm(t))){ m.topicos.push({id:uid(), nome:t, status:'nao', incid:2, paginas:0, feitos:0, aula:''}); nA++; } });
+    abertas.add(m.id);
+  });
+  if(!S.config.origemEdital) S.config.origemEdital = 'manual';
+  delete S.metas[hoje()]; save(); render();
+  avisar(`${nM} matéria(s) nova(s) e ${nA} assunto(s) adicionados. Ajuste o peso e o seu nível em cada matéria.`);
+}
 function addTop(mid){const i=document.getElementById('nt_'+mid), n=i.value.trim(); if(!n) return; mat(mid).topicos.push({id:uid(),nome:n,status:'nao',incid:2,paginas:0,feitos:0,aula:''}); abertas.add(mid); save(); render(); document.getElementById('nt_'+mid).focus();}
 async function delTop(mid,tid){if(!(await confirmar('Excluir assunto e seu histórico?')))return; const m=mat(mid); m.topicos=m.topicos.filter(t=>t.id!==tid); S.revisoes=S.revisoes.filter(r=>r.topicoId!==tid); S.sessoes=S.sessoes.filter(s=>s.topicoId!==tid); save(); render();}
 async function delMat(id){if(!(await confirmar('Excluir a matéria e todo o seu histórico?')))return; S.materias=S.materias.filter(m=>m.id!==id); S.sessoes=S.sessoes.filter(s=>s.materiaId!==id); S.revisoes=S.revisoes.filter(r=>r.materiaId!==id); save(); render();}
