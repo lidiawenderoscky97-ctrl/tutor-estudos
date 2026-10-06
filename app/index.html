@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="29">
+<meta name="versao" content="30">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -242,6 +242,33 @@ main .caixa{padding:16px 18px}
 main .mat summary{padding:14px 18px}
 main code{font-size:14px}
 @media (max-width:800px){main .card{padding:16px}main .brow{grid-template-columns:110px 1fr 70px}}
+/* Lei seca */
+.lsq{border:2px solid var(--acc);margin-bottom:18px}
+.lsq-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lsq-ref{font-size:17px}
+.lsq-ctx{margin-top:12px;padding:10px 14px;border-left:4px solid var(--line);color:var(--mut);font-size:15px;background:var(--soft);border-radius:0 10px 10px 0}
+.lsq-txt{font-size:22px;line-height:1.55;margin:16px 0 6px;font-weight:500;letter-spacing:-.005em}
+.lsq-bts{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.lsb{font:inherit;font-size:18px;font-weight:700;padding:14px 30px;border-radius:14px;border:2px solid;cursor:pointer;min-width:160px;background:var(--card)}
+.lsb small{font-size:12px;opacity:.6;margin-left:6px;font-weight:600}
+.lsb.certo{border-color:var(--ok);color:var(--ok)}.lsb.certo:hover{background:var(--okbg)}
+.lsb.errado{border-color:var(--bad);color:var(--bad)}.lsb.errado:hover{background:var(--badbg)}
+.lsq-res{margin-top:16px;padding:14px 16px;border-radius:12px;font-size:16px}
+.lsq-res.ok{background:var(--okbg);color:var(--ok)}.lsq-res.bad{background:var(--badbg);color:var(--bad)}
+.lsq-orig{margin-top:12px;padding:14px 16px;border-radius:12px;background:var(--soft);font-size:16px;line-height:1.6}
+mark.ok{background:var(--okbg);color:var(--ok);font-weight:700;padding:1px 4px;border-radius:5px}
+.lsdot{display:inline-block;width:10px;height:10px;border-radius:99px;flex:none;margin-top:8px;vertical-align:middle}
+p .lsdot{margin:0 4px 0 8px}
+.lsart{border-top:1px solid var(--line);padding:12px 0}
+.lsart.foco{background:var(--acc2);border-radius:10px;padding:12px}
+.lsart-cab{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px;font-size:17px}
+.lsdisp{display:flex;gap:10px;align-items:flex-start;padding:3px 0;font-size:15.5px;line-height:1.55}
+.lsleis{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.lslei{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+@media (max-width:800px){.lsleis{grid-template-columns:1fr}}
+.lslei-cab{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.lslei-p{font-size:22px;font-weight:700;color:var(--mut)}.lslei-p.ok{color:var(--ok)}.lslei-p.warn{color:var(--warn)}.lslei-p.bad{color:var(--bad)}
+@media (max-width:800px){.lsq-txt{font-size:18px}.lsb{flex:1;min-width:0;padding:14px 10px}}
 code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:4px}
 @media (max-width:800px){
   .app{grid-template-columns:1fr}
@@ -323,7 +350,8 @@ const padrao = () => ({
   config:{concurso:'',banca:'',horasUtil:3,horasFds:4,dataProva:'',intervalos:[1,7,15,30,60,90],
           ritmoPag:2,blocoMin:30,blocoMax:120,limiar:75,cicloTs:Date.now(),pomodoro:{ativo:true,foco:25,curta:5,longa:15,ciclos:4},
           horasDia:null, pausas:[], materiasPorVez:0, fixas:[], metaQSemana:100},
-  materias:[], sessoes:[], revisoes:[], metas:{}, timer:null, cadernos:{}, simulados:[]
+  materias:[], sessoes:[], revisoes:[], metas:{}, timer:null, cadernos:{}, simulados:[],
+  leiSeca:{st:{}, dias:{}, extras:[]}, leisProprias:[]
 });
 let S;
 function migrar(){
@@ -334,6 +362,9 @@ function migrar(){
   if(!S.metas) S.metas = {};
   if(!S.cadernos || typeof S.cadernos!=='object') S.cadernos = {};
   if(!Array.isArray(S.simulados)) S.simulados = [];
+  if(!S.leiSeca || typeof S.leiSeca!=='object') S.leiSeca = {};
+  S.leiSeca = Object.assign({st:{}, dias:{}, extras:[]}, S.leiSeca);
+  if(!Array.isArray(S.leisProprias)) S.leisProprias = [];
   if(!Array.isArray(S.config.pausas)) S.config.pausas = [];
   if(!Array.isArray(S.config.fixas)) S.config.fixas = [];
   if(S.config.horasDia && (!Array.isArray(S.config.horasDia) || S.config.horasDia.length!==7)) S.config.horasDia = null;
@@ -397,7 +428,14 @@ function dividirEstado(){
   if(ONLINE && ONLINE.tipo==='claude'){
     Object.entries(S.cadernos||{}).forEach(([mid,txt]) => { if(txt) docs['tutor/estado/extras/caderno-'+mid] = {materiaId:mid, texto:txt}; });
     if((S.simulados||[]).length) docs['tutor/estado/extras/simulados'] = {lista:S.simulados};
-  } else { docs['tutor/estado'].cadernos = S.cadernos||{}; docs['tutor/estado'].simulados = S.simulados||[]; }
+    // lei seca: progresso de cada lei num documento próprio
+    const porLei = {}; Object.entries((S.leiSeca||{}).st||{}).forEach(([k,v]) => { const l = k.split('|')[0]; (porLei[l] = porLei[l] || {})[k] = v; });
+    Object.entries(porLei).forEach(([l,st]) => docs['tutor/estado/extras/ls-'+l] = {leiSeca:l, st});
+    docs['tutor/estado/extras/ls-geral'] = {dias:(S.leiSeca||{}).dias||{}, extras:(S.leiSeca||{}).extras||[]};
+  } else { docs['tutor/estado'].cadernos = S.cadernos||{}; docs['tutor/estado'].simulados = S.simulados||[]; docs['tutor/estado'].leiSeca = S.leiSeca||{}; }
+  // leis enviadas em PDF: texto em partes de até 200 mil caracteres
+  (S.leisProprias||[]).forEach(p => { const {texto, ...meta} = p, partes = Math.max(1, Math.ceil((texto||'').length/200000));
+    for(let i = 0; i < partes; i++) docs['tutor/estado/leis/'+p.id+'-'+i] = {...meta, parte:i, partes, texto:(texto||'').slice(i*200000, (i+1)*200000)}; });
   return docs;
 }
 function statusSync(t){ const el = document.getElementById('sync'); if(el) el.innerHTML = t ? `<span class="chip">${t}</span>` : ''; }
@@ -414,8 +452,15 @@ async function carregarOnline(){
     d.cadernos = d.cadernos || {}; d.simulados = d.simulados || [];
     try{ const ex = await db.doc('tutor/estado').collection('extras').get();
       ex.docs.forEach(x => { const j = JSON.stringify(x.data()||{}), o = JSON.parse(j); ultimoSalvo['tutor/estado/extras/'+x.id] = j;
-        if(x.id==='simulados') d.simulados = o.lista||[]; else if(o.materiaId) d.cadernos[o.materiaId] = o.texto||''; }); }catch(e){}
+        if(x.id==='simulados') d.simulados = o.lista||[];
+        else if(o.leiSeca){ d.leiSeca = d.leiSeca || {st:{}}; d.leiSeca.st = d.leiSeca.st || {}; Object.assign(d.leiSeca.st, o.st||{}); }
+        else if(x.id==='ls-geral'){ d.leiSeca = d.leiSeca || {st:{}}; d.leiSeca.dias = o.dias||{}; d.leiSeca.extras = o.extras||[]; }
+        else if(o.materiaId) d.cadernos[o.materiaId] = o.texto||''; }); }catch(e){}
   }
+  try{ const lp = await db.doc('tutor/estado').collection('leis').get(), partes = {};
+    lp.docs.forEach(x => { const j = JSON.stringify(x.data()||{}), o = JSON.parse(j); ultimoSalvo['tutor/estado/leis/'+x.id] = j; (partes[o.id] = partes[o.id] || []).push(o); });
+    d.leisProprias = Object.values(partes).map(l => { l.sort((a,b) => a.parte-b.parte); const {parte, partes:n, texto, ...meta} = l[0];
+      return {...meta, texto: l.map(x => x.texto||'').join('')}; }); }catch(e){}
   return d;
 }
 async function gravarOnline(){
@@ -962,7 +1007,8 @@ async function desfazerMeta(id){
 /* ============ Gamificação: XP, nível e sequência ============ */
 function xpTotal(){
   const metas = Object.values(S.metas).flat().filter(x=>x.feita).length;
-  return Math.round(S.sessoes.reduce((s,x)=>s+(+x.min||0)+2*(+x.a||0),0) + 20*metas);
+  const lei = Object.values((S.leiSeca||{}).dias||{}).reduce((t,d)=>t+(d[1]||0),0);
+  return Math.round(S.sessoes.reduce((s,x)=>s+(+x.min||0)+2*(+x.a||0),0) + 20*metas + lei);
 }
 function nivel(xp){ const n = Math.floor(Math.sqrt(xp/100))+1; const ini = 100*(n-1)**2, fim = 100*n**2; return {n, ini, fim, p:(xp-ini)/(fim-ini)}; }
 function sequencia(){
@@ -996,6 +1042,9 @@ function alertas(){
     const ult = S.sessoes.filter(s => s.materiaId===m.id).map(s => s.data).sort().pop();
     if(ult && diff(ult, hoje()) >= 10 && m.topicos.some(t=>t.status!=='concluido')) out.push({t:`${m.nome}: sem contato há ${diff(ult,hoje())} dias.`, c:''});
   });
+  if(LS.pronto) lsPorLeiResumo().forEach(x => { if(x.q >= 20 && x.p < .6) out.push({t:`Lei seca · ${x.sigla}: ${pct(x.p)} de acerto em ${x.q} questões. Releia os artigos em “Onde focar”.`, c:'bad'}); });
+  const devLs = Object.values(((S.leiSeca||{}).st)||{}).filter(v => v[3] && v[3] < hoje()).length;
+  if(devLs >= 15) out.push({t:`Lei seca: ${devLs} dispositivos atrasados para revisão. Uma rodada de 20 questões já ajuda.`, c:''});
   return out;
 }
 
@@ -1009,6 +1058,7 @@ const ICON = {
   edital:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>',
   revisoes:'<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
   desempenho:'<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/></svg>',
+  leiseca:'<svg viewBox="0 0 24 24"><path d="M12 3v18M8 21h8M4 7h16M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/></svg>',
   questoes:'<svg viewBox="0 0 24 24"><path d="M9 11l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 17h10"/></svg>',
   registrar:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
   plano:'<svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>',
@@ -1016,7 +1066,7 @@ const ICON = {
   cadernos:'<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5M8 7h8M8 11h6"/></svg>',
   config:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
 };
-const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['plano','Meu plano'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['questoes','Lançar questões'],['simulados','Simulados'],['cadernos','Cadernos'],['registrar','Registro avulso'],['config','Configurações']];
+const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['plano','Meu plano'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['questoes','Lançar questões'],['leiseca','Lei seca'],['simulados','Simulados'],['cadernos','Cadernos'],['registrar','Registro avulso'],['config','Configurações']];
 let aba = 'painel';
 function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHoje=''; } if(a!=='config') avisoCfg=''; if(a!=='plano'){ avisoPlano=''; simData=null; } if(a!=='simulados') simForm=false; render(); window.scrollTo(0,0); }
 function render(){
@@ -1028,7 +1078,7 @@ function render(){
   const ct = document.getElementById('contagem');
   ct.innerHTML = S.config.dataProva ? (d => d>=0 ? `<span class="chip">Prova em <b>${d}</b> dias</span>` : '')(diff(hoje(),S.config.dataProva)) : '';
   desenharCron();
-  const V = {painel:vPainel, hoje:vHoje, semana:vSemana, plano:vPlano, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, questoes:vQuestoes, simulados:vSimulados, cadernos:vCadernos, registrar:vRegistrar, config:vConfig};
+  const V = {painel:vPainel, hoje:vHoje, semana:vSemana, plano:vPlano, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, questoes:vQuestoes, leiseca:vLeiSeca, simulados:vSimulados, cadernos:vCadernos, registrar:vRegistrar, config:vConfig};
   document.body.classList.toggle('larga', aba==='hoje');
   document.getElementById('app').innerHTML = V[aba]();
   if(aba==='registrar') atualizaTopicos();
@@ -1309,6 +1359,9 @@ async function excluirSalvo(id){
 }
 async function lerCatalogo(arq){
   if(window.CATALOGO_EMBUTIDO && window.CATALOGO_EMBUTIDO[arq]) return window.CATALOGO_EMBUTIDO[arq];
+  if(window.CATALOGO_GZ && window.CATALOGO_GZ[arq]){ // versão online: leis embutidas e comprimidas
+    const b = Uint8Array.from(atob(window.CATALOGO_GZ[arq]), c => c.charCodeAt(0));
+    return await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); }
   const r = await fetch(CATALOGO+arq+'?t='+Date.now()); if(!r.ok) throw new Error('HTTP '+r.status);
   return r.text();
 }
@@ -2113,7 +2166,15 @@ function cardPrioridades(n){
       <td class="n">${x.usaTec ? pct(x.share) : INCID[x.t.incid||2]}</td><td class="n">${x.p==null?'<span class="mut">—</span>':`<span class="tag ${corP(x.p)}">${pct(x.p)}</span> <span class="mut" style="font-size:13.5px">${x.q}q</span>`}</td>
       <td>${x.t.status==='concluido' ? (x.p!=null && x.p<lim() ? '<span class="tag warn">revisar</span>' : '<span class="tag ok">concluído</span>') : x.t.status==='estudando' ? '<span class="tag">estudando</span>' : '<span class="mut">a estudar</span>'}</td></tr>`).join('')}</table></div></div>`;
 }
-function vDesempenho(){
+function vDesempenho(){ return vDesempenhoBase() + cardLeiSecaDesemp(); }
+function cardLeiSecaDesemp(){
+  const r = lsPorLeiResumo().filter(x => x.q); if(!r.length) return '';
+  if(!LS.indice && !LS.preparando) lsPreparar();
+  const G = lsResumoGeral();
+  return `<div class="card" style="margin-top:16px"><h2>Lei seca <span class="mut">${G.q} questões · ${G.p==null?'—':pct(G.p)} de acerto · ${G.dom} dispositivos dominados</span><button class="g" onclick="ir('leiseca')">Treinar</button></h2>
+    ${r.map(x => `<div class="brow"><span>${esc(curto(x.sigla||x.lei, 26))}</span><div class="bar"><i class="${corP(x.p)}" style="width:${x.p*100}%"></i></div><span>${pct(x.p)} · ${x.q}</span></div>`).join('')}</div>`;
+}
+function vDesempenhoBase(){
   if(!S.sessoes.length) return cardPrioridades() + `<div class="card" style="margin-top:16px"><h2>Desempenho</h2><div class="empty">Conclua metas registrando questões e acertos para ver sua evolução.</div></div>`;
   const g = stats(()=>true);
   const semanas = []; for(let i=7;i>=0;i--){const ini=addDias(segunda(hoje()),-7*i), fim=addDias(ini,7); semanas.push({ini, ...stats(s=>s.data>=ini&&s.data<fim)});}
@@ -2565,6 +2626,593 @@ window.__atualizacao = function(v, notas, erro){
   f.innerHTML = '<span>Nova versão '+v+' pronta'+(notas?': '+esc(notas):'')+'</span><button onclick="location.reload()">Atualizar agora</button>';
   f.style.display = 'flex';
 };
+
+/* ============ Lei seca: leitura do texto da lei ============
+   leiDoTexto(texto) recebe o texto de uma lei (do catálogo, do site oficial ou de um PDF)
+   e devolve {arts:[{k, rot, tit, h, d:[{r, t}]}]}: cada artigo com caput, parágrafos, incisos, alíneas e penas.
+   Tira as anotações de alteração ("Redação dada pela…", "Incluído pela…"), dispositivos revogados e vetados. */
+const LEI_ANOT = /\s*\((?=[^()]{0,12}(?:reda[çc][ãa]o|inclu[íi]d|acrescid|acrescentad|vide|revogad|renumerad|regulament|vig[êe]ncia|produ[çc][ãa]o de efeito|express[ãa]o|declarad|suspens|execu[çc][ãa]o|promulga|alterad|transformad|retificad|restabelecid|mantid|nova reda|com reda|em vigor|efeitos|convers[ãa]o|na reda|vetad|ver\b|partes? mantid|texto|revoga[çc][ãa]o|adi\b|adc\b|adpf|ac[óo]rd[ãa]o|decis[ãa]o|ef[ií]c[áa]cia|atualizad|reproduzid|publica[çc][ãa]o|medida provis|prov\.|provs?\b|provimento|comunicado|dlc\b|lei n|leis n|decreto n|ec n|emenda constitucional|vide ))(?:[^()]|\([^()]*\))*\)/gi;
+const LEI_INICIO = /^(?:Art(?:igo)?|ARTIGO)\.?\s*(\d{1,2}(?:\.\d{3})+|\d+)\s*(?:º|°|o(?=[\s.\-–—])|ª)?\s*(?:-([A-Z]{1,3})(?![a-zà-úA-Z]))?\s*[.\-–—:]?\s*/;
+const LEI_DISP = [
+  [/^(§\s*\d+(?:\.\d{3})?\s*(?:º|°|o\b)?(?:-[A-Z]{1,3})?)\.?\s*[-–—.]?\s*/, m => m[1].replace(/\s+/g,'').replace('§','§ ').replace(/(\d)(?:°|o\b)/,'$1º')],
+  [/^(Par[áa]grafo [úu]nico)\s*[.\-–—:]?\s*/i, () => 'Parágrafo único'],
+  [/^((?:[IVXLC]{1,7}))\s*[-–—]\s*/, m => m[1]],
+  [/^((?:[IVXLC]{1,7}))\.\s+(?=[a-zà-ú])/, m => m[1]],
+  [/^([a-z])\)\s*/, m => m[1]+')'],
+  [/^(\d{1,2})\)\s*/, m => m[1]+')'],
+  [/^(\d{1,2})\.\s+(?=[A-ZÀ-Ú])/, m => m[1]+'.'],
+  [/^(Pena)\s*[-–—:]\s*/i, () => 'Pena'],
+];
+const LEI_CAB = /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O|Parte|Livro|T[íi]tulo|Cap[íi]tulo|Se[çc][ãa]o|Subse[çc][ãa]o)\s+([IVXLCDM]+\b|[ÚU]NIC[OA]\b|[Úú]nic[oa]\b|\d+\b|GERAL\b|ESPECIAL\b|PRELIMINAR\b|Geral\b|Especial\b|Preliminar\b)/;
+const LEI_NIVEL = {parte:0, livro:1, titulo:2, capitulo:3, secao:4, subsecao:5};
+const LEI_FIM = /^(?:(?:Bras[íi]lia|Rio de Janeiro|S[ãa]o Paulo|Pal[áa]cio dos Bandeirantes|Pal[áa]cio do Buriti|Pal[áa]cio do Planalto)\b.{0,40}\d{4}|Este texto n[ãa]o substitui|\*+$|Download para anexo|Texto para impress[ãa]o)/i;
+const leiNum = s => +String(s).replace(/\./g,'');
+// chave de ordenação: 313 < 313-A < 313-B < 314
+const leiOrdem = k => { const m = String(k).match(/^(?:(ADCT)\s+)?(\d+)(?:-([A-Z]{1,3}))?$/); if(!m) return 1e9;
+  let suf = 0; if(m[3]) for(const ch of m[3]) suf = suf*27 + (ch.charCodeAt(0)-64);
+  return (m[1] ? 1e6 : 0) + +m[2] + suf/1000; };
+function leiLimpar(s, pdf){
+  s = String(s).replace(/­/g,'').replace(/[  -​]/g,' ');
+  s = s.replace(LEI_ANOT, '');
+  s = s.replace(/\s*\(NR\)/g, '').replace(/\s+-\s+Vide\b[^]*$/i, '').replace(/\s+-\s+(?:["“]?Caput["”]?|Artigo|Art\.|Par[áa]gr[áa]fo|Inciso|Al[íi]nea|§|Item|Se[çc][ãa]o|Cap[íi]tulo|T[íi]tulo)[^]{0,80}?(?:com reda[çc][ãa]o|acrescentad|inclu[íi]d|revogad|renumerad|alterad)[^]*$/i, '');
+  if(pdf) s = s.replace(/([.;:!?”"])\d{1,3}$/, '$1');
+  s = s.replace(/\s+/g,' ').replace(/\s+([,.;:])/g,'$1').trim();
+  while(/\)$/.test(s) && (s.match(/\)/g)||[]).length > (s.match(/\(/g)||[]).length) s = s.slice(0,-1).trim();
+  return s;
+}
+const leiVazio = t => !t || /^[\s.;:,\-–—]*$/.test(t) || /^\(?\s*(?:revogad[oa]s?|vetad[oa]s?|suprimid[oa]s?|prejudicad[oa])\b[^]*$/i.test(t) && t.length < 120;
+function leiDoTexto(texto, opc){
+  opc = opc || {};
+  const pdf = !!opc.pdf;
+  let linhas = String(texto).replace(/\r/g,'').split('\n').map(l => l.replace(/\s+/g,' ').trim()).filter(Boolean);
+  if(opc.inicio){ const re = new RegExp(opc.inicio, 'i'); const i = linhas.findIndex(l => re.test(l)); if(i >= 0) linhas = linhas.slice(i+1); }
+  const arts = [], vistos = new Set(), cab = [];
+  let art = null, disp = null, pular = true, prefixo = '', cabAberto = -1, ultimoCab = '', rubrica = '';
+  const hAtual = () => cab.filter(Boolean).join(' › ');
+  const fecharDisp = () => { if(disp){ disp.t = leiLimpar(disp.t, pdf); if(leiVazio(disp.t)) art.d.splice(art.d.indexOf(disp), 1); disp = null; } };
+  const fecharArt = () => { if(!art) return; fecharDisp(); art.d = art.d.filter(x => !leiVazio(x.t));
+    if(art.d.length && !vistos.has(art.k)){ vistos.add(art.k); arts.push(art); } art = null; };
+  for(let i = 0; i < linhas.length; i++){
+    let l = linhas[i];
+    if(pdf){ if(/^\d{1,4}$/.test(l)) continue;
+      if(l.length < 90 && /^(?:Provs?\.\s|Prov\.?\s*C\.?G|DLC\b|Comunicado\b|Com\.\s*C|Res\.\s|Port\.\s|Portaria\b|Provimento\b|Ato Normativo\b|Assento\b|Ac[óo]rd[ãa]o\b)/i.test(l)) continue;
+      if(l.length < 130 && /^(?:\d{1,2}\s+)?(?:Provs?\.?\s|Res\.\s|CJE\b|L\.\s*\d|D\.\s*\d|DL\s|Dec\.\s|Vide\s|CPP,|CPC,|CP,|CF,|CC,|LOMAN|Lei n[º°o]|Lei Federal|Lei Estadual|Portaria\b|Comunicado\b|Prov\s+C)/.test(l) && /\d{2,4}\.?$|art\.\s*\d+[º°]?\.?$/i.test(l)) continue;
+      if(l.length < 70 && /^(?:Lei|Decreto|LC|Resolu[çc][ãa]o|Res\.|Lei Complementar|CF|CPC|CPP)\b[^a-z]{0,45}\d{2,4}\.?$/i.test(l)) continue; }
+    if(/^\*?(Mensagem de veto|Vig[êe]ncia|Regulamento|Texto compilado|Convers[ãa]o da Medida|Vide\b|\(Vide)/i.test(l) && l.length < 160 && !art) continue;
+    if(/ATO DAS DISPOSI[ÇC][ÕO]ES CONSTITUCIONAIS TRANSIT[ÓO]RIAS/i.test(l) && l.length < 80 && (arts.length || art)){ fecharArt(); prefixo = 'ADCT '; cab.length = 0; cab[0] = 'ADCT'; pular = false; continue; }
+    if(LEI_FIM.test(l)){ fecharArt(); pular = true; continue; }
+    const c = l.match(LEI_CAB);
+    if(c && l.length < 160 && /^\s*($|[-–—.:]|[A-ZÀ-Ú])/.test(l.slice(c[0].length))){
+      fecharArt();
+      const nv = LEI_NIVEL[norm(c[1])]; cab.length = nv + 1; cab[nv] = leiLimpar(l, pdf);
+      cabAberto = nv; ultimoCab = l; pular = false; continue; }
+    const a = l.match(LEI_INICIO);
+    if(a){
+      fecharArt(); pular = false; cabAberto = -1;
+      const k = prefixo + leiNum(a[1]) + (a[2] ? '-'+a[2] : '');
+      const num = a[1] + (leiNum(a[1]) < 10 ? 'º' : '') + (a[2] ? '-'+a[2] : '');
+      art = {k, rot: (prefixo ? 'ADCT, art. ' : 'Art. ') + num, h: hAtual(), d: []};
+      if(rubrica){ art.tit = rubrica; rubrica = ''; }
+      const resto = l.slice(a[0].length);
+      if(resto){ disp = {r:'caput', t:resto}; art.d.push(disp); }
+      else if(linhas[i+1] && !LEI_INICIO.test(linhas[i+1]) && !LEI_DISP.some(([re]) => re.test(linhas[i+1])) && linhas[i+1].length < 90 && !/[.;:]$/.test(linhas[i+1])){ art.tit = leiLimpar(linhas[++i], pdf); }
+      continue;
+    }
+    if(pular) continue;
+    if(!art && l.length < 110 && cabAberto < 0 && /^[A-ZÀ-Ú]/.test(l) && !/[.;:,]$/.test(l) && LEI_INICIO.test(linhas[i+1] || '')){ rubrica = leiLimpar(l, pdf); continue; }
+    if(!art){ if(cabAberto >= 0 && l.length < 140 && !/[;:]$/.test(l)){ cab[cabAberto] = cab[cabAberto].replace(/\s*[-–—]\s*$/,'') + ' – ' + leiLimpar(l, pdf); cabAberto = -1; } continue; }
+    let achou = null;
+    for(const [re, rot] of LEI_DISP){ const m = l.match(re); if(m){ achou = {r: rot(m), t: l.slice(m[0].length)}; break; } }
+    if(achou && !(pdf && disp && /^\d{1,2}\.$/.test(achou.r) && !/[.;:]$/.test(disp.t))){ fecharDisp(); disp = achou; art.d.push(disp); continue; }
+    // rubrica (nome do crime, título do artigo) entre dispositivos: vira título do próximo artigo
+    const prox = linhas[i+1] || '';
+    if(l.length < 110 && /^[A-ZÀ-Ú]/.test(l) && !/[.;:,]$/.test(l) && (!disp || /[.;:]["”]?$/.test(leiLimpar(disp.t, pdf))) && (LEI_INICIO.test(prox) || LEI_DISP.some(([re]) => re.test(prox)))){
+      if(LEI_INICIO.test(prox)) rubrica = leiLimpar(l, pdf); continue; }
+    // continuação do dispositivo anterior (texto quebrado em linhas no PDF, ou parágrafo sem rótulo)
+    if(disp){ disp.t += (/-$/.test(disp.t) && pdf ? '' : ' ') + l; }
+    else { disp = {r:'caput', t:l}; art.d.push(disp); }
+  }
+  fecharArt();
+  return {arts};
+}
+// texto normalizado do catálogo: uma linha por dispositivo, cabeçalhos com "#"
+function leiParaTexto(lei, meta){
+  const out = []; let h = null;
+  if(meta) out.push(`@lei: ${meta.id} | ${meta.nome} | ${meta.sigla}`, ...(meta.fonte ? ['@fonte: '+meta.fonte] : []), ...(meta.atualizado ? ['@atualizado: '+meta.atualizado] : []));
+  lei.arts.forEach(a => {
+    if(a.h !== h){ h = a.h; out.push('# ' + (h || '')); }
+    const ini = a.d[0] && a.d[0].r === 'caput';
+    out.push(a.rot + (a.tit ? ' {' + a.tit + '}' : '') + (ini ? ' ' + a.d[0].t : ''));
+    a.d.forEach((x, i) => { if(i === 0 && ini) return;
+      out.push((x.r === 'Pena' ? 'Pena -' : /^[IVXLC]+$/.test(x.r) ? x.r + ' -' : x.r) + ' ' + x.t); });
+  });
+  return out.join('\n');
+}
+// lê o texto normalizado do catálogo (rápido, sem heurísticas)
+function leiDoCatalogo(txt){
+  const meta = {}, arts = []; let h = '', art = null;
+  txt.split('\n').forEach(l => {
+    if(!l) return;
+    if(l[0] === '@'){ const m = l.match(/^@(\w+):\s*(.*)$/); if(m){ if(m[1] === 'lei'){ const [id, nome, sigla] = m[2].split('|').map(s => s.trim()); Object.assign(meta, {id, nome, sigla}); } else meta[m[1]] = m[2]; } return; }
+    if(l[0] === '#'){ h = l.slice(1).trim(); return; }
+    const a = l.match(/^((?:ADCT, art\.|Art\.) (\d[\d.]*)º?(?:-([A-Z]{1,3}))?)(?: \{([^}]*)\})? ?(.*)$/);
+    if(a){ const k = (a[1].startsWith('ADCT') ? 'ADCT ' : '') + leiNum(a[2]) + (a[3] ? '-'+a[3] : '');
+      art = {k, rot: a[1], h, d: []}; if(a[4]) art.tit = a[4]; arts.push(art); if(a[5]) art.d.push({r:'caput', t:a[5]}); return; }
+    if(!art) return;
+    let m;
+    if((m = l.match(/^(§ [^ ]+|Parágrafo único|[a-z]\)|\d{1,2}[.)]) (.*)$/))) art.d.push({r:m[1], t:m[2]});
+    else if((m = l.match(/^([IVXLC]+) - (.*)$/))) art.d.push({r:m[1], t:m[2]});
+    else if((m = l.match(/^Pena - (.*)$/))) art.d.push({r:'Pena', t:m[1]});
+    else if(art.d.length) art.d[art.d.length-1].t += ' ' + l;
+  });
+  return {meta, arts};
+}
+/* ============ fim da leitura da lei ============ */
+
+/* ============ Lei seca: questões de certo ou errado ============
+   Cada dispositivo (caput, parágrafo, inciso, alínea, pena) vira uma afirmação. A versão "certa" é o texto literal;
+   a "errada" troca um ponto que as bancas costumam trocar: prazos e números, poderá/deverá, vedado/permitido,
+   reclusão/detenção, dolo/culpa, competências (União/Estados, Senado/Câmara, STF/STJ), recursos, "não" etc. */
+const EXT_UN = ['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+const EXT_DEZ = ['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+const EXT_CEN = ['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+function porExtenso(n, fem){
+  n = Math.round(n); if(n < 0) return String(n);
+  const f = s => fem ? s.replace(/\bum\b/g,'uma').replace(/\bdois\b/g,'duas').replace(/entos\b/g,'entas') : s;
+  if(n < 20) return f(EXT_UN[n]);
+  if(n < 100) return f(EXT_DEZ[Math.floor(n/10)] + (n%10 ? ' e ' + EXT_UN[n%10] : ''));
+  if(n === 100) return 'cem';
+  if(n < 1000) return f(EXT_CEN[Math.floor(n/100)] + (n%100 ? ' e ' + porExtenso(n%100) : ''));
+  if(n < 1000000){ const m = Math.floor(n/1000), r = n%1000;
+    return (m === 1 ? 'mil' : porExtenso(m, fem) + ' mil') + (r ? ((r < 100 || r%100 === 0) ? ' e ' : ' ') + porExtenso(r, fem) : ''); }
+  return String(n);
+}
+const EXT_VAL = (() => { const v = {cem:100, mil:1000, uma:1, duas:2, duzentas:200, trezentas:300, quatrocentas:400, quinhentas:500, seiscentas:600, setecentas:700, oitocentas:800, novecentas:900, catorze:14};
+  EXT_UN.forEach((w,i) => v[w] = i); EXT_DEZ.forEach((w,i) => { if(w) v[w] = i*10; }); EXT_CEN.forEach((w,i) => { if(w) v[w] = i*100; }); v.cento = 100; return v; })();
+function extensoParaNum(s){
+  let tot = 0, cur = 0, ok = false;
+  for(const w of norm(s).split(/\s+/)){
+    if(w === 'e' || !w) continue;
+    const k = Object.keys(EXT_VAL).find(x => norm(x) === w); if(k == null) return null;
+    ok = true; const v = EXT_VAL[k];
+    if(v === 1000){ tot += (cur || 1) * 1000; cur = 0; } else cur += v;
+  }
+  return ok ? tot + cur : null;
+}
+const EXT_RE = '(?:' + Object.keys(EXT_VAL).sort((a,b) => b.length - a.length).join('|') + ')';
+const NUM_COMUNS = [1,2,3,4,5,6,8,10,12,15,20,24,30,40,45,48,60,72,90,120,180,360,365];
+function outroNumero(n, rnd, evitar){
+  const c = new Set([n*2, Math.round(n/2), n+5, n-5, n*3, Math.round(n*1.5)]); if(n < 10){ c.add(n+1); c.add(n-1); } else { c.add(n+10); c.add(n+15); }
+  NUM_COMUNS.forEach(x => { if(x > n/4 && x < n*4) c.add(x); });
+  const op = [...c].filter(x => x > 0 && x !== n && Number.isInteger(x) && !(evitar||[]).includes(x));
+  return op.length ? op[Math.floor(rnd()*op.length)] : n+1;
+}
+const fmtMil = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const UNID = {dia:'dias', 'mês':'meses', mes:'meses', ano:'anos', hora:'horas', semana:'semanas', vez:'vezes', 'salário':'salários', minuto:'minutos', membro:'membros', mandato:'mandatos'};
+function unidade(u, n){ const sing = Object.keys(UNID).find(k => k === u || UNID[k] === u) || u; return n === 1 ? sing : (UNID[sing] || u); }
+// pares de troca (ida e volta). Cada linha: [a, b] — troca a→b e b→a.
+const LEI_PARES = [
+  ['poderá','deverá'],['poderão','deverão'],['pode','deve'],['podem','devem'],['poderá ser','deverá ser'],
+  ['é vedado','é permitido'],['é vedada','é permitida'],['são vedados','são permitidos'],['são vedadas','são permitidas'],['é proibido','é permitido'],
+  ['é facultado','é obrigatório'],['facultativo','obrigatório'],['facultativa','obrigatória'],['obrigatoriamente','facultativamente'],
+  ['privativamente','concorrentemente'],['exclusivamente','preferencialmente'],['somente','preferencialmente'],
+  ['inafiançável','afiançável'],['inafiançáveis','afiançáveis'],['imprescritível','prescritível'],['imprescritíveis','prescritíveis'],
+  ['insuscetível','suscetível'],['insuscetíveis','suscetíveis'],['gratuito','oneroso'],['gratuita','onerosa'],['gratuitos','onerosos'],['gratuitas','onerosas'],
+  ['reclusão','detenção'],['aumenta-se','diminui-se'],['aumentada','diminuída'],['aumentadas','diminuídas'],['aumentar','diminuir'],
+  ['dolo','culpa'],['doloso','culposo'],['dolosa','culposa'],['dolosos','culposos'],['dolosamente','culposamente'],
+  ['nulo','anulável'],['nulos','anuláveis'],['antes','depois'],['anterior','posterior'],['anteriores','posteriores'],
+  ['máximo','mínimo'],['máxima','mínima'],['superior','inferior'],['superiores','inferiores'],['maior','menor'],
+  ['prescrição','decadência'],['suspensivo','devolutivo'],['suspende','interrompe'],['suspensão do prazo','interrupção do prazo'],
+  ['natos','naturalizados'],['nato','naturalizado'],['Senado Federal','Câmara dos Deputados'],['Supremo Tribunal Federal','Superior Tribunal de Justiça'],
+  ['Presidente da República','Congresso Nacional'],['do Ministério Público','da Defensoria Pública'],['ao Ministério Público','à Defensoria Pública'],['o Ministério Público','a Defensoria Pública'],
+  ['à União','aos Estados'],['da União','dos Estados'],['pela União','pelos Estados'],['aos Municípios','ao Distrito Federal'],
+  ['o escrivão','o juiz'],['ao escrivão','ao juiz'],['pelo escrivão','pelo juiz'],['do escrivão','do juiz'],['oficial de justiça','escrivão'],
+  ['apelação','agravo de instrumento'],['embargos de declaração','agravo interno'],['recurso em sentido estrito','recurso de apelação'],
+  ['habeas corpus','mandado de segurança'],['habeas data','mandado de injunção'],['ação popular','ação civil pública'],
+  ['citação','intimação'],['citado','intimado'],['citada','intimada'],['citações','intimações'],['o réu','o autor'],['de ofício','a requerimento da parte'],
+  ['reconvenção','contestação'],['decisão interlocutória','sentença'],['prisão preventiva','prisão temporária'],['dias úteis','dias corridos'],
+  ['voto secreto','voto aberto'],['temporário','permanente'],['vitaliciedade','estabilidade'],['vitalícios','estáveis'],['demissão','exoneração'],
+  ['advertência','repreensão'],['maioria absoluta','maioria simples'],['absolutamente','relativamente'],['lei complementar','lei ordinária'],
+  ['ação penal pública','ação penal privada'],['incondicionada','condicionada'],['autoridade policial','autoridade judiciária'],
+  ['ascendente','descendente'],['ascendentes','descendentes'],['cargo efetivo','cargo em comissão'],['cargos efetivos','cargos em comissão'],
+  ['concorrência','pregão'],['dispensa de licitação','inexigibilidade de licitação'],['dispensável','inexigível'],['pessoa física','pessoa jurídica'],
+  ['objetiva','subjetiva'],['independentemente de','mediante'],['independe','depende'],['admite-se','veda-se'],['será admitido','será vedado'],
+  ['um terço','metade'],['dois terços','três quintos'],['um sexto','um terço'],['um quinto','um quarto'],['metade','dois terços'],
+  ['ativa','passiva'],['expressamente','tacitamente'],['por escrito','verbalmente'],
+  ['pessoalmente','por edital'],['publicamente','reservadamente'],['imediatamente','no prazo de cinco dias'],
+];
+const LEI_TROCA = (() => { const m = new Map(); LEI_PARES.forEach(([a,b]) => { if(!m.has(norm(a))) m.set(norm(a), b); if(!m.has(norm(b))) m.set(norm(b), a); });
+  const chaves = [...new Set(LEI_PARES.flat())].sort((a,b) => b.length - a.length).map(s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  return {m, re: new RegExp('(?<![\\wÀ-ÿ-])(' + chaves.join('|') + ')(?![\\wÀ-ÿ-])', 'gi')}; })();
+const comCaixa = (orig, novo) => /^[A-ZÀ-Ú]/.test(orig) ? novo.charAt(0).toUpperCase() + novo.slice(1) : novo;
+// lista as trocas possíveis no texto: {i, de, para, tipo}
+function leiTrocas(t, rnd){
+  const out = [], ocup = [];
+  const livre = (i, n) => !ocup.some(([a,b]) => i < b && i+n > a);
+  const perto = (i, n, para) => { const w = norm(para).trim(); if(!w) return false; const viz = norm(t.slice(Math.max(0, i-90), i) + ' ' + t.slice(i+n, i+n+90));
+    return new RegExp('(^|[^a-z0-9])' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '($|[^a-z0-9])').test(viz); };
+  const add = (i, de, para, tipo, peso) => { if(para && para !== de && livre(i, de.length) && !(tipo === 'termo' && (perto(i, de.length, para) || /^\s*n[º°o.]/i.test(t.slice(i+de.length))))){ ocup.push([i, i+de.length]); out.push({i, de, para, tipo, peso}); } };
+  const ref = i => /(?:\b(?:arts?|artigos?|lei|leis|n[º°o]|§|incisos?|decreto|emenda|al[íi]nea|par[áa]grafo|cap[íi]tulo|t[íi]tulo|se[çc][ãa]o)\.?\s*)$/i.test(t.slice(Math.max(0, i-14), i));
+  let m;
+  const nums = (t.match(/\d+/g)||[]).map(Number).concat((t.match(new RegExp(EXT_RE+'(?:\\s+e\\s+'+EXT_RE+')*','gi'))||[]).map(extensoParaNum).filter(x => x != null));
+  // "30 (trinta) dias"
+  const r1 = /(\d{1,3}(?:\.\d{3})*)\s*\(([a-zà-ú][a-zà-ú\s]*?)\)(\s+(?:dias?|meses|m[êe]s|anos?|horas?|semanas?|minutos?|vezes|vez)(?![\wÀ-ÿ]))?/gi;
+  while((m = r1.exec(t))){ if(ref(m.index)) continue; const n = +m[1].replace(/\./g,''); if(extensoParaNum(m[2]) !== n) continue;
+    const fem = /\b(uma|duas|entas)\b/i.test(m[2]), x = outroNumero(n, rnd, nums);
+    const u = m[3] ? ' ' + unidade(norm(m[3].trim()) === 'mes' ? 'mês' : m[3].trim().toLowerCase(), x) : '';
+    add(m.index, m[0], fmtMil(x) + ' (' + porExtenso(x, fem) + ')' + u, 'número', 5); }
+  // "cinco anos", "quinze dias", "uma hora"
+  const r2 = new RegExp('(?<![\\wÀ-ÿ])(' + EXT_RE + '(?:\\s+(?:e\\s+)?' + EXT_RE + ')*)\\s+(dias?|meses|m[êe]s|anos?|horas?|semanas?|vezes|sal[áa]rios?|minutos?|membros?)(?![\\wÀ-ÿ])', 'gi');
+  while((m = r2.exec(t))){ const n = extensoParaNum(m[1]); if(n == null || n === 0 || /\(\s*$/.test(t.slice(0, m.index))) continue;
+    const fem = /^(horas?|semanas?|vezes)$/i.test(m[2]) || /\b(uma|duas)\b/i.test(m[1]), x = outroNumero(n, rnd, nums);
+    add(m.index, m[0], comCaixa(m[1], porExtenso(x, fem)) + ' ' + unidade(norm(m[2]) === 'mes' ? 'mês' : m[2].toLowerCase(), x), 'número', 5); }
+  // "10 dias", "48 horas", "20%"
+  const r3 = /(?<![\d.,])(\d{1,4})\s*(dias?|meses|anos?|horas?|%|por cento)(?![\wÀ-ÿ])/gi;
+  while((m = r3.exec(t))){ if(ref(m.index)) continue; const n = +m[1], x = outroNumero(n, rnd, nums);
+    add(m.index, m[0], x + (m[2] === '%' ? '%' : ' ' + unidade(m[2].toLowerCase(), x)), 'número', 5); }
+  // pares de palavras
+  LEI_TROCA.re.lastIndex = 0;
+  while((m = LEI_TROCA.re.exec(t))){ const para = LEI_TROCA.m.get(norm(m[1])); if(!para) continue;
+    // palavra comum escrita com maiúscula no meio da frase é nome próprio (Tribunal Superior do Trabalho, Juiz Corregedor Permanente)
+    if(m[1] === m[1].toLowerCase() ? false : (m.index > 0 && !/[.:;]\s*$/.test(t.slice(0, m.index)) && para === para.toLowerCase())) continue;
+    add(m.index, m[1], comCaixa(m[1], para), 'termo', /juiz|escriv/i.test(m[1]) ? 1 : 3); }
+  // retirar o "não"
+  const r4 = /(?<![\wÀ-ÿ])(não)\s+(?!só\b|obstante\b|apenas\b|somente\b|houver\b|havendo\b|for\b|forem\b|sendo\b)/gi;
+  while((m = r4.exec(t))) add(m.index, m[0], '', 'negação', 2);
+  return out.filter(x => x.para !== undefined && (x.para !== '' || x.tipo === 'negação'));
+}
+function aplicarTroca(t, tr){ return t.slice(0, tr.i) + tr.para + t.slice(tr.i + tr.de.length); }
+// gerador pseudoaleatório com semente (a mesma questão pode vir com trocas diferentes a cada vez)
+function rndSemente(s){ let h = 2166136261; for(const ch of String(s)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return () => { h += 0x6D2B79F5; let x = h; x = Math.imul(x ^ x >>> 15, x | 1); x ^= x + Math.imul(x ^ x >>> 7, x | 61); return ((x ^ x >>> 14) >>> 0) / 4294967296; }; }
+const leiRotDisp = r => r === 'caput' ? '' : r === 'Pena' ? 'pena' : /^[IVXLC]+$/.test(r) ? 'inciso ' + r : /^[a-z]\)$/.test(r) ? 'alínea ' + r : r;
+const leiDispOk = (a, d) => d.t.length >= 35 && !/^\(?revogad/i.test(d.t) && !(d.r === 'caput' && /:$/.test(d.t) && d.t.length < 70);
+// monta a questão de um dispositivo: {certo, texto, troca, contexto}
+function leiQuestao(lei, art, di, semente){
+  const d = art.d[di], rnd = rndSemente(semente), tr = leiTrocas(d.t, rnd);
+  const ctx = d.r === 'caput' ? '' : (art.d.find(x => x.r === 'caput') || {}).t || '';
+  const contexto = d.r === 'Pena' ? (art.d.slice(0, di).reverse().find(x => x.r !== 'Pena') || {}).t || ctx : ctx;
+  let certo = !tr.length || rnd() < .45, troca = null, texto = d.t;
+  if(!certo){ const tot = tr.reduce((s,x) => s + x.peso, 0); let r = rnd()*tot; troca = tr.find(x => (r -= x.peso) < 0) || tr[0]; texto = aplicarTroca(d.t, troca); }
+  return {certo, texto, troca, contexto, ref: (lei.sigla ? lei.sigla + ', ' : '') + art.rot.replace(/^Art\./,'art.') + (d.r !== 'caput' ? ', ' + leiRotDisp(d.r) : '')};
+}
+// ---------- edital → leis e artigos ----------
+// "arts. 251 a 267 e 274", "arts. 1º a 8º-A", "art. 5º", "arts. 1.189 a 1.265" → [[ini, fim], ...] (na ordem de leiOrdem)
+function leiFaixas(txt){
+  const out = [], re = /\barts?\.?\s*((?:\d[\d.]*\s*(?:º|°|o\b)?(?:\s*-\s*[A-Z]{1,3}\b)?(?:\s*(?:,|e|a|até|-|–|;)\s*(?=\d))?)+)/gi;
+  let m;
+  while((m = re.exec(txt))){
+    const toks = m[1].match(/\d[\d.]*\s*(?:º|°|o\b)?(?:\s*-\s*[A-Z]{1,3}\b)?|\b(?:a|até)\b|[-–](?=\s*\d)|,|\be\b/g) || [];
+    let ult = null, faixa = false;
+    toks.forEach(tk => { tk = tk.trim();
+      if(/^\d/.test(tk)){ const mm = tk.match(/^(\d[\d.]*)\s*(?:º|°|o)?(?:\s*-\s*([A-Z]{1,3}))?/); const k = leiOrdem(leiNum(mm[1].replace(/\.$/,'')) + (mm[2] ? '-'+mm[2] : ''));
+        if(faixa && ult != null){ out[out.length-1][1] = k; faixa = false; } else out.push([k, k]); ult = k; }
+      else if(/^(a|até|-|–)$/.test(tk)) faixa = true; else faixa = false; });
+  }
+  return out;
+}
+// CF: temas sem número de artigo no edital
+const CF_TEMAS = [[/rem[ée]dios? constituciona|habeas|mandado de seguran/i,[[5,5]]],[/direitos e deveres individuais|direitos individuais/i,[[5,5]]],[/direitos sociais/i,[[6,11]]],
+  [/nacionalidade/i,[[12,13]]],[/direitos pol[íi]ticos/i,[[14,16]]],[/partidos pol[íi]ticos/i,[[17,17]]],[/organiza[çc][ãa]o pol[íi]tico|organiza[çc][ãa]o do estado/i,[[18,36]]],
+  [/administra[çc][ãa]o p[úu]blica/i,[[37,38]]],[/servidores p[úu]blicos/i,[[39,41]]],[/poder legislativo|processo legislativo/i,[[44,75]]],[/poder executivo/i,[[76,91]]],
+  [/poder judici[áa]rio|[óo]rg[ãa]os do poder judici/i,[[92,126]]],[/fun[çc][õo]es essenciais|minist[ée]rio p[úu]blico|defensoria|advocacia/i,[[127,135]]],
+  [/controle de constitucionalidade/i,[[102,103]]],[/princ[íi]pios fundamentais/i,[[1,4]]],[/ordem social|seguridade|sa[úu]de|educa[çc][ãa]o/i,[[193,232]]],[/ordem econ[ôo]mica/i,[[170,192]]],
+  [/finan[çc]as p[úu]blicas|or[çc]amento/i,[[163,169]]],[/tributa[çc][ãa]o|tribut[áa]rio/i,[[145,162]]],[/defesa do estado|estado de defesa|estado de s[íi]tio/i,[[136,144]]]];
+function leiDetectar(txt, indice){
+  const achadas = [], t = norm(txt);
+  const re = /\b(?:lei complementar|lc|lei|decreto-lei|decreto|dl)\s*(?:estadual|federal|distrital)?\s*(?:n[º°o.]*\s*)?(\d{1,2}\.?\d{3}|\d{2,3})(?:\s*\/\s*(\d{2,4}))?/gi;
+  let m;
+  while((m = re.exec(txt))){ const n = m[1].replace(/\./g,''); const l = indice.find(x => x.numero && x.numero.replace(/\./g,'') === n); if(l && !achadas.includes(l.id)) achadas.push(l.id); }
+  if(!achadas.length) indice.forEach(l => { if((l.apelidos||[]).some(a => { try{ return new RegExp(a, 'i').test(t) || new RegExp(a, 'i').test(txt); }catch(e){ return false; } }) && !achadas.includes(l.id)) achadas.push(l.id); });
+  return achadas;
+}
+// alvos do edital: [{lei, faixas, peso, materiaId, topicoId, nome}]
+function leiAlvos(indice){
+  const out = [];
+  S.materias.forEach(m => {
+    const daMat = leiDetectar(m.nome, indice);
+    m.topicos.forEach(t => {
+      let leis = leiDetectar(t.nome, indice); if(!leis.length) leis = daMat;
+      if(!leis.length) return;
+      const peso = (m.peso||3) * (t.tecQ != null ? Math.max(.5, fatorIncid(m,t)*2) : (t.incid||2));
+      leis.forEach(id => {
+        let faixas = leis.length === 1 ? leiFaixas(t.nome) : [];
+        if(leis.length > 1){ // "Lei 9.099/95, arts. 60 a 76 e Lei 12.153": faixas só se vierem logo após a lei
+          const l = indice.find(x => x.id === id), i = l && l.numero ? t.nome.replace(/\./g,'').indexOf(l.numero.replace(/\./g,'')) : -1;
+          if(i >= 0) faixas = leiFaixas(t.nome.replace(/\./g,'').slice(i).split(/\blei\b/i)[0].replace(/(\d)(\d{3})\b/g,'$1.$2')); }
+        if(!faixas.length && id === 'cf'){ const tm = CF_TEMAS.find(([re]) => re.test(t.nome)); if(tm) faixas = tm[1].map(([a,b]) => [a,b]); }
+        out.push({lei:id, faixas, peso: faixas.length ? peso : peso*.5, materiaId:m.id, topicoId:t.id, nome:t.nome});
+      });
+    });
+  });
+  (S.leiSeca.extras||[]).forEach(id => { if(!out.some(a => a.lei === id)) out.push({lei:id, faixas:[], peso:1, materiaId:'', topicoId:'', nome:'lei inteira (adicionada por você)'}); });
+  (S.leisProprias||[]).forEach(p => { if(!out.some(a => a.lei === p.id)){ const m = p.materiaId && mat(p.materiaId);
+    out.push({lei:p.id, faixas:[], peso: m ? (m.peso||3) : 1, materiaId: m ? m.id : '', topicoId:'', nome:'lei inteira (PDF enviado)'}); } });
+  return out;
+}
+const leiNaFaixa = (k, faixas) => !faixas.length || faixas.some(([a,b]) => { const o = leiOrdem(k); return o >= a && o <= b; });
+
+/* ---------- Lei seca: estado, sessão de treino e progresso ---------- */
+let LS = {indice:null, leis:{}, preparando:false, pronto:false, erro:'', alvos:[], sessao:null, filtro:'', modo:'edital', qtd:10, ver:'', verTodos:false, verMais:60, pdf:null, outras:false};
+const lsSt = () => S.leiSeca.st;
+function lsTodas(){
+  return (LS.indice||[]).concat((S.leisProprias||[]).map(p => ({id:p.id, nome:p.nome, sigla:p.sigla, numero:p.numero||'', propria:true,
+    apelidos: p.sigla && p.sigla.length >= 3 && !/^lei\b/i.test(p.sigla) ? [p.sigla.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')] : []})));
+}
+const lsMeta = id => lsTodas().find(x => x.id === id) || {id, nome:id, sigla:id};
+async function lsLerLei(id){
+  if(LS.leis[id]) return LS.leis[id];
+  const p = (S.leisProprias||[]).find(x => x.id === id);
+  const lei = leiDoCatalogo(p ? p.texto : await lerCatalogo('leis/'+id+'.txt'));
+  const m = lsMeta(id); lei.id = id; lei.sigla = m.sigla || lei.meta.sigla || id; lei.nome = m.nome || lei.meta.nome || id;
+  lei.porK = {}; lei.arts.forEach(a => lei.porK[a.k] = a);
+  return LS.leis[id] = lei;
+}
+async function lsPreparar(forcar){
+  if(LS.preparando || (LS.pronto && !forcar)) return;
+  LS.preparando = true; LS.erro = '';
+  try{
+    if(!LS.indice) LS.indice = JSON.parse(await lerCatalogo('leis/indice.json'));
+    LS.alvos = leiAlvos(lsTodas()); LS.sig = lsAssinatura();
+    const ids = [...new Set(LS.alvos.map(a => a.lei))];
+    const falhas = [];
+    await Promise.all(ids.map(id => lsLerLei(id).catch(e => { falhas.push(lsMeta(id).sigla); })));
+    LS.alvos = LS.alvos.filter(a => LS.leis[a.lei]);
+    if(falhas.length) LS.erro = 'Não consegui carregar: ' + falhas.join(', ') + '. Confira a internet e abra a aba de novo.';
+    LS.pronto = true;
+  }catch(e){ LS.erro = 'Não foi possível carregar as leis ('+e.message+'). Confira a internet e abra a aba de novo.'; }
+  LS.preparando = false;
+  if(aba === 'leiseca' || aba === 'desempenho') render();
+}
+function lsInvalidar(){ LS.pronto = false; LS.alvos = []; LS.sessao = null; }
+// dispositivos que podem cair: [{key, lei, k, di, w, alvo}]
+function lsPool(op){
+  op = op || {};
+  const out = [], vistos = new Set();
+  const alvos = op.inteira ? [{lei:op.lei, faixas:[], peso:1}] : LS.alvos.filter(a => !op.lei || a.lei === op.lei);
+  alvos.forEach(a => {
+    const lei = LS.leis[a.lei]; if(!lei) return;
+    const arts = lei.arts.filter(x => (op.art ? x.k === op.art : leiNaFaixa(x.k, a.faixas)) && (a.faixas.length || op.art || !/^ADCT/.test(x.k)));
+    const elig = [];
+    arts.forEach(x => x.d.forEach((d, di) => { if(leiDispOk(x, d)) elig.push([x, di]); }));
+    const w = (a.peso || 1) / Math.max(20, elig.length) * 20;
+    elig.forEach(([x, di]) => { const key = a.lei+'|'+x.k+'|'+di; if(vistos.has(key)) return; vistos.add(key);
+      out.push({key, lei:a.lei, k:x.k, di, w, nome:a.nome}); });
+  });
+  if(op.erros) return out.filter(it => { const s = lsSt()[it.key]; return s && s[1] > 0 && s[2] < 3; });
+  return out;
+}
+function lsEscolher(pool, n){
+  const st = lsSt(), hj = hoje(), dev = [], novos = [], vis = [];
+  pool.forEach(it => { const s = st[it.key]; if(!s) novos.push(it); else if(s[3] <= hj) dev.push(it); else vis.push(it); });
+  dev.sort((a,b) => (st[b.key][1]-st[b.key][0]) - (st[a.key][1]-st[a.key][0]) || Math.random()-.5);
+  const out = dev.splice(0, Math.ceil(n*.6));
+  const pegar = (lista, k) => { while(k-- > 0 && lista.length){ const tot = lista.reduce((s,x) => s+x.w, 0); let r = Math.random()*tot, i = 0;
+    for(; i < lista.length-1; i++){ r -= lista[i].w; if(r <= 0) break; } out.push(lista.splice(i,1)[0]); } };
+  pegar(novos, n - out.length); out.push(...dev.splice(0, n - out.length)); pegar(vis, n - out.length);
+  for(let i = out.length-1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [out[i], out[j]] = [out[j], out[i]]; }
+  return out;
+}
+function lsIniciar(op){
+  op = op || {};
+  const pool = lsPool({lei: op.lei ?? LS.filtro, art: op.art, inteira: op.inteira ?? (LS.modo === 'inteira' && !!(op.lei ?? LS.filtro)), erros: op.erros ?? LS.modo === 'erros'});
+  if(!pool.length){ avisar(LS.modo === 'erros' ? 'Nenhum erro para revisar aqui. Ótimo sinal!' : 'Não há dispositivos para treinar com esse filtro.'); return; }
+  const itens = lsEscolher(pool, op.art ? Math.min(pool.length, 15) : LS.qtd).map(it => {
+    const lei = LS.leis[it.lei], art = lei.porK[it.k];
+    return {...it, q: leiQuestao(lei, art, it.di, it.key + '|' + Date.now() + Math.random())}; });
+  LS.sessao = {itens, i:0, resp:null, ac:0, er:0, titulo: op.titulo || ''};
+  render(); const el = document.getElementById('lsq'); if(el && el.scrollIntoView) el.scrollIntoView({block:'start', behavior:'smooth'});
+}
+function lsResponder(marcouCerto){
+  const s = LS.sessao; if(!s || s.resp) return;
+  const it = s.itens[s.i], ok = marcouCerto === it.q.certo, st = lsSt();
+  const v = st[it.key] || [0,0,0,''];
+  if(ok){ v[0]++; v[2] = Math.min(5, v[2]+1); v[3] = addDias(hoje(), [1,2,4,8,16,32][v[2]]); s.ac++; }
+  else { v[1]++; v[2] = 0; v[3] = hoje(); s.er++; }
+  st[it.key] = v;
+  const d = S.leiSeca.dias[hoje()] || [0,0]; d[0]++; if(ok) d[1]++; S.leiSeca.dias[hoje()] = d;
+  s.resp = {ok, marcou: marcouCerto};
+  save(); render();
+}
+function lsProxima(){ const s = LS.sessao; if(!s || !s.resp) return; s.i++; s.resp = null; if(s.i >= s.itens.length) s.fim = true; render(); }
+document.addEventListener('keydown', e => {
+  if(aba !== 'leiseca' || !LS.sessao || LS.sessao.fim || /INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')) return;
+  const k = e.key.toLowerCase();
+  if(!LS.sessao.resp && (k === 'c' || k === 'e')){ e.preventDefault(); lsResponder(k === 'c'); }
+  else if(LS.sessao.resp && (k === 'enter' || k === ' ' || k === 'arrowright')){ e.preventDefault(); lsProxima(); }
+});
+// progresso por lei (dispositivos do edital)
+function lsProgresso(lei){
+  const pool = lsPool({lei}), st = lsSt(); let vistos = 0, a = 0, e = 0, dom = 0;
+  pool.forEach(it => { const s = st[it.key]; if(s){ vistos++; a += s[0]; e += s[1]; if(s[2] >= 3) dom++; } });
+  return {tot: pool.length, vistos, a, e, dom, p: a+e ? a/(a+e) : null};
+}
+function lsPorArtigo(){
+  const g = {};
+  Object.entries(lsSt()).forEach(([key, s]) => { const [lei, k] = key.split('|'); if(!LS.leis[lei]) return;
+    const id = lei+'|'+k, x = g[id] = g[id] || {lei, k, a:0, e:0}; x.a += s[0]; x.e += s[1]; });
+  return Object.values(g);
+}
+function lsPorLeiResumo(){
+  const g = {};
+  Object.entries(lsSt()).forEach(([key, v]) => { const l = key.split('|')[0], x = g[l] = g[l] || {lei:l, a:0, e:0, n:0, dom:0}; x.a += v[0]; x.e += v[1]; x.n++; if(v[2] >= 3) x.dom++; });
+  return Object.values(g).map(x => ({...x, q:x.a+x.e, p:x.a+x.e ? x.a/(x.a+x.e) : null, sigla: (LS.leis[x.lei]||lsMeta(x.lei)).sigla})).sort((a,b) => (a.p??1) - (b.p??1));
+}
+function lsFoco(){
+  return lsPorArtigo().filter(x => x.a + x.e >= 2 && x.a/(x.a+x.e) < .8)
+    .sort((x,y) => x.a/(x.a+x.e) - y.a/(y.a+y.e) || y.e - x.e).slice(0, 8);
+}
+function lsResumoGeral(){
+  let q = 0, a = 0; Object.values(S.leiSeca.dias||{}).forEach(([x,y]) => { q += x; a += y; });
+  const hj = S.leiSeca.dias[hoje()] || [0,0];
+  const dom = Object.values(lsSt()).filter(s => s[2] >= 3).length, dev = Object.values(lsSt()).filter(s => s[3] && s[3] <= hoje()).length;
+  return {q, a, p: q ? a/q : null, hoje: hj, dom, dev};
+}
+const lsCor = s => !s ? 'var(--soft)' : s[2] >= 3 ? 'var(--ok)' : s[1] > s[0] ? 'var(--bad)' : 'var(--warn)';
+function lsFaixasTxt(lei){
+  const fx = LS.alvos.filter(a => a.lei === lei).flatMap(a => a.faixas);
+  if(!fx.length) return 'lei inteira';
+  const L = LS.leis[lei], ks = L ? L.arts.filter(x => leiNaFaixa(x.k, fx)).map(x => x.k) : [];
+  return ks.length ? ks.length + ' artigos do edital' : 'artigos do edital';
+}
+// realça a troca no texto original e na afirmação
+function lsRealce(q, dt){
+  if(!q.troca) return esc(dt);
+  const i = q.troca.i;
+  return esc(dt.slice(0, i)) + `<mark class="ok">${esc(q.troca.de)}</mark>` + esc(dt.slice(i + q.troca.de.length));
+}
+function lsCardQuestao(){
+  const s = LS.sessao, it = s.itens[s.i], lei = LS.leis[it.lei], art = lei.porK[it.k], d = art.d[it.di], q = it.q;
+  const n = s.itens.length;
+  let h = `<div class="card lsq" id="lsq"><div class="lsq-top"><span class="tag">${s.i+1} de ${n}</span>${s.titulo?`<span class="mut">${esc(s.titulo)}</span>`:''}
+    <span style="flex:1"></span><span class="mut">${s.ac} certas · ${s.er} erradas</span><button class="g" onclick="LS.sessao=null;render()">Encerrar</button></div>
+    <div class="bar" style="margin:10px 0 16px"><i style="width:${(s.i + (s.resp?1:0))/n*100}%"></i></div>
+    <div class="lsq-ref"><b>${esc(lei.sigla)}</b> · ${esc(q.ref.replace(/^[^,]*,\s*/,''))}${art.tit?` <span class="mut">· ${esc(art.tit)}</span>`:''}</div>
+    ${art.h?`<div class="mut" style="font-size:13px;margin-top:2px">${esc(curto(art.h, 140))}</div>`:''}
+    ${q.contexto?`<div class="lsq-ctx">${esc(curto(q.contexto, 320))}</div>`:''}
+    <div class="lsq-txt">${d.r==='Pena'?'<span class="mut">Pena:</span> ':''}${esc(q.texto)}</div>`;
+  if(!s.resp){
+    h += `<div class="lsq-bts"><button class="lsb certo" onclick="lsResponder(true)">✓ Certo <small>C</small></button><button class="lsb errado" onclick="lsResponder(false)">✗ Errado <small>E</small></button></div>`;
+  } else {
+    const ok = s.resp.ok;
+    h += `<div class="lsq-res ${ok?'ok':'bad'}"><b>${ok?'Você acertou!':'Você errou.'}</b> A afirmação está <b>${q.certo?'CERTA':'ERRADA'}</b>${q.certo?': é o texto literal da lei.':q.troca.tipo==='negação'?': a afirmação tirou o “<b>não</b>” do texto da lei.':`: a lei diz “<b>${esc(q.troca.de)}</b>”, e não “<b>${esc(q.troca.para)}</b>”.`}</div>
+      <div class="lsq-orig"><div class="mut" style="margin-bottom:4px">Texto da lei · ${esc(art.rot)}${d.r!=='caput'?', '+esc(leiRotDisp(d.r)):''}</div>${lsRealce(q, d.t)}</div>
+      <div class="lsq-bts"><button class="b" onclick="lsProxima()">${s.i+1 < n ? 'Próxima →' : 'Ver resultado'} <small style="opacity:.7">Enter</small></button>
+      <button class="g" onclick="lsVerArtigo('${it.lei}','${it.k}')">Ler o artigo inteiro</button></div>`;
+  }
+  return h + `</div>`;
+}
+function lsCardFim(){
+  const s = LS.sessao, n = s.ac + s.er, p = n ? s.ac/n : 0;
+  const erradas = s.itens.filter(it => { const v = lsSt()[it.key]; return v && v[2] === 0; });
+  return `<div class="card lsq" id="lsq"><h2>Treino concluído</h2>
+    <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">${anel(p, p >= .8 ? 'var(--ok)' : p >= .6 ? 'var(--warn)' : 'var(--bad)', 96)}
+      <div><div class="big">${s.ac} de ${n}</div><div class="mut">${p >= .8 ? 'Excelente! Esses dispositivos voltam em alguns dias para fixar.' : 'Os que você errou voltam na próxima rodada, até você acertar.'}</div></div></div>
+    ${erradas.length ? `<h3>Para reler agora</h3>${erradas.map(it => { const L = LS.leis[it.lei], a = L.porK[it.k];
+      return `<div class="lsq-orig" style="margin:8px 0"><b>${esc(L.sigla)}, ${esc(a.rot)}${a.d[it.di].r!=='caput'?', '+esc(leiRotDisp(a.d[it.di].r)):''}</b> · ${esc(a.d[it.di].t)}</div>`; }).join('')}` : ''}
+    <div class="inl" style="margin-top:14px"><button class="b" onclick="lsIniciar()">Treinar de novo</button>${erradas.length?`<button class="g" onclick="lsIniciar({erros:true})">Só os erros</button>`:''}<button class="g" onclick="LS.sessao=null;render()">Voltar</button></div></div>`;
+}
+function lsVerArtigo(lei, k){ LS.ver = lei; LS.verTodos = true; LS.verArt = k; LS.sessao = LS.sessao && LS.sessao.fim ? null : LS.sessao; render();
+  setTimeout(() => { const el = document.getElementById('art-'+k.replace(/\W/g,'_')); if(el && el.scrollIntoView) el.scrollIntoView({block:'center'}); }, 50); }
+function lsCardLer(){
+  const L = LS.leis[LS.ver]; if(!L) return '';
+  const fx = LS.alvos.filter(a => a.lei === L.id).flatMap(a => a.faixas), st = lsSt();
+  let arts = L.arts.filter(x => LS.verTodos || leiNaFaixa(x.k, fx));
+  const total = arts.length; arts = arts.slice(0, LS.verMais);
+  const busca = LS.busca ? norm(LS.busca) : '';
+  if(busca){ arts = L.arts.filter(x => norm(x.rot).includes(busca) || x.d.some(d => norm(d.t).includes(busca))).slice(0, 60); }
+  return `<div class="card" id="lsler"><h2><span>${esc(L.sigla)} · <span class="mut">${esc(L.nome)}</span></span><button class="g" onclick="LS.ver='';LS.busca='';render()">Fechar</button></h2>
+    <div class="inl" style="margin-top:0"><input id="lsbusca" placeholder="Procurar artigo ou palavra (ex.: 312, peculato)" value="${esc(LS.busca||'')}" style="flex:1;min-width:220px;width:auto" onkeydown="if(event.key==='Enter'){LS.busca=this.value;render();}">
+      <button class="g" onclick="LS.busca=document.getElementById('lsbusca').value;render()">Procurar</button>
+      ${fx.length ? `<button class="g" onclick="LS.verTodos=!LS.verTodos;LS.verMais=60;render()">${LS.verTodos ? 'Só os artigos do edital' : 'Lei inteira'}</button>` : ''}</div>
+    <p class="mut" style="margin:8px 0">${busca ? arts.length + ' resultado(s)' : (LS.verTodos || !fx.length ? 'Lei inteira' : 'Artigos do seu edital') + ' · ' + total + ' artigos'}. A cor mostra o seu domínio: <span class="lsdot" style="background:var(--ok)"></span> dominado <span class="lsdot" style="background:var(--warn)"></span> treinando <span class="lsdot" style="background:var(--bad)"></span> mais erros que acertos <span class="lsdot" style="background:var(--soft)"></span> ainda não treinado.</p>
+    ${arts.map(a => `<div class="lsart${LS.verArt === a.k ? ' foco' : ''}" id="art-${a.k.replace(/\W/g,'_')}"><div class="lsart-cab"><b>${esc(a.rot)}</b>${a.tit?` <span class="mut">· ${esc(a.tit)}</span>`:''}<span style="flex:1"></span><button class="g" onclick="lsIniciar({lei:'${L.id}',art:'${a.k}',inteira:true,titulo:'${esc(L.sigla)}, ${esc(a.rot)}'})">Treinar este artigo</button></div>
+      ${a.d.map((d, di) => `<div class="lsdisp"><span class="lsdot" style="background:${lsCor(st[L.id+'|'+a.k+'|'+di])}"></span><span>${d.r!=='caput'?`<b>${esc(d.r === 'Pena' ? 'Pena –' : /^[IVXLC]+$/.test(d.r) ? d.r + ' –' : d.r)}</b> `:''}${esc(d.t)}</span></div>`).join('')}</div>`).join('')}
+    ${!busca && total > LS.verMais ? `<button class="g" onclick="LS.verMais+=60;render()">Mostrar mais artigos (${total - LS.verMais} restantes)</button>` : ''}</div>`;
+}
+// ---------- lei em PDF (ou texto colado) enviada por você ----------
+async function lsPdf(inp){
+  const f = inp.files && inp.files[0]; if(!f) return;
+  LS.pdf = {msg:'Lendo o PDF…'}; render();
+  try{
+    const linhas = await linhasDoPdf(await f.arrayBuffer());
+    lsTextoLei(linhas.join('\n'), true, f.name);
+  }catch(e){ LS.pdf = {msg:'Não consegui ler o PDF: ' + e.message}; render(); }
+}
+function lsTextoLei(texto, pdf, arquivo){
+  const lei = leiDoTexto(texto, {pdf});
+  if(lei.arts.length < 2){ LS.pdf = {msg: 'Não encontrei artigos (“Art. 1º …”) neste ' + (pdf ? 'PDF. Se ele for digitalizado (imagem), use um PDF com texto selecionável ou cole o texto da lei.' : 'texto.')}; render(); return; }
+  const linhas = String(texto).split('\n').slice(0, 60);
+  const tit = (linhas.find(l => /^(LEI|DECRETO|LEI COMPLEMENTAR|RESOLU[ÇC][ÃA]O|PROVIMENTO|PORTARIA|EMENDA|INSTRU[ÇC][ÃA]O|REGIMENTO|ATO|C[ÓO]DIGO)\b/i.test(l.trim())) || (arquivo||'').replace(/\.pdf$/i,'') || 'Lei enviada').trim();
+  const numero = (tit.match(/n[º°o.]*\s*(\d{1,3}(?:\.\d{3})*|\d+)/i) || tit.match(/\b(\d{1,2}\.\d{3}|\d{3,5})\b/) || [])[1] || '';
+  const sigla = numero ? (/complementar/i.test(tit) ? 'LC ' : /decreto/i.test(tit) ? 'Decreto ' : 'Lei ') + numero : curto(tit, 24);
+  const naEdital = numero && S.materias.find(m => m.topicos.some(t => t.nome.replace(/\./g,'').includes(numero.replace(/\./g,''))));
+  LS.pdf = {lei, nome: curto(tit, 140), sigla, numero, materiaId: naEdital ? naEdital.id : '', arquivo, msg:''};
+  render();
+}
+function lsSalvarPdf(){
+  const p = LS.pdf; if(!p || !p.lei) return;
+  const nome = (document.getElementById('lsp_nome').value || p.nome).trim(), sigla = (document.getElementById('lsp_sigla').value || p.sigla).trim();
+  const numero = (document.getElementById('lsp_num').value || '').trim(), materiaId = document.getElementById('lsp_mat').value;
+  const id = 'p' + uid();
+  S.leisProprias = S.leisProprias || [];
+  S.leisProprias.push({id, nome, sigla, numero, materiaId, criado: hoje(), arts: p.lei.arts.length, texto: leiParaTexto(p.lei, {id, nome, sigla})});
+  LS.pdf = null; save(); lsInvalidar(); lsPreparar(true);
+  avisar(`“${sigla}” salva com ${p.lei.arts.length} artigos. Ela fica guardada na sua conta e já entra no treino.`);
+}
+async function lsExcluirLei(id){
+  const p = (S.leisProprias||[]).find(x => x.id === id); if(!p) return;
+  if(!(await confirmar(`Excluir a lei “${p.sigla}” e o seu progresso nela?`))) return;
+  S.leisProprias = S.leisProprias.filter(x => x.id !== id);
+  Object.keys(lsSt()).forEach(k => { if(k.startsWith(id+'|')) delete lsSt()[k]; });
+  delete LS.leis[id]; save(); lsInvalidar(); lsPreparar(true);
+}
+function lsAlternarExtra(id){
+  const ex = S.leiSeca.extras = S.leiSeca.extras || [];
+  if(ex.includes(id)) S.leiSeca.extras = ex.filter(x => x !== id); else ex.push(id);
+  save(); lsInvalidar(); lsPreparar(true);
+}
+function lsCardPdf(){
+  const p = LS.pdf;
+  let h = `<div class="card"><h2>Adicionar outra lei</h2>
+    <p class="mut" style="margin-top:-4px">Envie o PDF de uma lei que não está no catálogo (lei estadual, municipal, regimento, resolução…). O tutor separa os artigos, cria as questões e cruza com o seu edital. A lei fica salva: não precisa enviar de novo.</p>
+    <div class="inl"><input type="file" accept="application/pdf,.pdf" onchange="lsPdf(this)" style="width:auto;flex:1;min-width:220px"></div>
+    <details style="margin-top:10px"><summary class="mut" style="cursor:pointer">Ou cole o texto da lei</summary>
+      <textarea id="lstxt" placeholder="Cole aqui o texto (do site oficial, por exemplo), com os artigos" style="margin-top:8px;min-height:120px"></textarea>
+      <button class="g" style="margin-top:6px" onclick="lsTextoLei(document.getElementById('lstxt').value,false,'')">Ler o texto</button></details>`;
+  if(p && p.msg) h += `<div class="alert ${/^Lendo/.test(p.msg)?'info':''}" style="margin-top:10px">${esc(p.msg)}</div>`;
+  if(p && p.lei){ const a = p.lei.arts;
+    h += `<div class="caixa" style="margin-top:12px"><b>Encontrei ${a.length} artigos</b> (${esc(a[0].rot)} a ${esc(a[a.length-1].rot)}) e ${a.reduce((s,x)=>s+x.d.length,0)} dispositivos.
+      <div class="mut" style="margin:6px 0">${esc(a[0].rot)} ${esc(curto((a[0].d[0]||{t:''}).t, 160))}</div>
+      <div class="row"><div><label>Nome da lei</label><input id="lsp_nome" value="${esc(p.nome)}"></div><div><label>Sigla curta</label><input id="lsp_sigla" value="${esc(p.sigla)}"></div><div><label>Número</label><input id="lsp_num" value="${esc(p.numero)}" placeholder="ex.: 10.261"></div>
+        <div><label>Matéria do edital</label><select id="lsp_mat"><option value="">Nenhuma (só lei avulsa)</option>${S.materias.map(m => `<option value="${m.id}" ${m.id===p.materiaId?'selected':''}>${esc(m.nome)}</option>`).join('')}</select></div></div>
+      <p class="mut" style="margin:8px 0 0">Se o edital citar esta lei pelo número (ex.: “Lei ${esc(p.numero||'nº 0.000')}, arts. 1º a 20”), as questões focam nesses artigos. Sem citação, vale a lei inteira.</p>
+      <div class="inl"><button class="b" onclick="lsSalvarPdf()">Salvar lei</button><button class="g" onclick="LS.pdf=null;render()">Cancelar</button></div></div>`; }
+  const prop = S.leisProprias || [];
+  if(prop.length) h += `<h3>Leis que você enviou</h3>${prop.map(x => `<div class="item"><div style="min-width:0"><b>${esc(x.sigla)}</b> <span class="mut">· ${esc(curto(x.nome, 80))} · ${x.arts||'?'} artigos${x.materiaId && mat(x.materiaId) ? ' · ' + esc(mat(x.materiaId).nome) : ''}</span></div><button class="x" title="Excluir" onclick="lsExcluirLei('${x.id}')">✕</button></div>`).join('')}`;
+  return h + `</div>`;
+}
+const lsAssinatura = () => S.materias.map(m => m.id + ':' + m.topicos.map(t => t.nome).join('/')).join('|') + '#' + (S.leisProprias||[]).map(p => p.id + p.materiaId).join() + '#' + (S.leiSeca.extras||[]).join();
+function vLeiSeca(){
+  if(LS.pronto && LS.sig !== lsAssinatura()) lsInvalidar();
+  if(!LS.pronto){ lsPreparar();
+    return `<div class="card"><h2>Lei seca</h2>${LS.erro ? `<div class="alert bad">${esc(LS.erro)}</div><button class="b" onclick="LS.erro='';lsPreparar(true);render()">Tentar de novo</button>` : '<div class="empty">Carregando as leis do seu edital…</div>'}</div>`; }
+  const G = lsResumoGeral(), leis = [...new Set(LS.alvos.map(a => a.lei))];
+  const pesoLei = id => LS.alvos.filter(a => a.lei === id).reduce((s,a) => s + a.peso, 0);
+  leis.sort((a,b) => pesoLei(b) - pesoLei(a));
+  let h = `<div class="hoje"><div class="hk">
+    <div><span class="ic">⚖️</span><span><small>Leis no seu edital</small><b>${leis.length}</b><small>${LS.alvos.length} assuntos ligados a leis</small></span></div>
+    <div><span class="ic">✅</span><span><small>Questões hoje</small><b>${G.hoje[0]}</b><small>${G.hoje[0] ? pct(G.hoje[1]/G.hoje[0]) + ' de acerto' : 'nenhuma ainda'}</small></span></div>
+    <div><span class="ic">🎯</span><span><small>Acerto geral</small><b>${G.p == null ? '—' : pct(G.p)}</b><small>${G.q} questões no total</small></span></div>
+    <div><span class="ic">🧠</span><span><small>Dispositivos dominados</small><b>${G.dom}</b><small>${G.dev} para revisar hoje</small></span></div></div>`;
+  if(LS.erro) h += `<div class="alert bad">${esc(LS.erro)}</div>`;
+  if(!leis.length) h += `<div class="alert info">Seu edital ainda não cita leis que eu reconheça. Adicione abaixo uma lei do catálogo ou envie o PDF da lei.</div>`;
+  if(LS.sessao) h += LS.sessao.fim ? lsCardFim() : lsCardQuestao();
+  else h += `<div class="card"><h2>Treinar</h2><p class="mut" style="margin-top:-4px">Afirmações de certo ou errado com o texto da lei. As erradas trocam um detalhe, como as bancas fazem: prazo, número, “poderá/deverá”, competência, pena… Os dispositivos que você erra voltam até você acertar; os que acerta voltam em intervalos cada vez maiores.</p>
+    <div class="row"><div><label>Lei</label><select onchange="LS.filtro=this.value;if(!this.value&&LS.modo==='inteira')LS.modo='edital';render()"><option value="">Todas as leis do edital (pela incidência)</option>${leis.map(id => `<option value="${id}" ${LS.filtro===id?'selected':''}>${esc(LS.leis[id].sigla)} · ${esc(curto(LS.leis[id].nome, 60))}</option>`).join('')}</select></div>
+      <div><label>Modo</label><select onchange="LS.modo=this.value;render()"><option value="edital" ${LS.modo==='edital'?'selected':''}>Artigos do edital</option><option value="inteira" ${LS.modo==='inteira'?'selected':''} ${LS.filtro?'':'disabled'}>Lei inteira${LS.filtro?'':' (escolha uma lei)'}</option><option value="erros" ${LS.modo==='erros'?'selected':''}>Só os meus erros</option></select></div>
+      <div><label>Questões</label><select onchange="LS.qtd=+this.value"><option ${LS.qtd===10?'selected':''}>10</option><option ${LS.qtd===20?'selected':''}>20</option><option ${LS.qtd===30?'selected':''}>30</option><option ${LS.qtd===50?'selected':''}>50</option></select></div></div>
+    <div class="inl"><button class="b" onclick="lsIniciar()" ${leis.length?'':'disabled'}>▶ Começar</button>${G.dev ? `<span class="mut">${G.dev} dispositivo(s) para revisar hoje entram primeiro.</span>` : ''}</div></div>`;
+  if(LS.ver) h += lsCardLer();
+  const foco = lsFoco();
+  h += `<div class="card" style="margin-top:18px"><h2>Suas leis <span class="mut">da mais cobrada para a menos cobrada no seu edital</span></h2><div class="lsleis">
+    ${leis.length ? leis.map(id => { const L = LS.leis[id], pr = lsProgresso(id);
+      return `<div class="lslei"><div class="lslei-cab"><div style="min-width:0"><b>${esc(L.sigla)}</b> <span class="mut">· ${esc(curto(L.nome, 70))}</span><div class="mut" style="font-size:13px">${lsFaixasTxt(id)} · ${pr.tot} dispositivos</div></div>
+        <span class="lslei-p ${pr.p==null?'':pr.p>=.8?'ok':pr.p>=.6?'warn':'bad'}">${pr.p==null?'—':pct(pr.p)}</span></div>
+        <div class="brow" style="grid-template-columns:110px 1fr 70px"><span class="mut">Treinados</span><div class="bar"><i style="width:${pr.tot?pr.vistos/pr.tot*100:0}%"></i></div><span>${pr.vistos}/${pr.tot}</span></div>
+        <div class="brow" style="grid-template-columns:110px 1fr 70px"><span class="mut">Dominados</span><div class="bar"><i class="ok" style="width:${pr.tot?pr.dom/pr.tot*100:0}%"></i></div><span>${pr.dom}</span></div>
+        <div class="inl" style="margin-top:6px"><button class="g" onclick="LS.filtro='${id}';LS.modo='edital';lsIniciar({lei:'${id}'})">▶ Treinar</button><button class="g" onclick="LS.ver='${id}';LS.verTodos=false;LS.verMais=60;LS.busca='';LS.verArt='';render();setTimeout(()=>{const e=document.getElementById('lsler');if(e&&e.scrollIntoView)e.scrollIntoView({block:'start'})},30)">Ler os artigos</button></div></div>`; }).join('') : '<div class="empty">Nenhuma lei ainda.</div>'}</div></div>
+    <div class="g3" style="margin-top:18px"><div class="card"><h2>Onde focar</h2>${foco.length ? foco.map(x => { const L = LS.leis[x.lei], a = L.porK[x.k], p = x.a/(x.a+x.e);
+        return `<div class="item"><div style="min-width:0"><b>${esc(L.sigla)}, ${esc(a ? a.rot : x.k)}</b>${a&&a.tit?` <span class="mut">· ${esc(curto(a.tit,40))}</span>`:''}<div class="mut">${x.a} certas · ${x.e} erradas</div></div>
+          <span class="tag ${p<.5?'bad':'warn'}">${pct(p)}</span><button class="g" onclick="lsIniciar({lei:'${x.lei}',art:'${x.k}',inteira:true,titulo:'${esc(L.sigla)}, ${esc(a?a.rot:x.k)}'})">Treinar</button></div>`; }).join('')
+      : '<div class="empty">Treine algumas rodadas: aqui aparecem os artigos em que você mais erra.</div>'}</div>
+    ${lsCardPdf()}
+    <div class="card"><h2>Outras leis do catálogo <button class="g" onclick="LS.outras=!LS.outras;render()">${LS.outras?'Ocultar':'Mostrar'}</button></h2>
+      ${LS.outras ? (LS.indice||[]).map(l => { const noEd = LS.alvos.some(a => a.lei === l.id && a.topicoId), ex = (S.leiSeca.extras||[]).includes(l.id);
+        return `<div class="item"><div style="min-width:0"><b>${esc(l.sigla)}</b> <span class="mut">· ${esc(curto(l.nome, 70))} · ${l.arts} artigos</span></div>${noEd ? '<span class="tag ok">no edital</span>' : `<button class="g" onclick="lsAlternarExtra('${l.id}')">${ex ? 'Tirar do treino' : '+ Treinar'}</button>`}</div>`; }).join('')
+        : '<p class="mut" style="margin:0">Leis prontas no tutor (texto oficial atualizado). As do seu edital entram sozinhas; as outras você pode adicionar.</p>'}</div></div>`;
+  return h + `</div>`;
+}
 
 /* ============ Site com login (Firebase) ============
    Cada pessoa entra com a conta Google; os dados ficam em usuarios/<id da pessoa>,

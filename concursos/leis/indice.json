@@ -1,0 +1,396 @@
+[
+ {
+  "id": "cf",
+  "nome": "Constituição Federal de 1988",
+  "sigla": "CF",
+  "numero": "",
+  "apelidos": [
+   "constitui[çc][ãa]o federal",
+   "\\bcf\\b",
+   "cf/88",
+   "constitucional"
+  ],
+  "arts": 411,
+  "disp": 3248,
+  "kb": 553,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "cp",
+  "nome": "Código Penal (Decreto-Lei 2.848/1940)",
+  "sigla": "CP",
+  "numero": "2.848",
+  "apelidos": [
+   "c[óo]digo penal",
+   "\\bcp\\b",
+   "direito penal"
+  ],
+  "arts": 417,
+  "disp": 1661,
+  "kb": 210,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "cpp",
+  "nome": "Código de Processo Penal (Decreto-Lei 3.689/1941)",
+  "sigla": "CPP",
+  "numero": "3.689",
+  "apelidos": [
+   "c[óo]digo de processo penal",
+   "\\bcpp\\b",
+   "processual penal"
+  ],
+  "arts": 811,
+  "disp": 2054,
+  "kb": 329,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "cpc",
+  "nome": "Código de Processo Civil (Lei 13.105/2015)",
+  "sigla": "CPC",
+  "numero": "13.105",
+  "apelidos": [
+   "c[óo]digo de processo civil",
+   "\\bcpc\\b",
+   "processual civil"
+  ],
+  "arts": 1070,
+  "disp": 3920,
+  "kb": 582,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "cc",
+  "nome": "Código Civil (Lei 10.406/2002)",
+  "sigla": "CC",
+  "numero": "10.406",
+  "apelidos": [
+   "c[óo]digo civil",
+   "direito civil"
+  ],
+  "arts": 2064,
+  "disp": 3813,
+  "kb": 611,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l8112",
+  "nome": "Regime Jurídico dos Servidores Federais (Lei 8.112/1990)",
+  "sigla": "Lei 8.112",
+  "numero": "8.112",
+  "apelidos": [
+   "8\\.?112",
+   "regime jur[íi]dico [úu]nico"
+  ],
+  "arts": 248,
+  "disp": 819,
+  "kb": 127,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l8429",
+  "nome": "Lei de Improbidade Administrativa (Lei 8.429/1992)",
+  "sigla": "LIA",
+  "numero": "8.429",
+  "apelidos": [
+   "improbidade"
+  ],
+  "arts": 30,
+  "disp": 219,
+  "kb": 45,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l9099",
+  "nome": "Juizados Especiais Cíveis e Criminais (Lei 9.099/1995)",
+  "sigla": "Lei 9.099",
+  "numero": "9.099",
+  "apelidos": [
+   "juizados? especia(is|l) c[íi]ve(is|l)",
+   "juizados? especia(is|l) crimina(is|l)",
+   "juizado especial"
+  ],
+  "arts": 98,
+  "disp": 240,
+  "kb": 38,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l12153",
+  "nome": "Juizados Especiais da Fazenda Pública (Lei 12.153/2009)",
+  "sigla": "Lei 12.153",
+  "numero": "12.153",
+  "apelidos": [
+   "fazenda p[úu]blica"
+  ],
+  "arts": 28,
+  "disp": 63,
+  "kb": 11,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l14133",
+  "nome": "Licitações e Contratos (Lei 14.133/2021)",
+  "sigla": "Lei 14.133",
+  "numero": "14.133",
+  "apelidos": [
+   "licita[çc]",
+   "contratos administrativos"
+  ],
+  "arts": 206,
+  "disp": 1449,
+  "kb": 258,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l13709",
+  "nome": "Lei Geral de Proteção de Dados (Lei 13.709/2018)",
+  "sigla": "LGPD",
+  "numero": "13.709",
+  "apelidos": [
+   "lgpd",
+   "prote[çc][ãa]o de dados"
+  ],
+  "arts": 73,
+  "disp": 443,
+  "kb": 72,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l12527",
+  "nome": "Lei de Acesso à Informação (Lei 12.527/2011)",
+  "sigla": "LAI",
+  "numero": "12.527",
+  "apelidos": [
+   "acesso [àa] informa[çc]",
+   "\\blai\\b"
+  ],
+  "arts": 49,
+  "disp": 241,
+  "kb": 40,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l12846",
+  "nome": "Lei Anticorrupção (Lei 12.846/2013)",
+  "sigla": "Lei 12.846",
+  "numero": "12.846",
+  "apelidos": [
+   "anticorrup",
+   "empresa limpa"
+  ],
+  "arts": 31,
+  "disp": 113,
+  "kb": 20,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l13146",
+  "nome": "Estatuto da Pessoa com Deficiência (Lei 13.146/2015)",
+  "sigla": "EPD",
+  "numero": "13.146",
+  "apelidos": [
+   "pessoa com defici[êe]ncia",
+   "inclus[ãa]o da pessoa"
+  ],
+  "arts": 128,
+  "disp": 525,
+  "kb": 108,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "lc101",
+  "nome": "Lei de Responsabilidade Fiscal (LC 101/2000)",
+  "sigla": "LRF",
+  "numero": "101",
+  "apelidos": [
+   "responsabilidade fiscal",
+   "\\blrf\\b"
+  ],
+  "arts": 80,
+  "disp": 526,
+  "kb": 90,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l4320",
+  "nome": "Normas de Direito Financeiro (Lei 4.320/1964)",
+  "sigla": "Lei 4.320",
+  "numero": "4.320",
+  "apelidos": [
+   "4\\.?320",
+   "direito financeiro",
+   "or[çc]amento p[úu]blico"
+  ],
+  "arts": 115,
+  "disp": 277,
+  "kb": 49,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l9784",
+  "nome": "Processo Administrativo Federal (Lei 9.784/1999)",
+  "sigla": "Lei 9.784",
+  "numero": "9.784",
+  "apelidos": [
+   "processo administrativo"
+  ],
+  "arts": 79,
+  "disp": 215,
+  "kb": 30,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "d678",
+  "nome": "Convenção Americana de Direitos Humanos – Pacto de São José (Decreto 678/1992)",
+  "sigla": "Pacto de São José",
+  "numero": "678",
+  "apelidos": [
+   "direitos humanos",
+   "pacto de s[ãa]o jos[ée]",
+   "conven[çc][ãa]o americana"
+  ],
+  "arts": 82,
+  "disp": 225,
+  "kb": 51,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "d6949",
+  "nome": "Convenção Internacional sobre os Direitos das Pessoas com Deficiência (Decreto 6.949/2009)",
+  "sigla": "Convenção PcD",
+  "numero": "6.949",
+  "apelidos": [
+   "conven[çc][ãa]o (internacional )?sobre os direitos das pessoas com defici"
+  ],
+  "arts": 50,
+  "disp": 161,
+  "kb": 60,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l8069",
+  "nome": "Estatuto da Criança e do Adolescente (Lei 8.069/1990)",
+  "sigla": "ECA",
+  "numero": "8.069",
+  "apelidos": [
+   "crian[çc]a e do adolescente",
+   "\\beca\\b"
+  ],
+  "arts": 327,
+  "disp": 1294,
+  "kb": 218,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l8078",
+  "nome": "Código de Defesa do Consumidor (Lei 8.078/1990)",
+  "sigla": "CDC",
+  "numero": "8.078",
+  "apelidos": [
+   "defesa do consumidor",
+   "\\bcdc\\b"
+  ],
+  "arts": 118,
+  "disp": 436,
+  "kb": 77,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l11340",
+  "nome": "Lei Maria da Penha (Lei 11.340/2006)",
+  "sigla": "Maria da Penha",
+  "numero": "11.340",
+  "apelidos": [
+   "maria da penha",
+   "viol[êe]ncia dom[ée]stica"
+  ],
+  "arts": 57,
+  "disp": 203,
+  "kb": 40,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l13869",
+  "nome": "Lei de Abuso de Autoridade (Lei 13.869/2019)",
+  "sigla": "Abuso de Autoridade",
+  "numero": "13.869",
+  "apelidos": [
+   "abuso de autoridade"
+  ],
+  "arts": 40,
+  "disp": 125,
+  "kb": 18,
+  "esfera": "federal",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "l10261sp",
+  "nome": "Estatuto dos Funcionários Públicos Civis do Estado de São Paulo (Lei 10.261/1968)",
+  "sigla": "Estatuto SP",
+  "numero": "10.261",
+  "apelidos": [
+   "10\\.?261",
+   "estatuto (dos )?(funcion[áa]rios|servidores) .*s[ãa]o paulo",
+   "estatuto sp"
+  ],
+  "arts": 335,
+  "disp": 845,
+  "kb": 120,
+  "esfera": "SP",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "lc840df",
+  "nome": "Regime Jurídico dos Servidores do Distrito Federal (LC 840/2011)",
+  "sigla": "LC 840",
+  "numero": "840",
+  "apelidos": [
+   "\\b840\\b",
+   "servidores (p[úu]blicos )?(civis )?do distrito federal"
+  ],
+  "arts": 299,
+  "disp": 1414,
+  "kb": 171,
+  "esfera": "DF",
+  "atualizado": "2026-10-06"
+ },
+ {
+  "id": "nscgj1",
+  "nome": "Normas de Serviço da Corregedoria Geral da Justiça de SP – Tomo I",
+  "sigla": "NSCGJ",
+  "numero": "",
+  "apelidos": [
+   "nscgj",
+   "normas (de servi[çc]o )?da corregedoria"
+  ],
+  "arts": 1410,
+  "disp": 4671,
+  "kb": 975,
+  "esfera": "SP",
+  "atualizado": "2026-10-06"
+ }
+]

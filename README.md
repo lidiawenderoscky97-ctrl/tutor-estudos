@@ -26,3 +26,11 @@ Os dados de estudo ficam apenas no computador, em `Documentos\Tutor de Estudos\d
 - Endereço: https://estudoguiado.pages.dev (Cloudflare Pages publica a pasta `docs/` a cada atualização do ramo `main`).
 - Login e dados: Firebase (projeto `tutor-estudos-f380b`), dados em `usuarios/<id>` protegidos pelas regras do Firestore.
 - `online/gerar_site.py` gera `docs/` a partir de `app/index.html` e `site/firebase-config.json`.
+
+## Lei seca
+
+- `concursos/leis/`: texto oficial das leis (um dispositivo por linha) e `indice.json`. O app baixa só as leis do edital da pessoa.
+- Para atualizar os textos: o ramo `leis-fonte` tem `fontes.txt` (endereços oficiais) e uma GitHub Action que baixa tudo para `fonte/`.
+  Depois: `python3 concursos/leis-ferramentas/html2txt.py fonte/<id>.html > <pasta>/<id>.txt` (PDF: `pdftotext`) e
+  `node concursos/leis-ferramentas/gerar_leis.js <pasta>`. Nome, sigla e apelidos de cada lei ficam em `concursos/leis-ferramentas/leis.json`.
+- A leitura da lei usa o mesmo código do app (trecho "Lei seca: leitura do texto da lei" em `app/index.html`), o mesmo que lê o PDF que a pessoa envia.

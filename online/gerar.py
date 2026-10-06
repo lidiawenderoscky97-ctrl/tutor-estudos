@@ -14,7 +14,12 @@ titulo = re.search(r'<title>.*?</title>', head).group(0)
 head = titulo + '\n' + head.replace(titulo, '', 1).strip()
 cat_dir = os.path.join(raiz, 'concursos')
 cat = {f: open(os.path.join(cat_dir, f), encoding='utf-8').read() for f in os.listdir(cat_dir) if f.endswith(('.json', '.txt'))}
-emb = '<script>window.CATALOGO_EMBUTIDO=' + json.dumps(cat, ensure_ascii=False).replace('</', '<\\/') + ';</script>\n'
+# leis da aba Lei seca: o índice vai em texto; os textos das leis vão comprimidos (gzip + base64)
+import gzip, base64
+leis_dir = os.path.join(cat_dir, 'leis')
+cat['leis/indice.json'] = open(os.path.join(leis_dir, 'indice.json'), encoding='utf-8').read()
+gz = {'leis/' + f: base64.b64encode(gzip.compress(open(os.path.join(leis_dir, f), 'rb').read(), 9)).decode() for f in sorted(os.listdir(leis_dir)) if f.endswith('.txt')}
+emb = '<script>window.CATALOGO_EMBUTIDO=' + json.dumps(cat, ensure_ascii=False).replace('</', '<\\/') + ';window.CATALOGO_GZ=' + json.dumps(gz) + ';</script>\n'
 body = body.replace('<script>', emb + '<script>', 1)
 out = os.path.join(raiz, 'online', 'tutor-estudos.html')
 open(out, 'w', encoding='utf-8').write(head.strip() + '\n' + body.strip() + '\n')
