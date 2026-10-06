@@ -8,3 +8,15 @@ mpes_fgv application/pdf 175289
 pcpe_vert text/html 1168
 pmrs_vert application/pdf 1933667
 tjsp_vm application/pdf 2398018
+trt8_fcc application/pdf 1187596
+tjce_fcc application/pdf 473675
+trt6_fcc application/pdf 598570
+trf5_fgv application/pdf 760745
+cauce application/pdf 613652
+vitoria application/pdf 559791
+caxias_fundatec application/pdf 1916041
+rs1100 application/pdf 1572269
+rs1053 application/pdf 1217886
+jiparana application/pdf 1064822
+rs1099 application/pdf 1733120
+tcdf_jc application/pdf 675966
