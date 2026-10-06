@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="37">
+<meta name="versao" content="38">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -1526,8 +1526,15 @@ function edItens(texto){
   let itens;
   if(marcas.length >= 2) itens = marcas.map((x,i) => t.slice(x.txt, i+1 < marcas.length ? marcas[i+1].ini : t.length));
   else { itens = [];
-    t.split(/(?<=[.;])\s+(?=[A-ZÀ-Þ"“(])|;\s+/).forEach(x => { // "artigos 293 a 305; 307; 308" fica junto
-      if(itens.length && (x.trim().length < 14 || /^\d/.test(x.trim()))) itens[itens.length-1] += '; ' + x; else itens.push(x); }); }
+    // separa por frase (". Maiúscula") e por ";", mas não dentro de parênteses
+    let atualI = '', prof = 0;
+    for(let i = 0; i < t.length; i++){ const ch = t[i];
+      if(ch === '(') prof++; else if(ch === ')') prof = Math.max(0, prof-1);
+      atualI += ch;
+      if(prof === 0 && (ch === ';' || (ch === '.' && /^\s+["“(]?[A-ZÀ-Þ]/.test(t.slice(i+1, i+4)))) && /\s/.test(t[i+1]||'')){ itens.push(atualI); atualI = ''; } }
+    if(atualI.trim()) itens.push(atualI);
+    // "artigos 293 a 305; 307; 308" fica junto
+    itens = itens.reduce((acc, x) => { if(acc.length && /^\s*\d/.test(x)) acc[acc.length-1] = acc[acc.length-1].replace(/[;\s]+$/,'') + '; ' + x.trim(); else acc.push(x); return acc; }, []); }
   const vistos = new Set();
   return itens.map(x => x.replace(/^\s*\d{1,2}(\.\d{1,2})*[.)]?\s+(?=[A-Za-zÀ-ÿ])/,'').replace(/[.;]?\s+(CONHECIMENTOS|M[ÓO]DULO|BLOCO|PROVA)\b[A-ZÀ-Þ\s()–\-]*$/,'')).map(x => x.replace(/\(?\s*dispon[íi]vel em:?\s*<?\s*(https?:\/\/|www\.)\S*>?\)?/gi,'').replace(/<?(https?:\/\/|www\.)\S+>?/g,'').replace(/\s+(\d{1,2}(\.\d{1,2})*\.?)$/,'').replace(/^[\-–•]\s*/,'').replace(/[.;,:\s]+$/,'').trim())
     .filter(x => x.length >= 3 && !/^\(?\d{1,3}\)?\s*quest/i.test(x))
@@ -1557,7 +1564,7 @@ function editalParaTexto(linhasBrutas){
       if((/^anexo\s+[ivxl\d]+\b/i.test(l) && !/conte[úu]do|program/i.test(l + ' ' + (linhas[i+1]||'') + ' ' + (linhas[i+2]||''))) || (/^\d{1,2}\s*\.?\s+D[AOE]S?\s+[A-ZÀ-Þ ]{4,}$/.test(l) && !/conhecimento|avalia/i.test(l)) || /^(cronograma|quadro de vagas|requisitos e atribui|modelo de|formul[áa]rio|despacho\b|subse[çc][ãa]o\s+[ivxl]+\s*[-–])/i.test(l)){ fim = i; break; } }
     const corpo = linhas.slice(ini >= 0 ? ini+1 : 0, fim);
     const repet = {}; linhasBrutas.forEach(l => { const k = norm(l.trim().replace(/[:\-–]\s*$/,'')); repet[k] = (repet[k]||0) + 1; });
-    const mats = []; let atual = null, grupo = '', cargo = '', area = '', ultCargo = -9, ultArea = false, ultMat = -9, k = 0;
+    const mats = []; let atual = null, grupo = '', cargo = '', area = '', ultCargo = -9, ultArea = false, ultMat = -9, k = 0, ultGrupo = -9, grupoComum = false, cargoPendente = false;
     const semRepetir = x => { const w = x.split(/\s+/); if(w.length % 2 === 0 && w.slice(0, w.length/2).join(' ').toLowerCase() === w.slice(w.length/2).join(' ').toLowerCase()) return w.slice(0, w.length/2).join(' '); return x; };
     const nova = (nome, resto) => { atual = {nome: tituloMat(semRepetir(nome.replace(/^[\dIVX]+[.)\-–]?\s+/,'').replace(/[:\-–\s]+$/,'').trim())), txt: resto || '', grupo, cargo, area, q: null, nomeBruto: nome}; mats.push(atual); ultMat = k; };
     for(k = 0; k < corpo.length; k++){
@@ -1576,6 +1583,15 @@ function editalParaTexto(linhasBrutas){
       if(l.length <= 140 && ED_GRUPO.test(norm(l.replace(/[:\-–]\s*$/,''))) && (edMaius(l) || (!/^\d/.test(l.trim()) && /^(conhecimentos|bloco|m[óo]dulo|parte|grupo|eixo|n[íi]vel|cargos?\s*\d*\s*:|prova)/i.test(l.trim())))){
         const g = l.replace(/[:\-–]\s*$/,'').trim();
         if(repet[norm(g)] >= 3 && !/^cargos?\b/i.test(g) && !(ED_CARGO.test(g) && edMaius(g))) continue; // título repetido em todas as páginas (cabeçalho de tabela)
+        // "CONHECIMENTOS GERAIS PARA OS CARGOS A01 … E B02 …" vale para todos; "CONHECIMENTOS ESPECÍFICOS PARA O CARGO A01 – …" é do cargo
+        const cg = g.replace(/^[\d.\s]+/,'').match(/^conhecimentos\s+(gerais|b[áa]sicos|comuns|espec[íi]ficos|especializados|complementares)\b(?:\s+(?:para|do|dos)\s+(?:o\s+|os\s+)?(?:cargos?|especialidades?)\s*:?\s*(.*))?/i);
+        if(cg){ grupo = tituloMat('Conhecimentos ' + cg[1]); area = ''; ultCargo = k; ultArea = false; ultGrupo = k;
+          const singular = /\bpara o cargo\b/i.test(g), txtCargo = (cg[2]||'').replace(/^[\/\wÀ-ÿ]*\s*[:\-–]?\s*$/,'').trim();
+          if(/gerais|b[áa]sicos|comuns/i.test(cg[1]) && !singular) cargo = '';
+          else if(txtCargo && !/^[áa]reas?|^especialidade/i.test(txtCargo)) cargo = tituloMat(txtCargo.replace(/[:\-–]\s*$/,''));
+          grupoComum = /gerais|b[áa]sicos|comuns/i.test(cg[1]) && !/\bpara o cargo\b/i.test(g);
+          cargoPendente = !grupoComum && !(txtCargo && !/^[áa]reas?|^especialidade/i.test(txtCargo));
+          atual = null; continue; }
         if(/^cargos?\b/i.test(g) || (ED_CARGO.test(g) && edMaius(g))){ cargo = tituloMat(g.replace(/^cargos?\s*\d*\s*[:\-–]?\s*/i,'')); grupo = ''; area = ''; ultCargo = k; ultArea = false; if(atual && !atual.txt.trim() && /^cargos?\s*:/i.test(g)){ atual.cargo = cargo; atual.area = ''; continue; } }
         else grupo = tituloMat(semRepetir(g.replace(/^[\d.\s]+/,'').replace(/\s+\d{1,3}$/,'')));
         // "CONHECIMENTOS GERAIS (cargo de nível médio – Técnico…)" muda o cargo; "(todos os cargos…)" vale para todos
@@ -1583,6 +1599,13 @@ function editalParaTexto(linhasBrutas){
         if(pc && /tod[oa]s|comum/i.test(pc[1])){ cargo = ''; area = ''; }
         else if(pc && /cargos?\b/i.test(pc[1])){ cargo = tituloMat(pc[1].replace(/^(para )?(o |os )?cargos?\s*(de\s*)?/i,'')); area = ''; }
         atual = null; continue; }
+      // continuação do título do grupo/cargo (linha toda em maiúsculas logo abaixo)
+      if(ultGrupo === k-1 && l.length <= 160 && edMaius(l) && !MATERIA_CONHECIDA.test(l.toLowerCase())){
+        const c = tituloMat(l.replace(/[:\-–,]\s*$/,'').replace(/\s+e$/i,''));
+        if(grupoComum){ /* lista de cargos de um grupo comum: só pula */ }
+        else if(cargoPendente){ cargo = c; cargoPendente = false; }
+        else cargo += ' ' + c;
+        ultGrupo = k; ultCargo = k; continue; }
       // título de cargo quebrado em duas linhas ("…ESPECIALIDADE:" / "MÉDICO PSIQUIATRA")
       if(ultCargo === k-1 && l.length <= 90 && edMaius(l) && !MATERIA_CONHECIDA.test(l.toLowerCase()) && !/:\s*\S/.test(l) && /([,(:–\-]|\b(de|da|do|das|dos|e|em|sem|com|para))\s*$/i.test(corpo[k-1].trim())){ const c = tituloMat(l.replace(/[:\-–]\s*$/,'')); if(ultArea){ area += ' ' + c; if(atual && atual.daArea){ atual.area = area; atual.nome = tituloMat('Conhecimentos específicos – ' + area); } } else cargo += ' ' + c; ultCargo = k; continue; }
       // cargo em linha própria, em maiúsculas (ex.: "ANALISTA JUDICIÁRIO – SEM ESPECIALIDADE", "CARGO 3: ANALISTA – ESPECIALIDADE: MÉDICO")
@@ -1594,10 +1617,18 @@ function editalParaTexto(linhasBrutas){
       if(pg){ if(atual && atual.cargo === cargo && atual.area === area) atual.txt += ' ' + pg[1]; else { nova('Conhecimentos específicos – ' + (area || cargo || 'gerais'), pg[1]); atual.daArea = true; } continue; }
       const dp = l.match(/^(\d{1,2}[.)]\s*)?([^:]{3,80}):\s*(.*)$/);
       if(dp){ dp.splice(1,1,...[]); }
-      if(dp && edEhMateria(dp[1]) && !(/^\d/.test(l) && !edMaius(dp[1])) && !/^(lei|decreto|resolu[çc][ãa]o|art)\b.*\d/i.test(dp[1].trim())){ nova(dp[1], dp[2]); continue; }
+        const tituloDp = dp && !/^\d/.test(l) && dp[1].split(/\s+/).length <= 9 && /^[A-ZÀ-Þ]/.test(dp[1]) && !/[.;,]/.test(dp[1]) && (() => { const sg = dp[1].split(/\s+/).filter(w => !MINUSC.has(w.toLowerCase()) && /[A-Za-zÀ-ÿ]/.test(w)); return sg.length && sg.filter(w => /^[A-ZÀ-Þ(]/.test(w)).length / sg.length >= .6; })()
+        && !/^(observa[çc]|obs\b|nota|aten[çc]|tomo|cap[íi]tulo|se[çc][ãa]o|t[íi]tulo|anexo|item)/i.test(dp[1]) && (!(corpo[k-1]||'').trim() || /[.)!?]$/.test((corpo[k-1]||'').trim()) || edMaius((corpo[k-1]||'').trim()) || ultGrupo === k-1 || ultCargo === k-1) && !/^(lei|decreto|resolu|art|s[úu]mula|portaria|instru)/i.test(dp[1]);
+      if(tituloDp && !(atual && ultMat === k-1)){ nova(dp[1], dp[2]); continue; }
+    if(dp && edEhMateria(dp[1]) && !(/^\d/.test(l) && !edMaius(dp[1])) && !/^(lei|decreto|resolu[çc][ãa]o|art)\b.*\d/i.test(dp[1].trim())){ nova(dp[1], dp[2]); continue; }
       const hf = l.match(/^([A-ZÀ-Þ][^:\-–]{2,70}?)\s+[-–]\s+(\d.*|[A-ZÀ-Þ].*)$/);
       if(hf && (edEhMateria(hf[1]) || /^\d/.test(hf[2])) && !/[.;,]/.test(hf[1]) && hf[1].split(' ').length <= 10){ nova(hf[1], hf[2]); continue; }
-      if(l.length <= 90 && edEhMateria(l) && !(atual && !/[.;:]$/.test(atual.txt.trim()) && atual.txt && !edMaius(l))){ nova(l, ''); continue; }
+      // título de matéria em linha própria, em "Título Assim", entre parágrafos (FCC, Consulplan…)
+      const prox = (corpo[k+1]||'').trim(), ant = (corpo[k-1]||'').trim();
+      const pal = l.split(/\s+/), sig = pal.filter(w => !MINUSC.has(w.toLowerCase()) && /[A-Za-zÀ-ÿ]/.test(w));
+      if(l.length <= 90 && pal.length <= 14 && /^[A-ZÀ-Þ]/.test(l) && !/[.;:,]$/.test(l) && !/\.\s/.test(l) && !/^\d/.test(l) && !/^(observa[çc]|obs\b|nota|aten[çc])/i.test(l) && sig.length && sig.filter(w => /^[A-ZÀ-Þ(]/.test(w)).length / sig.length >= .6
+         && prox.length >= 40 && /^[A-ZÀ-Þ"“(]/.test(prox) && (!ant || /[.)!?]$/.test(ant) || edMaius(ant) || k === 0 || ultMat === k-1) && !ED_GRUPO.test(norm(l))){ nova(l, ''); continue; }
+      if(l.length <= 90 && edEhMateria(l) && (MATERIA_CONHECIDA.test(l.toLowerCase()) || !(atual && !/[.;:]$/.test(atual.txt.trim()) && atual.txt && !edMaius(l)))){ nova(l, ''); continue; }
       if(atual) atual.txt += ' ' + l;
     }
     let out = mats.map(m => ({...m, tops: edItens(m.txt)})).filter(m => m.tops.length);
