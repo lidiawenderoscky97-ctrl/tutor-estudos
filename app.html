@@ -1564,6 +1564,10 @@ function editalParaTexto(linhasBrutas){
       const g = l.replace(/[:\-–]\s*$/,'').trim();
       if(/^cargos?\b/i.test(g) || (ED_CARGO.test(g) && edMaius(g))){ cargo = tituloMat(g.replace(/^cargos?\s*\d*\s*[:\-–]?\s*/i,'')); grupo = ''; area = ''; ultCargo = k; ultArea = false; }
       else grupo = tituloMat(semRepetir(g.replace(/^[\d.\s]+/,'').replace(/\s+\d{1,3}$/,'')));
+      // "CONHECIMENTOS GERAIS (cargo de nível médio – Técnico…)" muda o cargo; "(todos os cargos…)" vale para todos
+      const pc = g.match(/\(([^)]*)\)/);
+      if(pc && /tod[oa]s|comum/i.test(pc[1])){ cargo = ''; area = ''; }
+      else if(pc && /cargos?\b/i.test(pc[1])){ cargo = tituloMat(pc[1].replace(/^(para )?(o |os )?cargos?\s*(de\s*)?/i,'')); area = ''; }
       atual = null; continue; }
     // título de cargo quebrado em duas linhas ("…ESPECIALIDADE:" / "MÉDICO PSIQUIATRA")
     if(ultCargo === k-1 && l.length <= 90 && edMaius(l) && !MATERIA_CONHECIDA.test(l.toLowerCase()) && !/:\s*\S/.test(l) && /([,(:–\-]|\b(de|da|do|das|dos|e|em|sem|com|para))\s*$/i.test(corpo[k-1].trim())){ const c = tituloMat(l.replace(/[:\-–]\s*$/,'')); if(ultArea){ area += ' ' + c; if(atual && atual.daArea){ atual.area = area; atual.nome = tituloMat('Conhecimentos específicos – ' + area); } } else cargo += ' ' + c; ultCargo = k; continue; }
