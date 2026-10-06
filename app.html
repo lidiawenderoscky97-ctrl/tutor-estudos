@@ -1493,7 +1493,7 @@ const edMaius = s => { const l = s.replace(/[^A-Za-zÀ-ÿ]/g,''); return l.lengt
 function edEhMateria(nome){
   const s = nome.replace(/^[\dIVX]+[.)\-–]?\s+/,'').replace(/[:\-–]\s*$/,'').trim();
   if(s.length < 4 || s.length > 90 || /^\d/.test(s) || /[.;]$/.test(s) && !edMaius(s)) return false;
-  if(ED_GRUPO.test(norm(s)) || /^(d[oa]s?|e|ou|em|com|para)\s/i.test(s) || /^[–\-(]/.test(s) || /^[ivxlc]+$/i.test(s)) return false;
+  if(ED_GRUPO.test(norm(s)) || /^(d[oa]s?|e|ou|em|com|para)\s/i.test(s) || /^[–\-(]/.test(s) || /^[ivxlc]+$/i.test(s) || /^(edital|anexo|cap[íi]tulo|se[çc][ãa]o|item|quadro|tabela|cronograma|p[áa]gina)\b/i.test(s)) return false;
   if(edMaius(s)) return true;
   if(/[.;]\s/.test(s) || /^\d/.test(nome.trim()) || s.length > 75) return false;
   return MATERIA_CONHECIDA.test(s.toLowerCase()) || /^(no[çc][õo]es|conhecimentos|legisla[çc][ãa]o|lei org[âa]nica|regimento|estatuto)\b/i.test(s);
@@ -1533,11 +1533,12 @@ function editalParaTexto(linhasBrutas){
     if(resto === null) continue;
     // conta só matérias seguidas de itens (numerados ou texto corrido): tabelas e quadros ficam de fora
     const seg = resto + ' ' + (linhas[j+1]||'') + ' ' + (linhas[j+2]||'');
-    if(/(^|\s)1[.)]?\s+["“(]?[A-Za-zÀ-ÿ]/.test(seg) || /^\(?\d{1,3}\)?\s*quest/i.test((linhas[j+1]||'').trim()) || (resto.length > 40 && /[a-zà-ú]{4}/.test(resto))) p++; }
+    if(/(^|\s)1[.)]?\s+["“(]?[A-Za-zÀ-ÿ]/.test(seg) || (resto === '' && (linhas[j+1]||'').length >= 30 && /[a-zà-ú]{3}/.test(linhas[j+1]||'') && !edEhMateria(linhas[j+1]||'')) || /^\(?\d{1,3}\)?\s*quest/i.test((linhas[j+1]||'').trim()) || (resto.length > 40 && /[a-zà-ú]{4}/.test(resto))) p++; }
     return p * (/conte[úu]do|objetos? de avalia/i.test(linhas[i]) ? 1.3 : 1); };
   let ini = -1, melhor = 0;
   const ps = cands.map(i => [i, pont(i)]); ps.forEach(([,p]) => { if(p > melhor) melhor = p; });
   const bom = ps.find(([,p]) => p >= Math.max(2, melhor*.6)); if(bom) ini = bom[0];
+  if(ini < 0){ const cp = cands.find(i => /conte[úu]dos? program[áa]tico/i.test(linhas[i]) && linhas[i].length <= 80); if(cp !== undefined) ini = cp; }
   let fim = linhas.length;
   if(ini >= 0) for(let i = ini+3; i < linhas.length; i++){
     const l = linhas[i].trim();
