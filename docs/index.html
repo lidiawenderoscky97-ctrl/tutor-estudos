@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="34">
+<meta name="versao" content="35">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -288,6 +288,9 @@ p .lsdot{margin:0 4px 0 8px}
 .lsart-cab{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px;font-size:17px}
 .lsck{width:20px;height:20px;accent-color:var(--acc);flex:none;cursor:pointer}
 .lsdisp{display:flex;gap:10px;align-items:flex-start;padding:3px 0;font-size:15.5px;line-height:1.55}
+.lsfalta{border:2px solid var(--warn);background:var(--warnbg);margin-bottom:18px}
+.lsfalta h2{color:var(--warn)}
+.lsfalta .item{border-color:rgba(0,0,0,.08)}
 .lsleis{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
 .lslei{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
 @media (max-width:800px){.lsleis{grid-template-columns:1fr}}
@@ -1068,6 +1071,7 @@ function alertas(){
     if(ult && diff(ult, hoje()) >= 10 && m.topicos.some(t=>t.status!=='concluido')) out.push({t:`${m.nome}: sem contato há ${diff(ult,hoje())} dias.`, c:''});
   });
   if(LS.pronto) lsPorLeiResumo().forEach(x => { if(x.q >= 20 && x.p < .6) out.push({t:`Lei seca · ${x.sigla}: ${pct(x.p)} de acerto em ${x.q} questões. Releia os artigos em “Onde focar”.`, c:'bad'}); });
+  if(LS.indice){ const fl = lsLeisFaltando(); if(fl.length) out.push({t:`Lei seca: ${fl.length} lei${fl.length>1?'s':''} do edital ainda não ${fl.length>1?'estão':'está'} no sistema (${fl.slice(0,3).map(x=>x.rot).join(', ')}${fl.length>3?'…':''}). Envie o PDF na aba Lei seca.`, c:''}); }
   const devLs = Object.values(((S.leiSeca||{}).st)||{}).filter(v => v[3] && v[3] < hoje()).length;
   if(devLs >= 15) out.push({t:`Lei seca: ${devLs} dispositivos atrasados para revisão. Uma rodada de 20 questões já ajuda.`, c:''});
   return out;
@@ -1120,6 +1124,7 @@ function anel(p, cor, tam, txt){
 
 /* ---------- Painel ---------- */
 function vPainel(){
+  if(!LS.indice && !LS.tentouIndice && S.materias.length){ LS.tentouIndice = true; lerCatalogo('leis/indice.json').then(t => { if(!LS.indice) LS.indice = JSON.parse(t); if(aba === 'painel' || aba === 'hoje') render(); }).catch(() => {}); }
   if(!S.materias.length) return vazio();
   if(!S.metas[hoje()]) gerarMetas(false); else atualizarMetasAntigas();
   const metas = S.metas[hoje()]||[];
@@ -3289,7 +3294,10 @@ function lsTextoLei(texto, pdf, arquivo){
   const numero = (tit.match(/n[º°o.]*\s*(\d{1,3}(?:\.\d{3})*|\d+)/i) || tit.match(/\b(\d{1,2}\.\d{3}|\d{3,5})\b/) || [])[1] || '';
   const sigla = numero ? (/complementar/i.test(tit) ? 'LC ' : /decreto/i.test(tit) ? 'Decreto ' : 'Lei ') + numero : curto(tit, 24);
   const naEdital = numero && S.materias.find(m => m.topicos.some(t => t.nome.replace(/\./g,'').includes(numero.replace(/\./g,''))));
-  LS.pdf = {lei, nome: curto(tit, 140), sigla, numero, materiaId: naEdital ? naEdital.id : '', arquivo, msg:''};
+  const alvo = LS.pdfAlvo; LS.pdfAlvo = null;
+  const num2 = numero || (alvo && alvo.numero) || '';
+  const mat2 = naEdital || (num2 && S.materias.find(m => m.topicos.some(t => t.nome.replace(/\./g,'').includes(num2.replace(/\./g,''))))) || (alvo && S.materias.find(m => norm(alvo.onde[0]||'').startsWith(norm(m.nome))));
+  LS.pdf = {lei, nome: curto(alvo && !numero ? alvo.rot : tit, 140), sigla: numero ? sigla : (alvo ? curto(alvo.rot, 24) : sigla), numero: num2, materiaId: mat2 ? mat2.id : '', arquivo, msg:''};
   render();
 }
 function lsSalvarPdf(){
@@ -3317,7 +3325,7 @@ function lsAlternarExtra(id){
 function lsIrPdf(){ const c = document.getElementById('lspdf'); if(c && c.scrollIntoView) c.scrollIntoView({block:'center', behavior:'smooth'}); const i = c && c.querySelector('input[type=file]'); if(i) setTimeout(() => i.click(), 350); }
 function lsCardPdf(){
   const p = LS.pdf;
-  let h = `<div class="card" id="lspdf"><h2>📄 Adicionar lei em PDF</h2>
+  let h = `<div class="card" id="lspdf"><h2>📄 Adicionar lei em PDF</h2>${LS.pdfAlvo ? `<div class="alert info">Escolha o PDF de <b>${esc(LS.pdfAlvo.rot)}</b>.</div>` : ''}
     <p class="mut" style="margin-top:-4px">Envie o PDF de uma lei que não está no catálogo (lei estadual, municipal, regimento, resolução…). O tutor separa os artigos, cria as questões e cruza com o seu edital. A lei fica salva: não precisa enviar de novo.</p>
     <div class="inl"><input type="file" accept="application/pdf,.pdf" onchange="lsPdf(this)" style="width:auto;flex:1;min-width:220px"></div>
     <details style="margin-top:10px"><summary class="mut" style="cursor:pointer">Ou cole o texto da lei</summary>
@@ -3336,6 +3344,45 @@ function lsCardPdf(){
   return h + `</div>`;
 }
 const lsAssinatura = () => S.materias.map(m => m.id + ':' + m.topicos.map(t => t.nome).join('/')).join('|') + '#' + (S.leisProprias||[]).map(p => p.id + p.materiaId).join() + '#' + (S.leiSeca.extras||[]).join();
+
+// ---------- leis citadas no edital que ainda não estão no sistema ----------
+const LS_CIT = /\b(lei complementar|lei|decreto-lei|decreto|resolu[çc][ãa]o|provimento|portaria|instru[çc][ãa]o normativa|lc|dl)\s*(?:estadual|federal|distrital|municipal|org[âa]nica)?\s*(?:[A-Z]{2,6}\s*)?(?:n[º°o.]*\s*)?(\d{1,3}(?:\.\d{3})+|\d{1,5})(?:\s*\/\s*(\d{2,4})|,?\s+de\s+\d{1,2}[^;:)]{0,25}?(\d{4}))?/gi;
+const LS_NOMEADAS = /\b((?:lei org[âa]nica|regimento interno|c[óo]digo(?! de [ée]tica)|estatuto|constitui[çc][ãa]o (?:do estado|estadual)|normas (?:de servi[çc]o )?da corregedoria)\b[^.;:()]{3,60}?)(?=\s+e\s+(?:a\s+|o\s+)?(?:lei|c[óo]digo|regimento|estatuto|decreto|resolu)|\s*[.;:(),]|\s+-\s|$)/gi;
+function lsLeisFaltando(){
+  const todas = lsTodas(), ign = new Set(S.leiSeca.ignorar || []), achadas = {};
+  const temNoSistema = txt => leiDetectar(txt, todas).length > 0;
+  S.materias.forEach(m => [{nome: m.nome, daMat: true}, ...m.topicos].forEach(t => {
+    const txt = t.nome; let mm;
+    LS_CIT.lastIndex = 0;
+    while((mm = LS_CIT.exec(txt))){
+      const tipo = mm[1].toLowerCase(), num = mm[2], ano = mm[3] || mm[4] || '';
+      if(/^(19|20)\d\d$/.test(num) && !ano) continue;            // "Lei de 2015"
+      if(+num.replace(/\./g,'') < 10 && !/decreto|resolu|provimento|portaria/.test(tipo)) continue;
+      const rot = (/complementar|^lc$/.test(tipo) ? 'Lei Complementar' : /decreto-lei|^dl$/.test(tipo) ? 'Decreto-Lei' : mm[1].charAt(0).toUpperCase() + mm[1].slice(1).toLowerCase()) + ' nº ' + num + (ano ? '/' + ano : '');
+      const k = norm(rot.replace(/\/.*$/,''));
+      if(ign.has(k) || temNoSistema(mm[0]) || temNoSistema('Lei ' + num)) continue;
+      (achadas[k] = achadas[k] || {k, rot, numero:num, onde:[]}).onde.push(t.daMat ? m.nome : m.nome + ' › ' + curto(t.nome, 70));
+    }
+    LS_NOMEADAS.lastIndex = 0;
+    while((mm = LS_NOMEADAS.exec(txt))){
+      const nome = mm[1].replace(/\s+(e|ou|com|de)$/i,'').replace(/[\s,–\-]+$/,'').trim(); if(nome.length < 12) continue;
+      const k = norm(nome);
+      if(ign.has(k) || temNoSistema(nome)) continue;
+      (achadas[k] = achadas[k] || {k, rot:nome, numero:'', onde:[]}).onde.push(t.daMat ? m.nome : m.nome + ' › ' + curto(t.nome, 70));
+    }
+  }));
+  return Object.values(achadas).sort((a,b) => b.onde.length - a.onde.length);
+}
+function lsEnviarFaltando(i){ const f = lsLeisFaltando()[i]; if(!f) return; LS.pdfAlvo = f; LS.pdf = null; render(); lsIrPdf(); }
+function lsIgnorarFaltando(i){ const f = lsLeisFaltando()[i]; if(!f) return; S.leiSeca.ignorar = (S.leiSeca.ignorar || []).concat(f.k); save(); render(); }
+function lsCardFaltando(){
+  const f = lsLeisFaltando(); if(!f.length) return '';
+  return `<div class="card lsfalta"><h2>⚠️ ${f.length} lei${f.length>1?'s':''} do seu edital ainda não ${f.length>1?'estão':'está'} no sistema</h2>
+    <p style="margin-top:-4px">Envie o PDF de cada uma para treinar com questões de certo ou errado. ${f.length>1?'Elas ficam':'Ela fica'} salva${f.length>1?'s':''} na sua conta.</p>
+    ${f.slice(0, LS.faltaTodas ? 999 : 6).map((x,i) => `<div class="item"><div style="min-width:0"><b>${esc(x.rot)}</b><div class="mut" style="font-size:14px">citada em: ${esc(x.onde.slice(0,2).join(' · '))}${x.onde.length>2?` e mais ${x.onde.length-2}`:''}</div></div>
+      <span style="display:flex;gap:8px;flex-wrap:wrap"><button class="b" onclick="lsEnviarFaltando(${i})">📄 Enviar PDF</button><button class="g" title="Não mostrar mais esta lei" onclick="lsIgnorarFaltando(${i})">Ignorar</button></span></div>`).join('')}
+    ${f.length > 6 ? `<button class="g" onclick="LS.faltaTodas=!LS.faltaTodas;render()">${LS.faltaTodas ? 'Mostrar menos' : 'Ver todas ('+f.length+')'}</button>` : ''}</div>`;
+}
 function vLeiSeca(){
   if(LS.pronto && LS.sig !== lsAssinatura()) lsInvalidar();
   if(!LS.pronto){ lsPreparar();
@@ -3349,6 +3396,7 @@ function vLeiSeca(){
     <div><span class="ic">🎯</span><span><small>Acerto geral</small><b>${G.p == null ? '—' : pct(G.p)}</b><small>${G.q} questões no total</small></span></div>
     <div><span class="ic">🧠</span><span><small>Dispositivos dominados</small><b>${G.dom}</b><small>${G.dev} para revisar hoje</small></span></div></div>`;
   if(LS.erro) h += `<div class="alert bad">${esc(LS.erro)}</div>`;
+  h += lsCardFaltando();
   if(!leis.length) h += `<div class="alert info">Seu edital ainda não cita leis que eu reconheça. Adicione abaixo uma lei do catálogo ou envie o PDF da lei.</div>`;
   if(LS.sessao) h += LS.sessao.fim ? lsCardFim() : lsCardQuestao();
   else h += `<div class="card"><h2>Treinar</h2><p class="mut" style="margin-top:-4px">Afirmações de certo ou errado com o texto da lei. As erradas trocam um detalhe, como as bancas fazem: prazo, número, “poderá/deverá”, competência, pena… Os dispositivos que você erra voltam até você acertar; os que acerta voltam em intervalos cada vez maiores.</p>
