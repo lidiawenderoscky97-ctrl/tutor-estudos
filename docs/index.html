@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="33">
+<meta name="versao" content="34">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -26,25 +26,25 @@ window.SDK_PRONTO = (function(){
 <title>Estudo Guiado</title>
 <style>
 :root{
-  --bg:#f4f5fa;--card:#ffffff;--ink:#1b1d2a;--mut:#6c7085;--line:#e4e6ef;--soft:#f0f1f7;
+  --bg:#f4f5fa;--card:#ffffff;--ink:#14151f;--mut:#454a5e;--line:#e4e6ef;--soft:#f0f1f7;
   --acc:#4c4ad8;--acc2:#ecebfd;--accink:#ffffff;
   --ok:#128a4a;--okbg:#e3f5ea;--warn:#b25d06;--warnbg:#fdf0e1;--bad:#c02b2b;--badbg:#fdeaea;
   --rev:#7a3fc4;--revbg:#f2eafc;--ref:#b25d06;--refbg:#fdf0e1;--gold:#d49b12;
-  --sb:#191a2e;--sbink:#b9bbd3;--sbon:#ffffff;--sbact:#2a2b47;
+  --sb:#191a2e;--sbink:#d7d9ec;--sbon:#ffffff;--sbact:#2a2b47;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#111219;--card:#1a1b26;--ink:#ecedf5;--mut:#9a9db3;--line:#2b2d3d;--soft:#222333;
+  --bg:#111219;--card:#1a1b26;--ink:#f4f5fb;--mut:#c4c7da;--line:#2b2d3d;--soft:#222333;
   --acc:#8d8bff;--acc2:#27264a;--accink:#12121c;
   --ok:#4fd48a;--okbg:#16291f;--warn:#f2a54d;--warnbg:#2d2316;--bad:#f37575;--badbg:#301a1c;
   --rev:#c49bff;--revbg:#2a2140;--ref:#f2a54d;--refbg:#2d2316;--gold:#f2c14d;
-  --sb:#0c0d14;--sbink:#9a9db3;--sbon:#ffffff;--sbact:#1f2033;
+  --sb:#0c0d14;--sbink:#cfd2e4;--sbon:#ffffff;--sbact:#1f2033;
 ;color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#111219;--card:#1a1b26;--ink:#ecedf5;--mut:#9a9db3;--line:#2b2d3d;--soft:#222333;
+  --bg:#111219;--card:#1a1b26;--ink:#f4f5fb;--mut:#c4c7da;--line:#2b2d3d;--soft:#222333;
   --acc:#8d8bff;--acc2:#27264a;--accink:#12121c;
   --ok:#4fd48a;--okbg:#16291f;--warn:#f2a54d;--warnbg:#2d2316;--bad:#f37575;--badbg:#301a1c;
   --rev:#c49bff;--revbg:#2a2140;--ref:#f2a54d;--refbg:#2d2316;--gold:#f2c14d;
-  --sb:#0c0d14;--sbink:#9a9db3;--sbon:#ffffff;--sbact:#1f2033;
+  --sb:#0c0d14;--sbink:#cfd2e4;--sbon:#ffffff;--sbact:#1f2033;
 ;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
@@ -261,19 +261,25 @@ main .mat summary{padding:14px 18px}
 main code{font-size:14px}
 @media (max-width:800px){main .card{padding:16px}main .brow{grid-template-columns:110px 1fr 70px}}
 /* Lei seca */
-.lsq{border:2px solid var(--acc);margin-bottom:18px}
-.lsq-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.lsq-ref{font-size:17px}
-.lsq-ctx{margin-top:12px;padding:10px 14px;border-left:4px solid var(--line);color:var(--mut);font-size:15px;background:var(--soft);border-radius:0 10px 10px 0}
-.lsq-txt{font-size:22px;line-height:1.55;margin:16px 0 6px;font-weight:500;letter-spacing:-.005em}
-.lsq-bts{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
-.lsb{font:inherit;font-size:18px;font-weight:700;padding:14px 30px;border-radius:14px;border:2px solid;cursor:pointer;min-width:160px;background:var(--card)}
-.lsb small{font-size:12px;opacity:.6;margin-left:6px;font-weight:600}
-.lsb.certo{border-color:var(--ok);color:var(--ok)}.lsb.certo:hover{background:var(--okbg)}
-.lsb.errado{border-color:var(--bad);color:var(--bad)}.lsb.errado:hover{background:var(--badbg)}
-.lsq-res{margin-top:16px;padding:14px 16px;border-radius:12px;font-size:16px}
+.lsq{border:2px solid var(--acc);margin-bottom:18px;padding:26px 30px}
+.lsq-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px}
+.lsq-top .tag{font-size:15px;padding:5px 14px}
+.lsq-ref{font-size:20px;color:var(--ink);margin-top:4px}
+.lsq-ref b{color:var(--acc);font-size:22px}
+.lsq-h{font-size:14px;color:var(--mut);margin-top:4px;text-transform:uppercase;letter-spacing:.03em}
+.lsq-ctx{margin-top:16px;padding:14px 18px;border-left:4px solid var(--mut);color:var(--ink);font-size:17px;line-height:1.6;background:var(--soft);border-radius:0 12px 12px 0}
+.lsq-ctx small{display:block;font-size:13px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.lsq-txt{font-size:27px;line-height:1.55;margin:20px 0 8px;font-weight:600;color:var(--ink);letter-spacing:-.01em;padding:22px 26px;background:var(--acc2);border-left:6px solid var(--acc);border-radius:0 16px 16px 0}
+.lsq-txt .rot{display:block;font-size:14px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.lsq-bts{display:flex;gap:14px;flex-wrap:wrap;margin-top:20px}
+.lsb{font:inherit;font-size:20px;font-weight:700;padding:16px 36px;border-radius:14px;border:2px solid;cursor:pointer;min-width:190px;background:var(--card)}
+.lsb small{font-size:13px;opacity:.7;margin-left:6px;font-weight:600}
+.lsb.certo{border-color:var(--ok);color:var(--ok)}.lsb.certo:hover{background:var(--ok);color:#fff}
+.lsb.errado{border-color:var(--bad);color:var(--bad)}.lsb.errado:hover{background:var(--bad);color:#fff}
+.lsq-res{margin-top:18px;padding:16px 20px;border-radius:12px;font-size:18px;line-height:1.5}
 .lsq-res.ok{background:var(--okbg);color:var(--ok)}.lsq-res.bad{background:var(--badbg);color:var(--bad)}
-.lsq-orig{margin-top:12px;padding:14px 16px;border-radius:12px;background:var(--soft);font-size:16px;line-height:1.6}
+.lsq-orig{margin-top:14px;padding:16px 20px;border-radius:12px;background:var(--soft);font-size:18px;line-height:1.65;color:var(--ink)}
+.lsq-orig .mut{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 mark.ok{background:var(--okbg);color:var(--ok);font-weight:700;padding:1px 4px;border-radius:5px}
 .lsdot{display:inline-block;width:10px;height:10px;border-radius:99px;flex:none;margin-top:8px;vertical-align:middle}
 p .lsdot{margin:0 4px 0 8px}
@@ -287,7 +293,7 @@ p .lsdot{margin:0 4px 0 8px}
 @media (max-width:800px){.lsleis{grid-template-columns:1fr}}
 .lslei-cab{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
 .lslei-p{font-size:22px;font-weight:700;color:var(--mut)}.lslei-p.ok{color:var(--ok)}.lslei-p.warn{color:var(--warn)}.lslei-p.bad{color:var(--bad)}
-@media (max-width:800px){.lsq-txt{font-size:18px}.lsb{flex:1;min-width:0;padding:14px 10px}}
+@media (max-width:800px){.lsq{padding:18px 16px}.lsq-txt{font-size:20px;padding:16px 16px}.lsq-ctx{font-size:16px}.lsb{flex:1;min-width:0;padding:14px 10px;font-size:18px}}
 code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:4px}
 @media (max-width:800px){
   .app{grid-template-columns:1fr}
@@ -3222,10 +3228,10 @@ function lsCardQuestao(){
   let h = `<div class="card lsq" id="lsq"><div class="lsq-top"><span class="tag">${s.i+1} de ${n}</span>${s.titulo?`<span class="mut">${esc(s.titulo)}</span>`:''}
     <span style="flex:1"></span><span class="mut">${s.ac} certas · ${s.er} erradas</span><button class="g" onclick="LS.sessao=null;render()">Encerrar</button></div>
     <div class="bar" style="margin:10px 0 16px"><i style="width:${(s.i + (s.resp?1:0))/n*100}%"></i></div>
-    <div class="lsq-ref"><b>${esc(lei.sigla)}</b> · ${esc(q.ref.replace(/^[^,]*,\s*/,''))}${art.tit?` <span class="mut">· ${esc(art.tit)}</span>`:''}</div>
-    ${art.h?`<div class="mut" style="font-size:13px;margin-top:2px">${esc(curto(art.h, 140))}</div>`:''}
-    ${q.contexto?`<div class="lsq-ctx">${esc(curto(q.contexto, 320))}</div>`:''}
-    <div class="lsq-txt">${d.r==='Pena'?'<span class="mut">Pena:</span> ':''}${esc(q.texto)}</div>`;
+    <div class="lsq-ref"><b>${esc(lei.sigla)}</b> · ${esc(q.ref.replace(/^[^,]*,\s*/,''))}${art.tit?` · <span style="color:var(--mut)">${esc(art.tit)}</span>`:''}</div>
+    ${art.h?`<div class="lsq-h">${esc(curto(art.h, 140))}</div>`:''}
+    ${q.contexto?`<div class="lsq-ctx"><small>${d.r==='Pena'?'Conduta':'Texto do caput'}</small>${esc(curto(q.contexto, 320))}</div>`:''}
+    <div class="lsq-txt"><span class="rot">${d.r==='Pena'?'Pena — certo ou errado?':'Certo ou errado?'}</span>${esc(q.texto)}</div>`;
   if(!s.resp){
     h += `<div class="lsq-bts"><button class="lsb certo" onclick="lsResponder(true)">✓ Certo <small>C</small></button><button class="lsb errado" onclick="lsResponder(false)">✗ Errado <small>E</small></button></div>`;
   } else {
