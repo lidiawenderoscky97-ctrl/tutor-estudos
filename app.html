@@ -1544,7 +1544,7 @@ function editalParaTexto(linhasBrutas){
     const l = linhas[i].trim();
     if((/^anexo\s+[ivxl\d]+\b/i.test(l) && !/conte[úu]do|program/i.test(l)) || (/^\d{1,2}\s*\.?\s+D[AOE]S?\s+[A-ZÀ-Þ ]{4,}$/.test(l) && !/conhecimento|avalia/i.test(l)) || /^(cronograma|quadro de vagas|requisitos e atribui|modelo de|formul[áa]rio|despacho\b|subse[çc][ãa]o\s+[ivxl]+\s*[-–])/i.test(l)){ fim = i; break; } }
   const corpo = linhas.slice(ini >= 0 ? ini+1 : 0, fim);
-  const repet = {}; corpo.forEach(l => { const k = norm(l.trim().replace(/[:\-–]\s*$/,'')); repet[k] = (repet[k]||0) + 1; });
+  const repet = {}; linhasBrutas.forEach(l => { const k = norm(l.trim().replace(/[:\-–]\s*$/,'')); repet[k] = (repet[k]||0) + 1; });
   const mats = []; let atual = null, grupo = '', cargo = '', area = '', ultCargo = -9, ultArea = false, ultMat = -9, k = 0;
   const semRepetir = x => { const w = x.split(/\s+/); if(w.length % 2 === 0 && w.slice(0, w.length/2).join(' ').toLowerCase() === w.slice(w.length/2).join(' ').toLowerCase()) return w.slice(0, w.length/2).join(' '); return x; };
   const nova = (nome, resto) => { atual = {nome: tituloMat(semRepetir(nome.replace(/^[\dIVX]+[.)\-–]?\s+/,'').replace(/[:\-–\s]+$/,'').trim())), txt: resto || '', grupo, cargo, area, q: null, nomeBruto: nome}; mats.push(atual); ultMat = k; };
