@@ -1,0 +1,155 @@
+@concurso: Policiais do Estratégia Concursos!
+@banca: 
+Língua Portuguesa | 3 | 3
+- Reconhecimento, compreensão e interpretação de textos de gêneros e de tipos variados *2
+- Leitura e compreensão de textos: Assunto; Estruturação do texto; Ideias principais e secundárias *2
+- Denotação e conotação *2
+- Implícitos e Subentendidos *2
+- Ortografia oficial vigente *2
+- Acentuação Gráfica *2
+- Fonemas *2
+- Estrutura e Formação das palavras *2
+- Domínio dos mecanismos de coesão textual *2
+- Identificação, emprego e domínio de elementos de referenciação, substituição e repetição, de conectores e de outros mecanismos de sequenciação textual *2
+- Emprego de tempos e modos verbais *2
+- Vozes verbais: reconhecimento, reescrita e conversão *2
+- Domínio da estrutura morfossintática do período simples e do composto *2
+- Emprego e flexão das classes de palavras *2
+- Relações de coordenação entre orações e entre termos da oração *2
+- Relações de subordinação entre orações e entre termos da oração *2
+- Emprego dos sinais de pontuação *2
+- Concordância verbal e nominal *2
+- Regência verbal e nominal *2
+- Emprego do sinal indicativo de crase *2
+- Colocação dos pronomes átonos *2
+- Reescrita de frases e parágrafos do texto *2
+- Significação das palavras *2
+- Substituição de palavras ou de trechos de texto *2
+- Reorganização da estrutura de orações e de períodos do texto *2
+- Reescrita de textos de diferentes gêneros e níveis de formalidade *2
+- Correspondência oficial (conforme Manual de Redação da Presidência da República) *2
+- Aspectos gerais da redação oficial *2
+- Finalidade, estrutura e linguagem dos expedientes oficiais *2
+- Adequação da linguagem ao tipo de documento *2
+- Adequação do formato do texto ao gênero *2
+
+Matemática | 3 | 3
+- Conjuntos e Subconjuntos: operações e problemas com conjuntos *2
+- Conjuntos Numéricos: Conjunto dos números naturais, inteiros, racionais, irracionais e reais *2
+- Operações fundamentais (adição, subtração, multiplicação, divisão, potenciação e radiciação), propriedades das operações, múltiplos e divisores, números primos, mínimo múltiplo comum, máximo diviso… *2
+- Razões e Proporções – grandezas direta e inversamente proporcionais, divisão em partes direta e inversamente proporcionais, regra de três simples e composta *2
+- Sistema de Medidas: comprimento, capacidade, massa e tempo (unidades, transformação de unidades), sistema monetário brasileiro *2
+- Cálculo algébrico: Monômios e polinômios *2
+- Triângulo retângulo: Relações métricas no triângulo retângulo. Teorema de Pitágoras e suas aplicações *2
+- Funções: Ideia de função, interpretação de gráficos, domínio e imagem, função do 1º grau, função do 2º grau, função exponencial e logarítmica – valor de máximo e mínimo de uma função do 2º grau *2
+- Equações de 1º e 2º graus, equação exponencial *2
+- Sistemas de equações de 1º grau com duas incógnitas *2
+- Trigonometria: Razões trigonométricas no triângulo retângulo. Relações, identidades e equações trigonométricas *2
+- Geometria Plana: cálculo de área e perímetro de polígonos *2
+- Circunferência e Círculo: comprimento da circunferência, área do círculo *2
+- Geometria Espacial: cálculo da área e do volume dos sólidos geométricos *2
+- Matemática Financeira: porcentagem, juro simples e compostos *2
+- Análise Combinatória e Probabilidade *2
+- Progressões: Sequências numéricas, progressão aritmética e geométrica *2
+- Aplicação dos conteúdos acima listados em resolução de problemas *2
+
+Cidadania | 4 | 3
+- Antecedentes *2
+- Conceito *2
+- Características *2
+- Classificações *2
+- Sistema internacional de proteção dos Direitos Humanos *2
+- Declaração Universal dos Direitos Humanos *2
+- Pactos Internacionais de Direitos Humanos *2
+- Pacto Internacional sobre Direitos Civis e Políticos *2
+- Pacto Internacional sobre Direitos Econômicos, Sociais e Culturais *2
+- Sistema Interamericano de Direitos Humanos *2
+- Organização dos Estados Americanos *2
+- Pacto de San José da Costa Rica *2
+- Comissão Interamericana de Direitos Humanos *2
+- Corte Interamericana de Direitos Humanos *2
+- “Convenção de Belém do Pará” *2
+- Convenção Interamericana para Prevenir e Punir a Tortura *2
+- Casos envolvendo o Estado brasileiro na Corte Interamericana de Direitos Humanos *2
+- Os Direitos Humanos no Mercosul *2
+- Protocolo de Assunção sobre Compromisso com a Promoção e Proteção dos Direitos Humanos no Mercosul *2
+- A Constituição Federal de 1988 e os Direitos Fundamentais *2
+- Conceito de Direitos Fundamentais *2
+- Aplicabilidade imediata das normas de direitos fundamentais *2
+- Sistema aberto de Direitos Fundamentais *2
+- Fundamentalidade material e formal *2
+- Funções dos Direitos Fundamentais *2
+- Dimensões dos Direitos Fundamentais *2
+- Eficácia vertical, horizontal e diagonal dos Direitos Fundamentais *2
+- Incorporação de tratados de Direitos Humanos na Constituição Federal de 1988 *2
+- Tratados Internacionais incorporados ao ordenamento jurídico brasileiro com força de Emenda à Constituição *2
+- Tratado de Marraqueche para facilitar o acesso a Obras Publicadas às Pessoas Cegas, com Deficiência Visual ou com outras dificuldades para ter Acesso ao Texto Impresso *2
+- Convenção sobre os Direitos das Pessoas com Deficiência e seu Protocolo Facultativo *2
+- O direito à Cidadania na Constituição Federal de 1988 *2
+- Programa Nacional de Direitos Humanos (PNDH-3) *2
+- Estatuto da Pessoa com Deficiência *2
+- Estatuto da Igualdade Racial *2
+- Lei do Abuso de Autoridade *2
+- Lei de Tortura *2
+- Entendimentos do STJ e STF *2
+
+Legislação Específica | 4 | 3
+- Constituição: conceito, conteúdo, estrutura e classificação *2
+- Supremacia da Constituição *2
+- Princípios *2
+- Poder Constituinte *2
+- Interpretação e Aplicabilidade *2
+- Controle de Constitucionalidade *2
+- Constituição Federal de 1988 *2
+- Direitos e Garantias Fundamentais *2
+- Organização do Estado *2
+- Organização dos Poderes *2
+- Defesa do Estado e das Instituições Democráticas *2
+- Constituição do Estado do Rio Grande do Sul de 1989 *2
+- A segurança pública na Constituição Federal e na Constituição Estadual *2
+- Princípios do Direito Administrativo *2
+- Poderes da Administração Pública *2
+- Serviço Público *2
+- Poder de Polícia *2
+- Atos administrativos: conceitos, espécies, elementos e atributos *2
+- Atos discricionários e vinculados *2
+- Revogação e anulação *2
+- A Administração Pública na Constituição Federal de 1988 *2
+- A Administração Pública na Constituição do Estado do Rio Grande do Sul de 1989 *2
+- Improbidade Administrativa *2
+- Responsabilidade civil do Estado *2
+- Abuso de autoridade *2
+- Estatuto dos Servidores Militares da Brigada Militar do Estado do Rio Grande do Sul *2
+- Lei de Organização Básica da Brigada Militar *2
+- Plano de Carreira dos Servidores Militares *2
+- Regulamento Disciplinar da Brigada Militar do Estado do Rio Grande do Sul *2
+- Lei Maria da Penha *2
+- Estatuto do Desarmamento *2
+- Lei de Drogas *2
+- Estatuto Nacional da Igualdade Racial *2
+- Estatuto Estadual da Igualdade Racial *2
+- Entendimentos do STJ e STF *2
+
+Informática | 3 | 3
+- Sistema operacional Microsoft Windows 10 ou superior: características, propriedades e funcionalidades da Área de Trabalho, do Menu Iniciar, da Barra de Tarefas, do Gerenciador de Tarefas, do Explor… *2
+- Sistema operacional Microsoft Windows: realizar ações e operações sobre bibliotecas, arquivos, pastas e atalhos: localizar, copiar, mover, criar, criar atalhos, criptografar, ocultar, excluir, reco… *2
+- Sistema operacional Microsoft Windows: identificar e utilizar nomes válidos para bibliotecas, arquivos, pastas e atalhos *2
+- Editor de textos Microsoft Word 2016 ou superior: saber identificar, caracterizar, usar, alterar, configurar e personalizar o ambiente, componentes da janela, funcionalidades, menus, ícones, barra … *2
+- Editor de textos Microsoft Word: abrir, fechar, criar, excluir, visualizar, formatar, alterar, salvar e configurar documentos utilizando as barras de ferramentas, menus, ícones, botões, guias e gru… *2
+- Editor de textos Microsoft Word: identificar e utilizar os botões e ícones das barras de ferramentas das guias e grupos da Faixa de Opções para formatar, personalizar, configurar, alterar e reconhe… *2
+- Editor de planilhas Microsoft Excel 2016 ou superior: saber identificar, caracterizar, usar, alterar, configurar e personalizar o ambiente, componentes da janela, funcionalidades, menus, ícones, ba… *2
+- Editor de planilhas Microsoft Excel: elementos: definir e identificar célula, planilha e pasta; saber selecionar e reconhecer a seleção de células, planilhas e pastas *2
+- Editor de planilhas Microsoft Excel: abrir, fechar, criar, visualizar, formatar, salvar, alterar, excluir, renomear, personalizar e configurar planilhas e pastas utilizando as barra de ferramentas,… *2
+- Editor de planilhas Microsoft Excel: identificar e utilizar os ícones e botões das barras de ferramentas das guias e grupos da Faixa de Opções para formatar, alterar, selecionar células, configurar… *2
+- Mozilla Firefox (versão atualizada): características e componentes da janela principal *2
+- Mozilla Firefox: funcionalidades disponíveis na barra de ferramentas, barra de endereços e menus *2
+- Mozilla Firefox: atalhos de teclado *2
+- Google Chrome (versão atualizada): características e componentes da janela principal *2
+- Google Chrome: funcionalidades disponíveis na barra de ferramentas, barra de endereços e menus *2
+- Google Chrome: atalhos de teclado *2
+- Serviço de e-mails Gmail: principais funcionalidades, incluindo: configurações rápidas, configurações gerais, menus, marcadores, caixas de e-mails, enviados, rascunhos, lixeira, spam, estrela, escr… *2
+- Google Apps: principais funcionalidades dos aplicativos Agenda, Meet e Drive *2
+- Não deixe de entrar no grupo de estudos do Estratégia Concursos no WhatsApp! 🦉 Leia o QRCode abaixo e entre agora mesmo no grupo da Brigada Militar RS: O que você achou deste e-book? Sua opinião é… *2
+- Não é assinante? Confira nossos planos, tenha acesso a milhares de cursos e participe gratuitamente dos projetos exclusivos *2
+- Clique no link! Conheça nosso sistema de questões! Estratégia Questões nasceu maior do que todos os concorrentes, com mais questões cadastradas e mais soluções por professores *2
+- Clique no link e conheça! *2

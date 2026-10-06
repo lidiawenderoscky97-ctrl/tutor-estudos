@@ -1,0 +1,932 @@
+@concurso: Tribunal de Contas do Estado de Santa Catarina – Auditor Fiscal de Controle Externo
+@banca: FGV
+Língua Portuguesa | 4 | 3
+- Compreensão e interpretação de textos de gêneros variados *2
+- Reconhecimento de tipos e gêneros textuais *2
+- Domínio da ortografia oficial *2
+- Domínio dos mecanismos de coesão textual *2
+- Emprego de elementos de referenciação, substituição e repetição, de conectores e de outros elementos de sequenciação textual *2
+- Emprego de tempos e modos verbais *2
+- Domínio da estrutura morfossintática do período *2
+- Emprego das classes de palavras *2
+- Relações de coordenação entre orações e entre termos da oração *2
+- Relações de subordinação entre orações e entre termos da oração *2
+- Emprego dos sinais de pontuação *2
+- Concordância verbal e nominal *2
+- Regência verbal e nominal *2
+- Emprego do sinal indicativo de crase *2
+- Colocação dos pronomes átonos *2
+- Reescrita de frases e parágrafos do texto *2
+- Significação das palavras *2
+- Substituição de palavras ou de trechos de texto *2
+- Reorganização da estrutura de orações e de períodos do texto *2
+- Reescrita de textos de diferentes gêneros e níveis de formalidade *2
+
+Raciocínio Lógico Matemático | 4 | 3
+- Estrutura lógica de relações arbitrárias entre pessoas, lugares, objetos ou eventos fictícios *2
+- Dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura daquelas relações *2
+- Compreensão e elaboração da lógica das situações por meio de *2
+- raciocínio verbal *2
+- raciocínio matemático (que envolva, dentre outros, conjuntos numéricos - operações, propriedades, problemas envolvendo as quatro operações nas formas fracionária e decimal, razão e proporção, regra… *2
+- raciocínio sequencial *2
+- orientação espacial e temporal *2
+- formação de conceitos *2
+- discriminação de elementos *2
+- Compreensão do processo lógico que, a partir de um conjunto de hipóteses, conduz, de forma válida, a conclusões determinadas *2
+
+Ética no Serviço Público | 4 | 3
+- Ética e moral *2
+- Ética, princípios e valores *2
+- Ética e democracia: exercício da cidadania *2
+- Ética e função pública *2
+- Ética no setor público *2
+- Resolução N. TC-0252/2024 *2
+- Lei nº 8.429/1992 e suas alterações *2
+- Lei nº 12.846/2013 e suas alterações *2
+- TCE Resolução n. TC-302/2026, que Institui a Política de Gestão e Controle da Disciplina no âmbito do Tribunal de Contas do Estado de Santa Catarina *2
+
+Direito Administrativo | 3 | 3
+- Estado, governo e administração pública *2
+- Conceitos *2
+- Direito administrativo *2
+- Conceito *2
+- Objeto *2
+- Fontes *2
+- Ato administrativo *2
+- Conceito, requisitos, atributos, classificação e espécies *2
+- Extinção do ato administrativo: cassação, anulação, revogação e convalidação *2
+- Decadência administrativa *2
+- Agentes públicos *2
+- Legislação pertinente *2
+- Disposições constitucionais aplicáveis *2
+- Disposições doutrinárias *2
+- Espécies *2
+- Cargo, emprego e função pública *2
+- Provimento *2
+- Vacância *2
+- Efetividade, estabilidade e vitaliciedade *2
+- Remuneração *2
+- Direitos e deveres *2
+- Responsabilidade *2
+- Processo administrativo disciplinar *2
+- Poderes da administração pública *2
+- Hierárquico, disciplinar, regulamentar e de polícia *2
+- Uso e abuso do poder *2
+- Regime jurídico- administrativo *2
+- Princípios expressos e implícitos da administração pública *2
+- Responsabilidade civil do Estado *2
+- Evolução histórica *2
+- Responsabilidade por ato comissivo do Estado *2
+- Responsabilidade por omissão do Estado *2
+- Requisitos para a demonstração da responsabilidade do Estado *2
+- Causas excludentes e atenuantes da responsabilidade do Estado *2
+- Reparação do dano *2
+- Direito de regresso *2
+- Serviços públicos *2
+- Elementos constitutivos *2
+- Formas de prestação e meios de execução *2
+- Delegação *2
+- Concessão, permissão e autorização *2
+- Classificação *2
+- Princípios *2
+- Lei nº 8987/1995 *2
+- Lei nº 11.079/2004 *2
+- Organização administrativa *2
+- Autarquias, fundações, empresas públicas e sociedades de economia mista *2
+- Entidades paraestatais e terceiro setor *2
+- Serviços sociais autônomos, entidades de apoio, organizações sociais, organizações da sociedade civil de interesse público *2
+- Lei nº 13.303/2016 *2
+- Controle da Administração Pública *2
+- Controle exercido pela Administração Pública *2
+- Controle judicial *2
+- Controle legislativo *2
+- Lei nº 8.429/1992 e suas alterações *2
+- Lei nº 9.784/1999 e suas alterações *2
+- Licitações e contratos administrativos *2
+- Lei nº 14.133/2021 Decreto nº 11.462/2023. 12.1.4 Lei nº 12.462/2011 e suas alterações *2
+- Fundamentos constitucionais *2
+- Lei nº 13.019/2014 e suas alterações *2
+- Desapropriação *2
+- Lei nº 6.745/1985 *2
+- Lei Complementar nº 255/2004 *2
+- Acesso à informação *2
+- Lei 12.527/2011 *2
+- Lei 13.709/2018 *2
+- Lei de Introdução às Normas do Direito Brasileiro – LINDB *2
+- Súmulas e jurisprudência vinculante do STF e STJ *2
+
+Direito Constitucional | 3 | 3
+- Aplicabilidade das normas constitucionais *2
+- Normas de eficácia plena, contida e limitada *2
+- Normas programáticas *2
+- Constituição da República Federativa do Brasil de 1988 *2
+- Direitos e garantias fundamentais: direitos e deveres individuais e coletivos, direitos sociais, direitos de nacionalidade, direitos políticos, partidos políticos *2
+- Organização do Estado *2
+- Ordem social *2
+- Constituição do Estado de Santa Catarina *2
+- Súmulas e jurisprudência vinculante do STF e STJ *2
+
+Direito Financeiro | 3 | 3
+- Direito financeiro *2
+- Conceito e objeto *2
+- O Direito financeiro na Constituição Federal de 1988 *2
+- Normas gerais e orçamento *2
+- Despesa pública *2
+- Conceito e classificação de despesa pública *2
+- Disciplina constitucional dos precatórios *2
+- Receita pública *2
+- Conceito *2
+- Ingresso e receitas *2
+- Classificação das receitas públicas *2
+- Dívida pública: conceito, evolução, classificação, disciplina jurídica e processamento *2
+- Orçamento público *2
+- Conceito, espécies e natureza jurídica *2
+- Princípios orçamentários *2
+- Fiscalização e controle orçamentário *2
+- Normas gerais de Direito Financeiro *2
+- Lei nº 4.320/1964 e suas alterações *2
+- Lei Complementar nº 101/2000 e suas alterações *2
+
+Língua Portuguesa | 4 | 3
+- Compreensão e interpretação de textos de gêneros variados *2
+- Reconhecimento de tipos e gêneros textuais *2
+- Domínio da ortografia oficial *2
+- Domínio dos mecanismos de coesão textual *2
+- Emprego de elementos de referenciação, substituição e repetição, de conectores e de outros elementos de sequenciação textual *2
+- Emprego de tempos e modos verbais *2
+- Domínio da estrutura morfossintática do período *2
+- Emprego das classes de palavras *2
+- Relações de coordenação entre orações e entre termos da oração *2
+- Relações de subordinação entre orações e entre termos da oração *2
+- Emprego dos sinais de pontuação *2
+- Concordância verbal e nominal *2
+- Regência verbal e nominal *2
+- Emprego do sinal indicativo de crase *2
+- Colocação dos pronomes átonos *2
+- Reescrita de frases e parágrafos do texto *2
+- Significação das palavras *2
+- Substituição de palavras ou de trechos de texto *2
+- Reorganização da estrutura de orações e de períodos do texto *2
+- Reescrita de textos de diferentes gêneros e níveis de formalidade *2
+
+Raciocínio Lógico Matemático | 4 | 3
+- Estrutura lógica de relações arbitrárias entre pessoas, lugares, objetos ou eventos fictícios *2
+- Dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura daquelas relações *2
+- Compreensão e elaboração da lógica das situações por meio de *2
+- raciocínio verbal *2
+- raciocínio matemático (que envolva, dentre outros, conjuntos numéricos - operações, propriedades, problemas envolvendo as quatro operações nas formas fracionária e decimal, razão e proporção, regra… *2
+- raciocínio sequencial *2
+- orientação espacial e temporal *2
+- formação de conceitos *2
+- discriminação de elementos *2
+- Compreensão do processo lógico que, a partir de um conjunto de hipóteses, conduz, de forma válida, a conclusões determinadas *2
+
+Ética no Serviço Público | 4 | 3
+- Ética e moral *2
+- Ética, princípios e valores *2
+- Ética e democracia: exercício da cidadania *2
+- Ética e função pública *2
+- Ética no setor público *2
+- Resolução N. TC-0252/2024 *2
+- Lei nº 8.429/1992 e suas alterações *2
+- Lei nº 12.846/2013 e suas alterações *2
+- TCE Resolução n. TC-302/2026, que Institui a Política de Gestão e Controle da Disciplina no âmbito do Tribunal de Contas do Estado de Santa Catarina *2
+
+Direito Administrativo | 3 | 3
+- Estado, governo e administração pública *2
+- Conceitos *2
+- Direito administrativo *2
+- Conceito *2
+- Objeto *2
+- Fontes *2
+- Ato administrativo *2
+- Conceito, requisitos, atributos, classificação e espécies *2
+- Extinção do ato administrativo: cassação, anulação, revogação e convalidação *2
+- Decadência administrativa *2
+- Agentes públicos *2
+- Legislação pertinente *2
+- Disposições constitucionais aplicáveis *2
+- Disposições doutrinárias *2
+- Espécies *2
+- Cargo, emprego e função pública *2
+- Provimento *2
+- Vacância *2
+- Efetividade, estabilidade e vitaliciedade *2
+- Remuneração *2
+- Direitos e deveres *2
+- Responsabilidade *2
+- Processo administrativo disciplinar *2
+- Poderes da administração pública *2
+- Hierárquico, disciplinar, regulamentar e de polícia *2
+- Uso e abuso do poder *2
+- Regime jurídico- administrativo *2
+- Princípios expressos e implícitos da administração pública *2
+- Responsabilidade civil do Estado *2
+- Evolução histórica *2
+- Responsabilidade por ato comissivo do Estado *2
+- Responsabilidade por omissão do Estado *2
+- Requisitos para a demonstração da responsabilidade do Estado *2
+- Causas excludentes e atenuantes da responsabilidade do Estado *2
+- Reparação do dano *2
+- Direito de regresso *2
+- Serviços públicos *2
+- Elementos constitutivos *2
+- Formas de prestação e meios de execução *2
+- Delegação *2
+- Concessão, permissão e autorização *2
+- Classificação *2
+- Princípios *2
+- Lei nº 8987/1995 *2
+- Lei nº 11.079/2004 *2
+- Organização administrativa *2
+- Autarquias, fundações, empresas públicas e sociedades de economia mista *2
+- Entidades paraestatais e terceiro setor *2
+- Serviços sociais autônomos, entidades de apoio, organizações sociais, organizações da sociedade civil de interesse público *2
+- Lei nº 13.303/2016 *2
+- Controle da Administração Pública *2
+- Controle exercido pela Administração Pública *2
+- Controle judicial *2
+- Controle legislativo *2
+- Lei nº 8.429/1992 e suas alterações *2
+- Lei nº 9.784/1999 e suas alterações *2
+- Licitações e contratos administrativos *2
+- Lei nº 14.133/2021 Decreto nº 11.462/2023. 12.1.4 Lei nº 12.462/2011 e suas alterações *2
+- Fundamentos constitucionais *2
+- Lei nº 13.019/2014 e suas alterações *2
+- Desapropriação *2
+- Lei nº 6.745/1985 *2
+- Lei Complementar nº 255/2004 *2
+- Acesso à informação *2
+- Lei 12.527/2011 *2
+- Lei 13.709/2018 *2
+- Lei de Introdução às Normas do Direito Brasileiro – LINDB *2
+- Súmulas e jurisprudência vinculante do STF e STJ *2
+
+Direito Constitucional | 3 | 3
+- Aplicabilidade das normas constitucionais *2
+- Normas de eficácia plena, contida e limitada *2
+- Normas programáticas *2
+- Constituição da República Federativa do Brasil de 1988 *2
+- Direitos e garantias fundamentais: direitos e deveres individuais e coletivos, direitos sociais, direitos de nacionalidade, direitos políticos, partidos políticos *2
+- Organização do Estado *2
+- Ordem social *2
+- Constituição do Estado de Santa Catarina *2
+- Súmulas e jurisprudência vinculante do STF e STJ *2
+
+Direito Financeiro | 3 | 3
+- Direito financeiro *2
+- Conceito e objeto *2
+- O Direito financeiro na Constituição Federal de 1988 *2
+- Normas gerais e orçamento *2
+- Despesa pública *2
+- Conceito e classificação de despesa pública *2
+- Disciplina constitucional dos precatórios *2
+- Receita pública *2
+- Conceito *2
+- Ingresso e receitas *2
+- Classificação das receitas públicas *2
+- Dívida pública: conceito, evolução, classificação, disciplina jurídica e processamento *2
+- Orçamento público *2
+- Conceito, espécies e natureza jurídica *2
+- Princípios orçamentários *2
+- Fiscalização e controle orçamentário *2
+- Normas gerais de Direito Financeiro *2
+- Lei nº 4.320/1964 e suas alterações *2
+- Lei Complementar nº 101/2000 e suas alterações *2
+
+Informática | 3 | 3
+- MS-Office 365: conceito de pastas, diretórios, arquivos e atalhos, área de trabalho, área de transferência, manipulação de arquivos e pastas, uso dos menus, programas e aplicativos, interação com o… *2
+- MS-Office 365 - Word: estrutura básica dos documentos, edição e formatação de textos, cabeçalhos, parágrafos, fontes, colunas, marcadores simbólicos e numéricos, tabelas, impressão, controle de que… *2
+- MS-Office 365 - Excel: estrutura básica das planilhas, conceitos de células, linhas, colunas, pastas e gráficos, elaboração de tabelas e gráficos, uso de fórmulas, funções e macros, impressão, inse… *2
+- Correio Eletrônico: uso de correio eletrônico, preparo e envio de mensagens, anexação de arquivos *2
+- Internet: Navegação na internet, conceitos de URL, links, sites, busca e impressão de páginas *2
+- Conceito da plataforma Microsoft Teams e suas funcionalidades integradas, como reuniões online com recursos de videoconferência, agendamento de compromissos e eventos, e chats *2
+- Conceitos GERAIS de segurança da informação, abrangendo os princípios de confidencialidade, integridade e disponibilidade. Análise de Dados: 1 Fundamentos de Análise de Dados. 1.1 Tipos de dados: e… *2
+- Análise de risco baseada em dados *2
+- Técnicas de detecção de outliers *2
+- Análise de redes (network analysis) para identificação de relacionamentos suspeitos *2
+- Monitoramento em tempo real *2
+- Indicadores de risco (red flags) *2
+- Ética no Serviço Público *2
+- Padrões de conduta ética na gestão pública *2
+- Condutas antiéticas indesejáveis *2
+- Consequências de práticas antiéticas *2
+- Identificação de fatores e fenômenos que caracterizam ações antiéticas *2
+- Segurança da Informação *2
+- Criptografia *2
+- Normas ISO/IEC 27001 e ISO/IEC 27002 *2
+- Autenticação multifator *2
+- Certificados digitais *2
+- Logs e trilhas de auditoria *2
+
+Língua Portuguesa | 4 | 3
+- Compreensão e interpretação de textos de gêneros variados *2
+- Reconhecimento de tipos e gêneros textuais *2
+- Domínio da ortografia oficial *2
+- Domínio dos mecanismos de coesão textual *2
+- Emprego de elementos de referenciação, substituição e repetição, de conectores e de outros elementos de sequenciação textual *2
+- Emprego de tempos e modos verbais *2
+- Domínio da estrutura morfossintática do período *2
+- Emprego das classes de palavras *2
+- Relações de coordenação entre orações e entre termos da oração *2
+- Relações de subordinação entre orações e entre termos da oração *2
+- Emprego dos sinais de pontuação *2
+- Concordância verbal e nominal *2
+- Regência verbal e nominal *2
+- Emprego do sinal indicativo de crase *2
+- Colocação dos pronomes átonos *2
+- Reescrita de frases e parágrafos do texto *2
+- Significação das palavras *2
+- Substituição de palavras ou de trechos de texto *2
+- Reorganização da estrutura de orações e de períodos do texto *2
+- Reescrita de textos de diferentes gêneros e níveis de formalidade *2
+
+Raciocínio Lógico Matemático | 4 | 3
+- Estrutura lógica de relações arbitrárias entre pessoas, lugares, objetos ou eventos fictícios *2
+- Dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura daquelas relações *2
+- Compreensão e elaboração da lógica das situações por meio de *2
+- raciocínio verbal *2
+- raciocínio matemático (que envolva, dentre outros, conjuntos numéricos - operações, propriedades, problemas envolvendo as quatro operações nas formas fracionária e decimal, razão e proporção, regra… *2
+- raciocínio sequencial *2
+- orientação espacial e temporal *2
+- formação de conceitos *2
+- discriminação de elementos *2
+- Compreensão do processo lógico que, a partir de um conjunto de hipóteses, conduz, de forma válida, a conclusões determinadas *2
+
+Ética no Serviço Público | 4 | 3
+- Ética e moral *2
+- Ética, princípios e valores *2
+- Ética e democracia: exercício da cidadania *2
+- Ética e função pública *2
+- Ética no setor público *2
+- Resolução N. TC-0252/2024 *2
+- Lei nº 8.429/1992 e suas alterações *2
+- Lei nº 12.846/2013 e suas alterações *2
+- TCE Resolução n. TC-302/2026, que Institui a Política de Gestão e Controle da Disciplina no âmbito do Tribunal de Contas do Estado de Santa Catarina *2
+
+Informática | 3 | 3
+- MS-Office 365: conceito de pastas, diretórios, arquivos e atalhos, área de trabalho, área de transferência, manipulação de arquivos e pastas, uso dos menus, programas e aplicativos, interação com o… *2
+- MS-Office 365 - Word: estrutura básica dos documentos, edição e formatação de textos, cabeçalhos, parágrafos, fontes, colunas, marcadores simbólicos e numéricos, tabelas, impressão, controle de que… *2
+- MS-Office 365 - Excel: estrutura básica das planilhas, conceitos de células, linhas, colunas, pastas e gráficos, elaboração de tabelas e gráficos, uso de fórmulas, funções e macros, impressão, inse… *2
+- Correio Eletrônico: uso de correio eletrônico, preparo e envio de mensagens, anexação de arquivos *2
+- Internet: Navegação na internet, conceitos de URL, links, sites, busca e impressão de páginas *2
+- Conceito da plataforma Microsoft Teams e suas funcionalidades integradas, como reuniões online com recursos de videoconferência, agendamento de compromissos e eventos, e chats *2
+- Conceitos GERAIS de segurança da informação, abrangendo os princípios de confidencialidade, integridade e disponibilidade. Análise de Dados: 1 Fundamentos de Análise de Dados. 1.1 Tipos de dados: e… *2
+- Análise de risco baseada em dados *2
+- Técnicas de detecção de outliers *2
+- Análise de redes (network analysis) para identificação de relacionamentos suspeitos *2
+- Monitoramento em tempo real *2
+- Indicadores de risco (red flags) *2
+- Ética no Serviço Público *2
+- Padrões de conduta ética na gestão pública *2
+- Condutas antiéticas indesejáveis *2
+- Consequências de práticas antiéticas *2
+- Identificação de fatores e fenômenos que caracterizam ações antiéticas *2
+- Segurança da Informação *2
+- Criptografia *2
+- Normas ISO/IEC 27001 e ISO/IEC 27002 *2
+- Autenticação multifator *2
+- Certificados digitais *2
+- Logs e trilhas de auditoria *2
+
+Auditoria Governamental, Compliance, Gestão de Risco e Governança (comum a Todas as Áreas de Habilitação) | 3 | 3
+- Compliance aplicada à gestão pública *2
+- Conceito, princípios e normas *2
+- Auditoria governamental *2
+- Controle interno *2
+- Auditoria de regularidade e auditoria operacional *2
+- Instrumentos de fiscalização *2
+- Auditoria, levantamento, monitoramento, acompanhamento e inspeção *2
+- Planejamento de auditoria *2
+- Gestão de riscos no setor público *2
+- Plano de auditoria baseado no risco *2
+- Atividades preliminares *2
+- Determinação de escopo *2
+- Materialidade, risco e relevância *2
+- Exame e avaliação do controle interno *2
+- Risco inerente, de controle e de detecção *2
+- Risco de auditoria *2
+- Matriz de Planejamento *2
+- Programas de auditoria *2
+- Papéis de trabalho *2
+- Testes de auditoria *2
+- Importância da amostragem estatística em auditoria *2
+- Execução da auditoria *2
+- Técnicas e procedimentos: exame documental, inspeção física, conferência de cálculos, observação, entrevista, circularização, conciliações, análise de contas contábeis, revisão analítica *2
+- Evidências *2
+- Caracterização de achados de auditoria *2
+- Matrizes de achados e matriz de responsabilização *2
+- Comunicação dos resultados *2
+- Relatórios de auditoria *2
+- Monitoramento *2
+- Documentação da auditoria *2
+- Supervisão e controle de qualidade *2
+- Normas de auditoria *2
+- Normas da INTOSAI (ISSAIs 30, 100, 200, 300, 400, 3000 e 3100) *2
+- Normas Brasileiras de Auditoria do Setor Público (NBASP) *2
+- Governança no setor público *2
+- Papel e importância *2
+- Governança, transparência e accountability *2
+- Governança e governabilidade *2
+- Princípios da governança pública *2
+
+Controle Externo da Administração Pública (comum a Todas as Áreas de Habilitação) | 3 | 3
+- Conceito, tipos e formas de controle *2
+- Controle interno e externo *2
+- Controle parlamentar *2
+- Controle administrativo *2
+- Lei nº 8.429/1992 e suas alterações *2
+- Sistemas de controle jurisdicional da administração pública *2
+- Contencioso administrativo e sistema da jurisdição una *2
+- Controle jurisdicional da administração pública no Direito brasileiro *2
+- Controle da atividade financeira do Estado: espécies e sistemas *2
+- Controle pelos tribunais de contas *2
+- Tribunal de Contas da União (TCU), Tribunais de Contas dos Estados e do Distrito Federal *2
+- Tribunal de Contas do Estado de Santa Catarina *2
+- Natureza, competência, jurisdição e organização *2
+- Constituição do Estado de Santa Catarina *2
+- Lei Complementar nº 202/2000 (Lei Orgânica do Tribunal de Contas do Estado de Santa Catarina) *2
+- Resolução N.TC-06/2001 (Regimento Interno do Tribunal de Contas do Estado de Santa Catarina) *2
+
+Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina (comum a Todas as Áreas de Habilitação) | 3 | 3
+- Lei Orgânica do TCE-SC (LC nº 202/2000) *2
+- Regimento Interno do TCE-SC (Resolução N. TC-06/2001) *2
+- Estrutura e Competências dos Órgãos Auxiliares (Resolução N. TC-149/2019) *2
+- Regime jurídico dos servidores do TCE-SC *2
+- Lei nº 6.745/1985 (Estatuto dos Servidores do Estado de SC – disposições aplicáveis) *2
+- Lei Complementar Estadual nº 255/2004 *2
+- Governança e integridade institucional *2
+- Política de Governança do TCE-SC *2
+- Código de Ética e Conduta dos Servidores (Resolução N. TC-0252/2024) *2
+- Política de Gestão e Controle da Disciplina (Resolução N. TC-302/2026) *2
+- Política de Assédio e Discriminação (Resolução N. TC 254/2024) *2
+- Programa de Integridade e Compliance institucional *2
+- Transparência e controle social no âmbito do TCE-SC *2
+- Lei de Acesso à Informação aplicada ao Tribunal *2
+- Ouvidoria e mecanismos de participação social *2
+- Portal da Transparência *2
+- Processo eletrônico e modernização institucional *2
+- Normas internas sobre processo eletrônico *2
+- Sistemas corporativos e tramitação digital *2
+- Segurança da informação no âmbito do Tribunal *2
+
+Conhecimentos Específicos – Administração/ Administração Pública | 3 | 3
+- Conceitos e Fundamentos da Administração *2
+- Princípios GERAIS da administração *2
+- Funções administrativas: planejamento, organização, direção e controle *2
+- Estruturas organizacionais: centralização, descentralização, hierarquia e departamentalização *2
+- Documentação e Protocolo *2
+- Tipos de documentos oficiais (ofícios, memorandos, relatórios, atas) *2
+- Procedimentos de tramitação de documentos *2
+- Controle e organização de arquivos: métodos de arquivamento e classificação de documentos (alfabético, numérico, cronológico) *2
+- Protocolo e gestão documental: recebimento, registro, expedição e arquivamento de correspondências *2
+- Atendimento ao Público *2
+- Técnicas de atendimento: atendimento presencial, telefônico e eletrônico *2
+- Postura profissional e ética no atendimento *2
+- Comunicação interpessoal e assertividade *2
+- Gestão de Tempo e Produtividade *2
+- Ferramentas para gestão de tempo: agendas, cronogramas, aplicativos de produtividade *2
+- Organização de prioridades e otimização de processos *2
+- Organogramas e fluxogramas *2
+- Técnicas de gestão de tarefas (método GTD, matriz de Eisenhower) *2
+- Noções de Administração de Recursos Materiais *2
+- Controle de estoque e almoxarifado: entrada, saída, armazenamento e inventário *2
+- Compras e licitações: princípios GERAIS do processo de compras públicas *2
+- Gestão de contratos e serviços terceirizados *2
+- Gestão de Recursos Humanos *2
+- Noções de recrutamento e seleção, avaliação de desempenho e treinamento *2
+- Eficácia e eficiência *2
+- Gestão de folha de pagamento, férias e benefícios *2
+- Administração Pública *2
+- Estrutura e organização *2
+- Administração direta e indireta: órgãos, autarquias, fundações, empresas públicas e sociedades de economia mista *2
+- Princípios constitucionais da Administração Pública: legalidade, impessoalidade, moralidade, publicidade e eficiência *2
+- A administração pública na Constituição Federal (arts. 37 a 42) *2
+- Agentes Públicos *2
+- Plano de cargos e salários *2
+- Carreira *2
+- Sistema remuneratório *2
+- Cultura e clima organizacionais *2
+- Divisão de tarefas e trabalho em equipe *2
+- Gerenciamento de crises e conflitos *2
+- Planejamento nas organizações públicas *2
+- O ciclo do planejamento (análise do ambiente, objetivos estratégicos, missão, visão, valores) *2
+- Competências e funções dos Poderes Executivo, Legislativo e Judiciário *2
+- Governança e Gestão Pública *2
+- Governança pública: conceito e objetivos *2
+- Noções de Gestão Financeira e Orçamentária *2
+- Noções de orçamento público *2
+- Procedimentos de controle financeiro *2
+- Execução e acompanhamento orçamentário *2
+- Instrumentos de planejamento e gestão: Plano Plurianual (PPA), Lei de Diretrizes Orçamentárias (LDO), Lei Orçamentária Anual (LOA) *2
+- Controle da administração pública *2
+- Controle interno, externo e social *2
+- Tribunal de Contas: papel, competência e funções de controle externo *2
+- Descentralização e Parcerias com a Iniciativa Privada *2
+- Modalidades de descentralização: delegação, desconcentração, privatização *2
+- Convênios e contratos de gestão *2
+- Parcerias público-privadas (PPPs) *2
+- Ética e Transparência na Administração Pública *2
+- Código de Ética dos Servidores Públicos *2
+- Lei de Acesso à Informação (Lei nº 12.527/2011) *2
+- Transparência e controle social *2
+- Combate à corrupção: práticas e mecanismos de prevenção *2
+
+Conhecimentos Específicos – Ciências Contábeis | 3 | 3
+- Contabilidade Aplicada ao Setor Público *2
+- Manual de Contabilidade Aplicada ao Setor Público (MCASP – 11ª edição) *2
+- Parte Geral *2
+- Parte I – Procedimentos Contábeis Orçamentários *2
+- Parte II – Procedimentos Contábeis Patrimoniais *2
+- Parte III – Procedimentos Contábeis Específicos *2
+- Parte IV – Plano de Contas Aplicado ao Setor Público (PCASP) *2
+- Parte V – Demonstrações Contábeis Aplicadas ao Setor Público *2
+- Normas Brasileiras de Contabilidade Aplicadas ao Setor Público *2
+- NBC TSP – Normas Brasileiras de Contabilidade do Setor Público *2
+- Contabilidade Pública *2
+- Conceituação, objeto e campo de aplicação *2
+- Composição do patrimônio público *2
+- Patrimônio público *2
+- Ativo *2
+- Passivo *2
+- Saldo patrimonial *2
+- Receita e despesa públicas *2
+- Definições, estágios (etapas), procedimentos contábeis e evidenciação *2
+- Receitas e despesas orçamentárias e extraorçamentárias *2
+- Restos a pagar *2
+- Dívida pública *2
+- Despesas de exercícios anteriores *2
+- Operações de crédito *2
+- Administração Financeira e Orçamentária *2
+- Orçamento público *2
+- Conceito *2
+- Técnicas orçamentárias *2
+- Princípios orçamentários *2
+- Ciclo orçamentário *2
+- Processo orçamentário *2
+- O orçamento público no Brasil *2
+- Sistema de planejamento e de orçamento federal *2
+- Plano Plurianual *2
+- Diretrizes orçamentárias *2
+- Orçamento anual *2
+- Sistema e processo de orçamentação *2
+- Classificações orçamentárias *2
+- Estrutura programática *2
+- Créditos ordinários e adicionais *2
+- Programação e execução orçamentária e financeira *2
+- Descentralização orçamentária e financeira *2
+- Acompanhamento da execução *2
+- Sistemas de informações *2
+- Alterações orçamentárias *2
+- Receita pública *2
+- Conceito e classificações *2
+- Estágios *2
+- Fontes *2
+- Dívida ativa *2
+- Despesa pública *2
+- Dívida flutuante e fundada *2
+- Suprimento de fundos *2
+- Lei nº 4.320/1964 e suas alterações *2
+- Lei Complementar nº 101/2000 e suas alterações (Lei de Responsabilidade Fiscal) *2
+- Transferências voluntárias *2
+- Infrações administrativas contra as leis de finanças públicas (Lei nº 10.028/2000) *2
+- Contabilidade Geral e de Custos *2
+- Contabilidade *2
+- Objeto *2
+- Finalidade *2
+- Contas *2
+- Teorias *2
+- Função *2
+- Natureza das contas *2
+- Regime de competência e regime de caixa *2
+- Origem e aplicação de recursos *2
+- Escrituração *2
+- Sistema de partidas dobradas *2
+- Erros de escrituração e suas correções *2
+- Demonstrações contábeis segundo a legislação societária e pronunciamentos do CPC *2
+- Demonstração dos fluxos de caixa (métodos direto e indireto) *2
+- Balanço patrimonial *2
+- Demonstração do resultado do exercício *2
+- Demonstração das mutações do patrimônio líquido *2
+- Demonstração de lucros ou prejuízos acumulados *2
+- Notas explicativas *2
+- Estrutura conceitual para elaboração e divulgação de relatório contábil-financeiro *2
+- Disponibilidades – caixa e equivalentes de caixa: conteúdo, classificação e critérios de avaliação *2
+- Contas a receber: conceito, conteúdo e critérios contábeis *2
+- Estoques: conceito, conteúdo e classificação *2
+- Despesas antecipadas: conceito, conteúdo, classificação e critérios de avaliação *2
+- Realizável a longo prazo: conceito, classificação, ajuste a valor presente, cálculo e contabilização de contas ativas e passivas *2
+- Instrumentos financeiros: reconhecimento, mensuração e evidenciação *2
+- Mensuração do valor justo: definição, aplicação para ativos, passivos e instrumentos patrimoniais, técnicas de avaliação *2
+- Ativo imobilizado: conceituação, classificação, critérios de avaliação e mensuração, depreciação, exaustão e amortização *2
+- Ativos intangíveis: reconhecimento, mensuração e goodwill *2
+- Redução ao valor recuperável de ativos *2
+- Passivo exigível: reconhecimento, mensuração e conteúdo *2
+- Fornecedores, obrigações fiscais e outras obrigações *2
+- Empréstimos e financiamentos *2
+- Provisões, passivos contingentes e ativos contingentes *2
+- Patrimônio líquido: capital social, reservas de capital, ajustes de avaliação patrimonial, reservas de lucros, ações em tesouraria, prejuízos acumulados e dividendos *2
+- Combinação de negócios: fusão, incorporação e cisão *2
+- Despesas e outros resultados das operações continuadas *2
+- Análise de balanços e demonstrações financeiras *2
+- Contabilidade de custos *2
+- Auditoria *2
+- NBC TA – Normas Brasileiras de Auditoria Independente de Informação Contábil Histórica *2
+- NBC TASP – Auditoria de Informação Contábil Histórica Aplicável ao Setor Público *2
+- Manual de Auditoria Financeira *2
+- Portaria nº TC-0324/2022 *2
+- Pronunciamentos Contábeis *2
+- Pronunciamentos, interpretações e orientações do Comitê de Pronunciamentos Contábeis (CPC) *2
+- Contabilidade Aplicada aos Regimes Próprios de Previdência Social (RPPS) *2
+- Atuária *2
+- Avaliação atuarial *2
+- Métodos atuariais *2
+- Premissas e hipóteses atuariais *2
+- Regimes financeiros: capitalização, repartição simples e repartição de capitais de cobertura *2
+- Tipos de planos: benefício definido, contribuição definida e contribuição variável *2
+- Reservas matemáticas: conceito e tipos *2
+- Fundo de oscilação de riscos *2
+- Déficit e superávit *2
+- Custos atuariais: custo normal e custo suplementar *2
+- Ativo real líquido *2
+- Demonstrativo de Resultados da Avaliação Atuarial (DRAA) *2
+- Nota Técnica Atuarial (NTA) *2
+- Base de dados atuarial *2
+- Fluxo de caixa atuarial *2
+- Saldamento de planos, migração entre planos e retirada de patrocínio *2
+- Reserva de contingência e reserva especial para revisão de plano *2
+- Portaria MTP nº 1.467/2022 *2
+- Resolução CMN nº 5.272/2025 *2
+- Direito Previdenciário *2
+- Seguridade social: conceito, organização e princípios constitucionais *2
+- Regime Geral de Previdência Social (RGPS) – aspectos GERAIS *2
+- Regime Próprio de Previdência Social (RPPS) *2
+- Reformas da previdência: Emendas Constitucionais nº 20/1998, 41/2003, 47/2005, 70/2012 e 103/2019 *2
+- Princípios previdenciários: contributividade, equilíbrio financeiro e atuarial e solidariedade *2
+- Lei nº 9.717/1998 *2
+- Lei nº 9.796/1999 *2
+- Legislação Aplicada ao Terceiro Setor *2
+- Lei nº 9.637/1998 *2
+- Lei nº 9.790/1999 *2
+- Lei nº 13.019/2014 *2
+- Lei nº 12.527/2011 *2
+- Decreto estadual nº 733/2024 *2
+- Reforma Tributária *2
+- Constituição Federal (arts. 145 a 162) *2
+- Código Tributário Nacional *2
+- Emenda Constitucional nº 132/2023 *2
+- Lei Complementar nº 214/2025 *2
+
+Conhecimentos Específicos – Ciências da Computação, Sistemas de Informação, Engenharia de Computação, Engenharia de Software | 3 | 3
+- Informática *2
+- MS-Office 365: conceito de pastas, diretórios, arquivos e atalhos, área de trabalho, área de transferência, manipulação de arquivos e pastas, uso dos menus, programas e aplicativos, interação com o… *2
+- MS-Office 365 - Word: estrutura básica dos documentos, edição e formatação de textos, cabeçalhos, parágrafos, fontes, colunas, marcadores simbólicos e numéricos, tabelas, impressão, controle de que… *2
+- MS-Office 365 - Excel: estrutura básica das planilhas, conceitos de células, linhas, colunas, pastas e gráficos, elaboração de tabelas e gráficos, uso de fórmulas, funções e macros, impressão, inse… *2
+- Correio Eletrônico: uso de correio eletrônico, preparo e envio de mensagens, anexação de arquivos *2
+- Internet: Navegação na internet, conceitos de URL, links, sites, busca e impressão de páginas *2
+- Conceito da plataforma Microsoft Teams e suas funcionalidades integradas, como reuniões online com recursos de videoconferência, agendamento de compromissos e eventos, e chats *2
+- Conceitos GERAIS de segurança da informação, abrangendo os princípios de confidencialidade, integridade e disponibilidade *2
+- Análise de Dados *2
+- Fundamentos de Análise de Dados *2
+- Tipos de dados: estruturados, semiestruturados e não estruturados *2
+- Modelagem de dados. 1.2.1 Modelagem relacional. 2.1.2.2 Normalização. 2.1.2.3 Modelagem dimensional *2
+- Pipeline de dados (Data Pipeline) *2
+- ETL e ELT *2
+- APIs e consumo de dados (REST, JSON) *2
+- SQL *2
+- Seleção e comandos GERAIS *2
+- Agregação e contagem *2
+- Subquery *2
+- Estatística aplicada à análise de dados *2
+- Testes de hipótese *2
+- Teste t *2
+- Qui-quadrado *2
+- ANOVA *2
+- Correlação versus causalidade *2
+- Distribuições de probabilidade *2
+- Normal *2
+- Poisson *2
+- Binomial *2
+- Intervalos de confiança *2
+- Regressão linear e regressão logística *2
+- Análise de séries temporais (nível básico) *2
+- Noções de Inteligência Artificial e Machine Learning *2
+- Aprendizado supervisionado e não supervisionado *2
+- Overfitting e underfitting *2
+- Classificação e regressão *2
+- LGPD – Lei Geral de Proteção de Dados *2
+- Princípios *2
+- Direitos dos titulares *2
+- Bases legais para tratamento de dados *2
+- Aplicação em auditorias governamentais *2
+- Governança de Dados *2
+- Qualidade de dados (Data Quality) *2
+- Metadados e catálogo de dados *2
+- Dicionário de dados *2
+- Glossário de negócios *2
+- Data lineage (rastreabilidade) *2
+- Dados abertos e transparência *2
+- Padrões e boas práticas *2
+- Auditoria Contínua e Análise de Fraudes *2
+- Análise de risco baseada em dados *2
+- Técnicas de detecção de outliers *2
+- Análise de redes (network analysis) para identificação de relacionamentos suspeitos *2
+- Monitoramento em tempo real *2
+- Indicadores de risco (red flags) *2
+- Ética no Serviço Público *2
+- Padrões de conduta ética na gestão pública *2
+- Condutas antiéticas indesejáveis *2
+- Consequências de práticas antiéticas *2
+- Identificação de fatores e fenômenos que caracterizam ações antiéticas *2
+- Segurança da Informação *2
+- Criptografia *2
+- Normas ISO/IEC 27001 e ISO/IEC 27002 *2
+- Autenticação multifator *2
+- Certificados digitais *2
+- Logs e trilhas de auditoria *2
+- Banco de Dados e Engenharia de Dados *2
+- Modelagem, normalização e administração de bancos de dados *2
+- Linguagem SQL (ANSI e T-SQL) *2
+- Joins, subqueries, CTE e window functions *2
+- Programação em T-SQL: variáveis, controle de fluxo (if, while), tabelas temporárias, funções analíticas e de data/hora, stored procedures, funções escalares, tabelares e multi-sentença, triggers *2
+- Otimização de consultas *2
+- Sistemas gerenciadores de banco de dados: SQL Server, MySQL e PostgreSQL *2
+- Segurança, replicação e alta disponibilidade *2
+- NoSQL *2
+- Data Warehouse e modelagem multidimensional *2
+- Data Lake *2
+- ETL e OLAP *2
+- Desenvolvimento e Programação *2
+- Lógica de programação *2
+- Estruturas de dados *2
+- Complexidade de algoritmos e recursão *2
+- Python *2
+- Git *2
+- Big Data e Computação Avançada *2
+- Big Data *2
+- Apache Spark *2
+- Computação paralela e distribuída. 4 Inteligência Artificial. 5.1 Métricas de avaliação. 5.2 Inteligência Artificial Generativa (GenAI). 5.3 RAG (Retrieval-Augmented Generation) *2
+- Engenharia de Software *2
+- Análise de requisitos e UML 2 *2
+- Qualidade de software (ISO/IEC 9126) *2
+- Métricas e Pontos de Função *2
+- Padrões de projeto (GoF, GRASP) *2
+- Metodologias ágeis: Scrum, XP, Kanban, TDD e BDD *2
+- Arquitetura de software: monólito, microserviços, SOA e APIs REST *2
+- Inteligência de Negócios (BI) *2
+- Conceitos de BI *2
+- Data Mining e visualização de dados *2
+- Infraestrutura de TIC *2
+- Sistemas operacionais *2
+- Redes: TCP/IP, modelo OSI e VPN *2
+- Segurança: firewall e certificados digitais *2
+- Virtualização e computação em nuvem (SaaS, IaaS e PaaS) *2
+- Containers e DevOps *2
+- Segurança da Informação e Auditoria de TI *2
+- ISO/IEC 27001, 27002 e 27005 *2
+- Políticas de segurança e gestão de riscos *2
+- LGPD e auditoria de segurança *2
+- Continuidade de negócio *2
+- Auditoria de TI *2
+- Normas e boas práticas de auditoria de TI *2
+- Auditoria de Segurança da Informação *2
+- Engenharia reversa e análise forense de sistemas *2
+- Gestão e Governança em TI *2
+- COBIT 2019 e ITIL 4 *2
+- Planejamento estratégico e gestão de riscos *2
+- Governança da Internet (CGI.br e ICANN) *2
+- Gestão de processos e qualidade *2
+- Fiscalização e Gestão de Contratações de TI *2
+- Fiscalização de contratações de TI *2
+- Gestão de contratação de soluções de TI *2
+- Legislação aplicável à contratação de bens e serviços de TI: Lei nº 14.133/2021 e alterações, Lei nº 13.303/2016 e Lei nº 11.520/2002 *2
+- Elaboração e fiscalização de contratos de TI *2
+- Cláusulas contratuais, indicadores de nível de serviço, penalidades e sanções *2
+- Gerenciamento de Projetos *2
+- PMBOK: fundamentos, boas práticas e áreas de conhecimento da gestão de projetos *2
+- Metodologias ágeis aplicadas a projetos: Scrum e Kanban *2
+- Estrutura Analítica do Projeto (EAP/WBS) *2
+- Cronogramas, caminho crítico e estimativas *2
+- Governança de projetos e alinhamento estratégico *2
+- Indicadores de desempenho: valor agregado (EVM) e KPIs *2
+
+Economia Brasileira | 3 | 3
+- Conceitos fundamentais *2
+- Formas de organização da atividade econômica, o papel dos preços, custo de oportunidade, fator de produção e fronteiras das possibilidades de produção *2
+- Determinação das curvas de procura *2
+- Curvas de indiferença *2
+- Equilíbrio do consumidor *2
+- Efeitos preço, renda e substituição *2
+- Elasticidade da procura *2
+- Fatores de produção *2
+- Produtividade média e marginal *2
+- Lei dos rendimentos decrescentes e rendimentos de escala *2
+- Custos de produção no curto e longo prazo *2
+- Custos totais, médios e marginais, fixos e variáveis *2
+- Teoria do consumidor e da firma, utilidades cardinal e ordinal, restrição orçamentária, equilíbrio do consumidor e funções demanda, curvas de Engel, demanda de mercado, teoria da produção, isoquant… *2
+- Economia do bem-estar *2
+- Ótimo de Pareto *2
+- Estruturas de mercado *2
+- Concorrência perfeita, concorrência imperfeita, monopólio, oligopólio *2
+- Outras estruturas de mercado *2
+- Externalidades e bens públicos *2
+- Teoria da Regulação. Econometria: 1. Análise de regressão múltipla. 1.1 Planejamento de pesquisa de uma análise de regressão múltipla *2
+- Econometria de Séries Temporais, cointegração e o mecanismo de correção de erros; teste de raiz unitária: modelos VAR e o problema de identificação *2
+- Econometria de dados em painel *2
+- Efeitos fixos, efeitos aleatórios, modelos pooled *2
+- Econometria Espacial *2
+- Matrizes de ponderação espacial *2
+- Modelando, estimando e testando a dependência espacial *2
+- Regressões ponderadas geograficamente *2
+- Análise Fatorial *2
+- Análise Discriminante Múltipla *2
+- Análise de Agrupamentos *2
+- Análise Multivariada de variância *2
+- Regressão Logística *2
+- Análise Envoltória de Dados *2
+- Modelagens de Equações Estruturais *2
+- Avaliação de Políticas Públicas *2
+- Inferência causal e contrafactuais *2
+- Seleção aleatória *2
+- Variáveis Instrumentais *2
+- Regressão Descontínua *2
+- Diferenças em Diferenças *2
+- Técnicas de Pareamento *2
+- Avaliação Econômica de Projetos *2
+
+Conhecimentos Específicos – Engenharia Civil | 3 | 3
+- Fundações e Estruturas de Concreto, Metálicas e de Madeira: análise de estabilidade de estruturas, estruturas isostáticas e hiperestáticas; resistência dos materiais; dimensionamento de estruturas … *2
+- Mecânica dos fluidos, hidráulica, hidrologia e saneamento básico: hidrostática, distribuição da pressão em um fluido, empuxo e estabilidade, medição de pressão; hidrodinâmica, conservação de massa,… *2
+- Materiais e tecnologia das construções: madeira; materiais cerâmicos e vidros; metais e produtos siderúrgicos; asfaltos e alcatrões, controle tecnológico de ligantes e pavimentos; aglomerantes e ci… *2
+- Ensaios laboratoriais aplicados a obras rodoviárias; Projetos de engenharia; Patologias em edificações e rodovias; Sistemas de saneamento básico; Iluminação pública; Fiscalização de obras públicas *2
+
+Conhecimentos Específicos – Engenharia Sanitária | 3 | 3
+- Meio Ambiente e Recursos Hídricos: Política Nacional do Meio Ambiente (Lei nº 6.938/1981); licenciamento ambiental; Política Nacional de Recursos Hídricos (Lei nº 9.433/1997); enquadramento dos cor… *2
+- Regulação e Fiscalização dos Serviços de Saneamento *2
+- Regulação dos serviços públicos de saneamento: Conceito; objetivos e instrumentos; e Agências reguladoras *2
+- Normas de referência da ANA para o saneamento básico *2
+- Estrutura tarifária: modicidade tarifária; equilíbrio econômico-financeiro; e revisões e reajustes tarifários *2
+- Contratos de programa e contratos de concessão: Cláusulas essenciais; e Metas, indicadores e penalidades *2
+- Indicadores de desempenho e qualidade dos serviços *2
+- Legislação sobre o saneamento básico *2
+- Lei Federal n. 11.445/2007, com as alterações da Lei Federal nº 14.026/20: Estabelece as diretrizes nacionais para o saneamento básico *2
+- Lei Federal n. 12.305/2010: Institui a Política Nacional de Resíduos Sólidos *2
+- Normativos publicados pela Agência Nacional de Águas e Saneamento Básico (ANA) para o Saneamento Básico *2
+- Resolução ANA n. 209, de 09 de setembro de 2024: Estabelece os procedimentos administrativos de mediação regulatória para a resolução dos conflitos entre os titulares *2
+- Instrução Normativa n. 1/2023: Dispõe sobre os requisitos e procedimentos a serem observados pela ANA para a comprovação da adoção da Norma de Referência (NR) nº 1/ANA/2021, que trata do regime, a … *2
+- Instrução Normativa n. 1/2024: Estabelece os procedimentos necessários para adoção das metodologias de indenização dos investimentos não amortizados ou depreciados previstas na Norma de Referência … *2
+- Normas de Referência (NR) ANA *2
+- NR nº 1/2021 (aprovada pela Resolução ANA n. 79, de 14 de junho de 2021): Dispõe sobre o regime, a estrutura e parâmetros da cobrança pela prestação do serviço público de manejo de resíduos sólidos… *2
+- NR nº 3/2023 (aprovada pela Resolução ANA n. 161, de 3 de agosto de 2023): Estabelece metodologia de indenização de investimentos realizados e ainda não amortizados ou depreciados dos contratos de … *2
+- NR nº 4/2024 (aprovada pela resolução ANA n. 177, de 12 de janeiro de 2024): Dispõe sobre práticas de governança aplicadas às entidades reguladoras infranacionais (ERIs) que atuam no setor de sanea… *2
+- NR nº 5/2024 (aprovada pela resolução ANA n. 178, de 15 de janeiro de 2024): Dispõe sobre a matriz de riscos para contratos de prestação de serviços públicos de abastecimento de água e esgotamento … *2
+- NR nº 6/2024 (aprovada pela resolução ANA n. 183, de 5 de fevereiro de 2024: Estabelece os modelos de regulação tarifária dos serviços públicos de abastecimento de água e esgotamento sanitário *2
+- NR nº 7/2024 (aprovada pela Resolução ANA n. 187, de 19 e março de 2024): Estabelece as condições gerais para a prestação direta ou mediante concessão dos serviços públicos de limpeza urbana e de m… *2
+- NR nº 8/2024 (aprovada pela Resolução ANA n. 192, de 8 de março de 2024): Dispõe sobre metas progressivas de universalização de abastecimento de água e de esgotamento sanitário, indicadores de aces… *2
+- NR nº 9/2024 (aprovada pela Resolução ANA n. 211, de 19 de setembro de 2024): Dispõe sobre indicadores operacionais da prestação dos serviços públicos de abastecimento de água e de esgotamento sani… *2
+- NR nº 10/2024 (aprovada pela Resolução ANA n. 228, de 12 de dezembro de 2024): Dispõe sobre a metodologia de cálculo e os procedimentos para os reajustes tarifários para os serviços públicos de aba… *2
+- NR nº 11/2024 (aprovada pela Resolução ANA n. 230, de 18 de dezembro de 2024): Estabelece as condições gerais para prestação dos serviços públicos de abastecimento de água e esgotamento sanitário *2
+- NR nº 12/2025 (aprovada pela Resolução ANA n. 245, de 17 de março de 2025): Dispõe sobre a estruturação dos serviços públicos de drenagem e manejo de águas pluviais urbanas *2
+- NR nº 13/2025 (aprovada pela Resolução ANA n. 271, de 21 de novembro de 2025): Aprova a Norma de Referência ANA n° 13/2025 que dispõe sobre a estrutura tarifária e tarifa social para os serviços pú… *2
+
+Conhecimentos Específicos – Engenharia Elétrica | 3 | 3
+- Análise de Circuitos Elétricos: Leis de Kirchhoff, teoremas de Thévenin e Norton, análise de circuitos em regime permanente CC e CA (monofásico e trifásico) *2
+- Conversão Eletromecânica de Energia: Princípios de funcionamento, características de operação e ensaios de motores e geradores de indução, síncronos e de corrente contínua *2
+- Sistemas de Potência e Transmissão de Energia: Componentes do sistema (geração, transmissão, subtransmissão, distribuição) *2
+- Cálculo de linhas de transmissão, fluxo de carga, curto-circuito e estabilidade *2
+- Proteção de Sistemas Elétricos: Princípios de seletividade, coordenação e sensibilidade *2
+- Atuação e coordenação de relés de sobrecorrente, diferencial, distância e de terra *2
+- Subestações Elétricas: Arranjos de barramentos (simples, duplo, anel) *2
+- Dimensionamento e especificação de equipamentos: transformadores de potência, disjuntores, chaves seccionadoras, para-raios, transformadores de instrumentação *2
+- Instalações Elétricas de Baixa e Média Tensão: Projeto conforme a NBR 5410 *2
+- Dimensionamento de condutores, eletrodutos, quadros de distribuição, dispositivos de proteção (disjuntores, DDRs) *2
+- Previsão de cargas, divisão de circuitos, aterramento, SPDA (Sistema de Proteção contra Descargas Atmosféricas) *2
+- Acionamento e Controle de Motores Elétricos: Partidas direta, estrela-triângulo e soft-starter *2
+- Princípios de funcionamento e aplicação de inversores de frequência (drives) para controle de velocidade *2
+- Automação Industrial e CLPs: Arquitetura de sistemas de automação *2
+- Programação de Controladores Lógicos Programáveis (CLPs) conforme a norma IEC 61131-3 (diagrama ladder, lista de instruções) *2
+- Redes de campo (Profibus, Modbus) *2
+- Eficiência Energética: Diagnóstico energético *2
+- Medidas de conservação de energia em sistemas de iluminação, motores, bombeamento e climatização *2
+- Selo Procel e regulamentos da ANEEL (ex.: Programa de Eficiência Energética - PEE) *2
+- Geração Distribuída e Fontes Renováveis: Sistemas fotovoltaicos (on-grid e off-grid): dimensionamento de painéis, inversores, baterias *2
+- Micro e minigeração distribuída conforme as Resoluções Normativas da ANEEL nº 482/2012 e atualizações *2
+- Qualidade da Energia Elétrica: Distúrbios: harmônicas, afundamento de tensão (sags), desequilíbrio, flutuação *2
+- Normas PRODIST (ANEEL) e IEEE 519 *2
+- Correção de fator de potência *2
+- Iluminação Pública e Projetos Luminotécnicos: Cálculos luminotécnicos, seleção de lâmpadas, luminárias e reatores *2
+- Normas de eficiência, manutenção e controle (sistemas de telegestão) *2
+- Planejamento e Expansão de Sistemas Elétricos: Metodologias de previsão de carga *2
+- Planejamento da expansão da rede de distribuição e subtransmissão *2
+- Análise de confiabilidade (SAIDI, SAIFI) *2
+- Regulação do Setor Elétrico e Tarifação: Marco legal do setor elétrico brasileiro *2
+- Papel da ANEEL, ONS, CCEE *2
+- Estrutura tarifária (tarifa horosazonal, bandeiras tarifárias).; Legislação *2
+
+Normas Técnicas e Segurança | 3 | 3
+- NR-10 (Segurança em Instalações e Serviços em Eletricidade) *2
+- Normas ABNT aplicáveis (ex.: NBR 5410, NBR 14039) *2
+- Regulamentos técnicos da ANEEL *2
+- Análise de Projetos e Orçamentos na Área Elétrica: Leitura e crítica de projetos elétricos (diagramas unifilares, multifilares, de comando) *2
+- Composição de custos unitários, quantitativos e planilhas orçamentárias (SINAPI, TCPO) *2
+- Fiscalização de Contratos e Obras de Instalações Elétricas: Verificação de especificações técnicas, cumprimento de *2

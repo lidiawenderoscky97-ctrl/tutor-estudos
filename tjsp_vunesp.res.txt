@@ -1,0 +1,75 @@
+@concurso: 
+@banca: VUNESP
+Língua Portuguesa | 5 | 3
+- Análise, compreensão e interpretação de diversos tipos de textos verbais, não verbais, literários e não literários *2
+- Informações literais e inferências possíveis *2
+- Ponto de vista do autor *2
+- Estruturação do texto: relações entre ideias; recursos de coesão *2
+- Significação contextual de palavras e expressões *2
+- Sinônimos e antônimos *2
+- Sentido próprio e figurado das palavras *2
+- Classes de palavras: emprego e sentido que imprimem às relações que estabelecem: substantivo, adjetivo, artigo, numeral, pronome, verbo, advérbio, preposição e conjunção *2
+- Concordância verbal e nominal *2
+- Regência verbal e nominal *2
+- Colocação pronominal *2
+- Crase *2
+- Pontuação *2
+
+Direito Penal | 3 | 3
+- Código Penal - artigos 293 a 305; 307; 308; 311-A; 312 a 317; 319 a 333; 336 e 337; 339 a 347; 357 e 359 *2
+
+Direito Processual Penal | 3 | 3
+- Código de Processo Penal - artigos 251 a 258; 261 a 267; 274; 351 a 372; 394 a 497; 531 a 538; 541 a 548; 574 a 667 e Lei n.º 9.099 de 26.09.1995 (artigos 60 a 83; 88 e 89) *2
+
+Direito Processual Civil | 3 | 3
+- Código de Processo Civil - artigos 144 a 155; 188 a 275; 294 a 311 e do 318 a 538; 994 a 1026 *2
+- Lei n.º 9.099 de 26.09.1995 (artigos 3º ao 19) e *2
+- Lei n.º 12.153 de 22/12/2009 *2
+
+Direito Constitucional | 3 | 3
+- Constituição Federal – Título II - Capítulos I, II e III *2
+- e Título III - Capítulo VII com Seções I e II *2
+- e também o artigo *2
+
+Direito Administrativo | 3 | 3
+- Estatuto dos Funcionários Públicos Civis do Estado de São Paulo (Lei n.º 10.261/68) - artigos 1º a 86; 171 a 175; 239 a 323 e *2
+- Lei Federal n.º 8.429/92 (Lei de Improbidade Administrativa) *2
+
+Legislação Interna | 3 | 3
+- Resolução TJSP nº 850/2021 (Regulamenta o teletrabalho no âmbito do Tribunal de Justiça do Estado de São Paulo e dá outras providências) *2
+- Resolução TJSP nº 963/2025 (Dispõe sobre a governança e utilização do sistema eproc nas unidades do Poder Judiciário do Estado de São Paulo e dá outras providências). 6.2. Lei Complementar n° 1.111… *2
+- Regimento Interno do Tribunal de Justiça. Legislacao/RegimentoInternoTJSP.pdf?d=1751054637027> *2
+- Normas da Corregedoria Geral da Justiça: Tomo I – Capítulo II: Seção I – subseções I e II; Tomo I - Capítulo III: Seções I, II, V, VI, VII; Tomo I - Capítulo III: Seção VIII – subseções I, II e III… *2
+
+Atualidades | 2 | 3
+- Questões relacionadas a fatos políticos, econômicos, sociais e culturais, nacionais e internacionais, ocorridos a partir do 1° semestre de 2025, divulgados na mídia local e/ou nacional *2
+- Artigos 1º ao 13; 34 ao 38 da Lei n.º 13.146/2015 – Estatuto da Pessoa com Deficiência, com as alterações vigentes até a publicação deste edital *2
+
+Matemática | 2 | 3
+- Operações com números reais *2
+- Mínimo múltiplo comum e máximo divisor comum *2
+- Razão e proporção *2
+- Porcentagem *2
+- Regra de três simples e composta *2
+- Média aritmética simples e ponderada *2
+- Juros simples *2
+- Equação do 1.º e 2.º graus *2
+- Sistema de equações do 1.º grau *2
+- Relação entre grandezas: tabelas e gráficos *2
+- Sistemas de medidas usuais *2
+- Noções de geometria: forma, perímetro, área, volume, ângulo, teorema de Pitágoras *2
+- Resolução de situações-problema *2
+
+Informática | 4 | 3
+- MS-Windows 10 ou superior: conceito de pastas, diretórios, arquivos e atalhos, área de trabalho, área de transferência, manipulação de arquivos e pastas, uso dos menus, programas e aplicativos, int… *2
+- MS-Excel: estrutura básica das planilhas, conceitos de células, linhas, colunas, pastas e gráficos, elaboração de tabelas e gráficos, uso de fórmulas, funções e macros, impressão, inserção de objet… *2
+- Correio Eletrônico: uso de correio eletrônico, preparo e envio de mensagens, anexação de arquivos *2
+- Internet: navegação internet, conceitos de URL, links, sites, busca e impressão de páginas *2
+- MS Teams: chats, chamadas de áudio e vídeo, criação de grupos, trabalho em equipe: Word, Excel, PowerPoint, SharePoint e OneNote, agendamento de reuniões e gravação *2
+- OneDrive: armazenamento e compartilhamento de arquivos *2
+
+Raciocínio Lógico | 3 | 3
+- Visa avaliar a habilidade do(a) candidato(a) em entender a estrutura lógica das relações arbitrárias entre pessoas, lugares, coisas, eventos fictícios *2
+- deduzir novas informações das relações fornecidas e avaliar as condições usadas para estabelecer a estrutura daquelas relações *2
+- Visa também avaliar se o(a) candidato(a) identifica as regularidades de uma sequência, numérica ou figural, de modo a indicar qual é o elemento de uma dada posição *2
+- As questões desta prova poderão tratar das seguintes áreas: estruturas lógicas, lógicas de argumentação, diagramas lógicos, sequências *2

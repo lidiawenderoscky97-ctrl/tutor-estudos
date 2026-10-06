@@ -1,0 +1,1327 @@
+@concurso: Estado de Santa Catarina – Nível Médio
+@banca: FGV
+Língua Poruguesa | 3 | 3
+- Compreensão e inerpreação de exos de gêneros variados *2
+- Reconhecimeno de pos e gêneros exuais *2
+- Domínio da orograa ocial *2
+- Emprego das leras *2
+- Emprego da acenuação gráca *2
+- Domínio dos mecanismos de coesão exual *2
+- Emprego de elemenos de reerenciação, subsuição e repeção, de conecores e ouros elemenos de sequenciação exual *2
+- Emprego/correlação de empos e modos verbais *2
+- Domínio da esruura morossináca do período *2
+- Relações de coordenação enre orações e enre ermos da oração *2
+- Relações de subordinação enre orações e enre ermos da oração *2
+- Emprego dos sinais de ponuação *2
+- Concordância verbal e nominal *2
+- Emprego do sinal indicavo de crase *2
+- Colocação dos pronomes áonos *2
+- Reescriura de rases e parágraos do exo *2
+- Subsuição de palavras ou de rechos de exo *2
+- Reexualização de dierenes gêneros e níveis de ormalidade *2
+
+Legislação Insucional do Pjsc | 3 | 3
+- Esruura, compeências e uncionameno do Poder Judiciário esadual *2
+- Organização judiciária: divisão, composição, compeências e uncionameno dos órgãos jurisdicionais e adminisravos *2
+- Regimeno inerno do Tribunal de Jusça: organização, compeências e uncionameno dos órgãos do TJSC *2
+- Normas da Corregedoria-Geral da Jusça *2
+- Regime jurídico e disciplinar dos servidores *2
+- Lei nº 5.624/1979 (Código de Divisão e Organização Judiciárias do Esado de Sana Caarina, com alerações), Regimeno Inerno do Tribunal de Jusça de Sana Caarina, Código de Normas da Corregedo… *2
+- Padrões écos *2
+- Transparência e conrole *2
+- Prevenção de irregularidades *2
+- Código de Éca e Condua do PJSC *2
+- Lei nº 8.429/1992 (Lei de Improbidade Adminisrava, com alerações), Lei nº 12.846/2013 (Lei Ancorrupção, com alerações) e Resolução TJ nº 22/2021 (Código de Éca e Condua do Poder Judiciário d… *2
+
+Noções de Inormáca e Proeção de Dados | 3 | 3
+- Fundamenos de inormáca *2
+- Conceios básicos de hardware e sofware *2
+- Sisemas operacionais e aplicavos *2
+- Redes de compuadores e inerne *2
+- Segurança da inormação: princípios, ameaças e boas prácas *2
+- Proeção de dados pessoais *2
+- Conceios undamenais e princípios *2
+- Direios do ular e bases legais de raameno *2
+- Agenes de raameno e responsabilidades *2
+- Segurança e boas prácas no raameno de dados *2
+- Proeção de dados no âmbio do Poder Judiciário *2
+- Polícas insucionais de privacidade e proeção de dados *2
+- Traameno de dados pessoais em avidades judiciais e adminisravas *2
+- Medidas de segurança, governança e conormidade *2
+- Lei nº 13.709/2018 (Lei Geral de Proeção de Dados Pessoais - LGPD) e Resolução TJ nº 3/2021 (Políca Geral de Privacidade e Proeção de Dados Pessoais do PJSC) *2
+
+Direios Humanos e Acesso à Jusça | 3 | 3
+- Princípios e undamenos dos direios humanos *2
+- Dignidade da pessoa humana, universalidade e indivisibilidade *2
+- Proeção inernacional e consucional dos direios undamenais *2
+- Incorporação e aplicação no ordenameno jurídico brasileiro *2
+- Acesso à jusça e garanas processuais *2
+- Devido processo legal, conradiório e ampla deesa *2
+- Eevidade da presação jurisdicional *2
+- Igualdade, não discriminação e grupos vulneráveis *2
+- Traameno isonômico e proeção de pessoas em siuação de vulnerabilidade *2
+- Polícas judiciárias de inclusão e cidadania *2
+- Auação do Poder Judiciário na promoção de direios e acesso à jusça *2
+
+Adminisração Geral | 3 | 3
+- Teoria geral da adminisração e das organizações. Evolução do pensameno adminisravo *2
+- Conceios undamenais. Eciência. Ecácia. Eevidade. Qualidade. Papéis e compeências do adminisrador *2
+- Funções adminisravas. Planejameno. Organização. Direção. Conrole *2
+- Organização e esruura *2
+- Princípios de organização *2
+- Esruuras organizacionais. Tipos. Caraceríscas. Aplicações *2
+- Deparamenalização. Criérios e ormas *2
+- Cenralização e descenralização *2
+- Planejameno e conrole *2
+- Planejameno esraégico, áco e operacional. Conceios. Eapas. Ferramenas e meodologias *2
+- Conrole organizacional. Conceios. Tipos. Sisemas. Indicadores de desempenho *2
+- Gesão da qualidade e processos *2
+- Fundamenos da gesão da qualidade *2
+- Ferramenas da qualidade *2
+- Gesão por processos. BPM *2
+- Gesão de projeos *2
+- Conceios e undamenos *2
+- Ciclo de vida *2
+- Planejameno. Execução. Moniorameno. Encerrameno *2
+- Indicadores de desempenho. Análise de resulados *2
+
+Gesão de Pessoas e Comporameno Organizacional | 3 | 3
+- Gesão de pessoas *2
+- Função esraégica de recursos humanos *2
+- Processos de gesão de pessoas. Recruameno. Seleção. Inegração. Desenvolvimeno. Avaliação. Reenção *2
+- Indicadores de gesão de pessoas *2
+- Desenvolvimeno e desempenho *2
+- Treinameno e desenvolvimeno. Méodos. Avaliação. Mensuração de resulados *2
+- Gesão de desempenho. Conceios. Méodos. Insrumenos *2
+- Comporameno organizacional *2
+- Culura e clima organizacional *2
+- Movação e engajameno *2
+- Liderança *2
+- Trabalho em equipe. Dinâmica de grupos *2
+
+Adminisração de Maeriais e Logísca | 3 | 3
+- Gesão de maeriais. Conceios. Objevos. Funções *2
+- Classicação e conrole de esoques. Curva ABC *2
+- Polícas de esoque. Máximo. Mínimo. Médio. Segurança *2
+- Indicadores de desempenho logísco *2
+- Modelos e cálculos de esoques *2
+- Tempo de reposição *2
+- Pono de pedido *2
+- Giro de esoque *2
+- Loe econômico de compra. LEC *2
+- Cusos de armazenagem e manuenção *2
+- Número de pedidos *2
+
+Adminisração Pública | 3 | 3
+- Modelos de adminisração pública. Parimonialisa. Burocráco. Gerencial. Reormas adminisravas. Evolução do Esado *2
+- Princípios da Adminisração Pública *2
+- Polícas públicas *2
+- Esado. Governo. Polícas públicas *2
+- Ciclo de polícas públicas. Formulação. Implemenação. Avaliação *2
+- Arranjos insucionais *2
+- Planejameno e gesão pública *2
+- Planejameno governamenal. Planos. Programas. Projeos *2
+- Governança pública. Conceios. Princípios. Mecanismos *2
+- Governabilidade. Accounabiliy *2
+- Gesão por resulados *2
+- Avaliação de polícas. Programas. Projeos *2
+- Parcerias e insrumenos de gesão *2
+- Parcerias público-privadas *2
+- Terceirização. Conraos adminisravos *2
+- Consórcios públicos *2
+- Relações com organizações da sociedade civil *2
+
+Adminisração Financeira e Orçamenária | 3 | 3
+- Orçameno público. Conceios. Funções. Princípios. Evolução do orçameno. Orçameno-programa *2
+- Orçameno público no Brasil. Plano Plurianual. PPA. Lei de Direrizes Orçamenárias. LDO. Lei Orçamenária Anual. LOA *2
+- Insrumenos orçamenários *2
+- Crédios adicionais *2
+- Emendas parlamenares *2
+- Esruura e coneúdo do PPA. LDO. LOA *2
+- Meas scais. Riscos scais *2
+- Classicações orçamenárias *2
+- Receia pública. Caegorias econômicas. Fones *2
+- Despesa pública. Naureza. Função. Programa. Classicações do MTO *2
+- Execução orçamenária e nanceira *2
+- Ciclo orçamenário *2
+- Eságios da receia e da despesa *2
+- Programação nanceira. Desembolso *2
+- Resos a pagar. Mecanismos de ajuse *2
+- Responsabilidade scal *2
+- Princípios. Planejameno. Renúncia de receia. Geração de despesa. Transerências volunárias. Transparência. Conrole. Fiscalização *2
+- Lei nº 4.320/1964 (Normas Gerais de Direio Financeiro para Elaboração e Conrole dos Orçamenos e Balanços da União, dos Esados, dos Municípios e do Disrio Federal); Consuição Federal de 1988… *2
+
+Transparência e Conrole na Adminisração Pública | 3 | 3
+- Transparência pública. Conceios. Princípios. Boas prácas *2
+- Insrumenos de conrole social *2
+- Accounabiliy. Mecanismos de scalização e conrole *2
+- Lei Complemenar nº 131/2009 (Lei da Transparência); Lei nº 12.527/2011 (Lei de Acesso à Inormação) *2
+
+Conabilidade Geral | 3 | 3
+- Governança e esruura das Sociedades: pos socieários, órgãos socieários, responsabilidades de sócios e adminisradores *2
+- Princípios e prácas de conabilidade socieária *2
+- Esruura Conceiual para Elaboração e Divulgação de Relaório Conábil-Financeiro *2
+- Elaboração das demonsrações conábeis *2
+- Balanço parimonial *2
+- Demonsração do resulado do exercício *2
+- Demonsração do resulado abrangene *2
+- Demonsração das muações do parimônio líquido *2
+- Demonsração de lucros ou prejuízos acumulados *2
+- Demonsração do valor adicionado *2
+- Demonsração dos uxos de caixa pelos méodos direo e indireo *2
+- Noas explicavas *2
+- Avos *2
+- Caixa e equivalenes de caixa *2
+- Conas a receber *2
+- Esoques e criérios de avaliação *2
+- Despesas anecipadas *2
+- Realizável a longo prazo e ajuse a valor presene *2
+- Avo imobilizado *2
+- Depreciação, amorzação e exausão *2
+- Passivos *2
+- Passivo exigível *2
+- Fornecedores e obrigações scais *2
+- Emprésmos, nanciamenos e debênures *2
+- Provisões e conngências *2
+- Parimônio líquido *2
+- Capial social *2
+- Reservas de capial *2
+- Ajuses de avaliação parimonial *2
+- Reservas de lucros *2
+- Ações em esouraria *2
+- Prejuízos acumulados *2
+- Dividendos *2
+- Juros sobre capial próprio *2
+- Transações enre pares relacionadas *2
+- Consolidação das demonsrações conábeis *2
+- Correção inegral das demonsrações conábeis *2
+- Análise das demonsrações conábeis *2
+- Indicadores de endividameno *2
+- Indicadores de esruura de capial *2
+- Análise vercal e horizonal *2
+- Lei nº 6.404/1976 (Lei das Sociedades por Ações), com alerações; CPC 00 (Esruura Conceiual), CPC 25 (Provisões, Passivos Conngenes e Avos Conngenes), CPC 46 (Insrumenos Financeiros) *2
+
+Conabilidade Pública | 3 | 3
+- Conceio, objeo e campo de aplicação da conabilidade pública *2
+- Sisema de Conabilidade Federal *2
+- Regime conábil *2
+- Parimônio público *2
+- Avo *2
+- Passivo *2
+- Saldo parimonial *2
+- Variações parimoniais *2
+- Variações qualiavas *2
+- Variações quanavas *2
+- Receia e despesa sob o enoque parimonial *2
+- Resulado parimonial *2
+- Mensuração de avos *2
+- Avo imobilizado *2
+- Avo inangível *2
+- Reavaliação e redução ao valor recuperável *2
+- Depreciação, amorzação e exausão *2
+- Mensuração de passivos *2
+- Provisões *2
+- Passivos conngenes *2
+- Sisema de cusos no seor público *2
+- Aspecos legais *2
+- Terminologia de cusos *2
+- Caraceríscas da inormação de cusos *2
+- Plano de conas aplicado ao seor público *2
+- Naureza da inormação conábil *2
+- Código da cona conábil *2
+- Aribuos da inormação conábil *2
+- Demonsrações conábeis aplicadas ao seor público *2
+- Balanço orçamenário *2
+- Balanço nanceiro *2
+- Balanço parimonial *2
+- Demonsração das variações parimoniais *2
+- Demonsração dos uxos de caixa *2
+- Demonsração das muações do parimônio líquido *2
+- Noas explicavas *2
+- Consolidação das demonsrações *2
+- Normas aplicáveis *2
+- NBC TSP Esruura Conceiual *2
+- MCASP *2
+
+Adminisração Financeira e Orçamenária | 3 | 3
+- Orçameno público *2
+- Conceio *2
+- Princípios orçamenários *2
+- Técnicas orçamenárias *2
+- Ciclo orçamenário *2
+- Processo orçamenário *2
+- Insrumenos de planejameno *2
+- Plano plurianual *2
+- Lei de direrizes orçamenárias *2
+- Lei orçamenária anual *2
+- Orçameno na Consuição Federal de 1988 *2
+- Fiscalização conábil, nanceira e orçamenária *2
+- Classicações orçamenárias *2
+- Esruura programáca *2
+- Crédios orçamenários e adicionais *2
+- Execução orçamenária e nanceira *2
+- Programação nanceira *2
+- Descenralização orçamenária e nanceira *2
+- Alerações orçamenárias *2
+- Acompanhameno da execução *2
+- Receia pública *2
+- Conceio e classicações *2
+- Eságios da receia *2
+- Fones de receia *2
+- Dívida ava *2
+- Despesa pública *2
+- Eságios da despesa *2
+- Resos a pagar *2
+- Despesas de exercícios aneriores *2
+- Dívida uuane e undada *2
+- Suprimeno de undos *2
+- Responsabilidade scal: princípios, planejameno, conrole e ransparência na gesão scal *2
+- Lei nº 4.320/1964 (Normas Gerais de Direio Financeiro para Elaboração e Conrole dos Orçamenos e Balanços da União, dos Esados, dos Municípios e do Disrio Federal), Lei Complemenar nº 101/200… *2
+
+Economia | 3 | 3
+- Microeconomia *2
+- Oera e demanda *2
+- Elascidade *2
+- Esruuras de mercado *2
+- Macroeconomia *2
+- Produo inerno bruo *2
+- Inação *2
+- Desemprego *2
+- Políca scal *2
+- Políca moneária *2
+- Economia do seor público *2
+- Papel do Esado na economia *2
+- Equilíbrio scal *2
+- Dívida pública *2
+
+Maemáca Financeira e Esatsca Aplicada | 3 | 3
+- Maemáca nanceira *2
+- Juros simples *2
+- Juros composos *2
+- Desconos *2
+- Valor presene e valor uuro *2
+- Séries de pagamenos *2
+- Esasca aplicada *2
+- Esasca descriva *2
+- Média, mediana e moda *2
+- Variância e desvio padrão *2
+- Inerpreação de dados. Conrole, Audioria e Governança - 1 Conrole inerno. 1.1 Princípios. 1.2 Esruura de conrole inerno. 1.3 Modelo COSO. 1.4 Avaliação de conroles inernos. 2 Audioria g… *2
+- Teses de audioria *2
+- Amosragem *2
+- Evidências de audioria *2
+- Papéis de rabalho *2
+- Execução da audioria *2
+- Relaórios de audioria *2
+- Insrumenos de scalização *2
+- Audioria *2
+- Inspeção *2
+- Moniorameno *2
+- Acompanhameno *2
+- Governança pública *2
+- Gesão de riscos no seor público *2
+- Normas inernacionais de audioria inerna (NIAI) *2
+- Normas Globais de Audioria Inerna do IIA (Insue o Inernal Audiors) *2
+- Lei nº 4.320/1964 (Normas gerais de conabilidade e execução orçamenária), Lei Complemenar nº 101/2000 (Responsabilidade scal, conroles e ransparência) *2
+
+Direio Adminisravo | 3 | 3
+- Adminisração Pública *2
+- Conceio, organização e princípios *2
+- Adminisração Direa e Indirea, endades paraesaais e erceiro seor *2
+- Regime jurídico-adminisravo e papel do Esado *2
+- Avidade adminisrava e aos adminisravos *2
+- Ao adminisravo, requisios, aribuos e invalidação *2
+- Poderes adminisravos, poder de polícia e poder regulamenar *2
+- Discricionariedade: limies, conrole e legimidade *2
+- Agenes públicos *2
+- Regime jurídico, espécies, cargos e unções *2
+- Direios, deveres e responsabilidade *2
+- Processo disciplinar *2
+- Liciações, conraos e parcerias *2
+- Liciação e princípios *2
+- Conraos adminisravos *2
+- Concessões, permissões e parcerias *2
+- Serviços públicos e inervenção do Esado *2
+- Conceio, regime e ormas de presação *2
+- Regulação, agências e domínio econômico *2
+- Inervenção na propriedade: limiações, desapropriação e unção social *2
+- Conrole da Adminisração Pública *2
+- Conrole inerno, exerno e judicial *2
+- Auação dos Tribunais de Conas e do Minisério Público *2
+- Conrole social e ransparência *2
+- Processo adminisravo e garanas *2
+- Processo adminisravo e direio à inormação *2
+- Meios de conrole judicial: mandado de segurança, ação civil pública e ação popular *2
+- Responsabilidade do Esado e improbidade *2
+- Responsabilidade civil do Esado *2
+- Improbidade adminisrava e deesa do parimônio público *2
+- Responsabilização de pessoas jurídicas *2
+- Bens públicos e polícas urbanas *2
+- Regime jurídico dos bens públicos *2
+- Inervenção esaal e insrumenos de políca urbana *2
+- Improbidade Adminisrava *2
+- Processo Adminisravo *2
+- Liciações e conraos adminisravos *2
+- Lei nº 8.429/1992 (Lei de Improbidade Adminisrava, com alerações), Lei nº 9.784/1999 (regula o processo adminisravo no âmbio da Adminisração Pública Federal, com alerações) e Lei nº 14.133/… *2
+
+Direio Civil e Direio do Consumidor | 3 | 3
+- Lei de Inrodução às Normas do Direio Brasileiro-LINDB (Decreo-Lei nº 4.657/1942) *2
+- Vigência, aplicação, obrigaoriedade, inerpreação e inegração das normas *2
+- Conio das leis no empo e ecácia no espaço *2
+- Código Civil (Lei nº 10.406/2002) - Pare Geral *2
+- Pessoas naurais: personalidade, capacidade, nome, esado civil, domicílio e ausência *2
+- Pessoas jurídicas: consuição, classicação, responsabilidade e desconsideração da personalidade *2
+- Bens: classicação e regimes jurídicos *2
+- Faos e negócios jurídicos: elemenos, represenação, condição, ermo, encargo, deeios, validade e invalidade *2
+- Aos jurídicos lícios e ilícios, prescrição, decadência e prova *2
+- Obrigações *2
+- Conceio, ones e classicação *2
+- Modalidades, ransmissão e exnção *2
+- Inadimplemeno, mora e perdas e danos *2
+- Conraos *2
+- Teoria geral, princípios (unção social e boa-é objeva) e ormação *2
+- Inerpreação, eeios e exnção *2
+- Conraos em espécie, incluindo locação e relações de consumo *2
+- Responsabilidade civil *2
+- Responsabilidade subjeva e objeva *2
+- Dano moral e maerial *2
+- Responsabilidade nas relações de consumo e do Esado *2
+- Direios reais *2
+- Posse e propriedade: aquisição, perda e unção social *2
+- Usucapião *2
+- Direios reais em espécie (usuruo, servidões, uso, habiação e direio de laje) e regisros públicos *2
+- Bem de amília *2
+- Direio de amília *2
+- Endades amiliares, casameno e união esável *2
+- Regime de bens *2
+- Alimenos *2
+- Tuela, curaela e omada de decisão apoiada *2
+- Direio das sucessões *2
+- Sucessão legíma e esamenária *2
+- Herança, aceiação e renúncia *2
+- Ordem de vocação herediária *2
+- Temas conemporâneos *2
+- Proeção de dados e conraos elerônicos *2
+- Função social da propriedade e regularização undiária *2
+- Responsabilidade civil em novos conexos *2
+- Código de Deesa do Consumidor (Lei nº 8.078/1990) *2
+- Princípios e direios básicos *2
+- Responsabilidade pelo ao e vício do produo e do serviço *2
+- Prácas comerciais, oera e publicidade *2
+- Cláusulas abusivas e proeção conraual *2
+- Prevenção e raameno do superendividameno *2
+- Deesa do consumidor em juízo *2
+- Decreo-Lei nº 4.657/1942 (Lei de Inrodução às Normas do Direio Brasileiro), Lei nº 8.078/1990 (Código de Deesa do Consumidor), Lei nº 8.245/1991 (Lei do Inquilinao), Lei nº 8.009/1990 Lei da I… *2
+
+Direio Processual Civil | 3 | 3
+- Código de Processo Civil (Lei nº 13.105/2015) *2
+- Princípios, aplicação das normas processuais e cooperação judiciária *2
+- Jurisdição, ação e compeência *2
+- Processo de conhecimeno *2
+- Peção inicial, condições da ação e pressuposos processuais *2
+- Resposa do réu e esabilização da demanda *2
+- Saneameno e organização do processo *2
+- Audiências e meios de auocomposição (mediação, conciliação e jusça mulporas) *2
+- Provas *2
+- Teoria geral, ônus da prova e sandards probaórios *2
+- Provas em espécie, prova ilícia e prova ecnológica *2
+- Poderes insruórios do juiz *2
+- Tuelas provisórias *2
+- Tuela de urgência e de evidência *2
+- Esabilização e uela cauelar *2
+- Senença e coisa julgada *2
+- Formação, eeios e limies *2
+- Remessa necessária *2
+- Preclusão e esabilidade das decisões *2
+- Cumprimeno de senença e execução *2
+- Teoria geral da execução *2
+- Execução de ulo judicial e exrajudicial *2
+- Execução conra a Fazenda Pública e execução de alimenos *2
+- Medidas execuvas picas e apicas *2
+- Recursos e processos nos ribunais *2
+- Teoria geral dos recursos e recursos em espécie *2
+- Ordem dos processos no ribunal *2
+- Ação rescisória e ouros meios de impugnação *2
+- Precedenes obrigaórios e écnicas de uniormização (IRDR, IAC e recursos repevos) *2
+- Processo colevo e uela de direios *2
+- Microssisema da uela coleva *2
+- Ações colevas e insrumenos de uela de direios diusos, colevos e individuais homogêneos *2
+- Mandado de segurança individual e colevo *2
+- Processo esruural e eevação de polícas públicas *2
+- Sujeios do processo *2
+- Pares, capacidade, legimação e represenação *2
+- Lisconsórcio, inervenção de erceiros e amicus curiae *2
+- Deveres das pares e poderes do juiz *2
+- Procedimenos especiais *2
+- Procedimenos de jurisdição volunária e ações de amília *2
+- Juizados especiais *2
+- Arbiragem e ouros meios adequados de solução de conios *2
+- Lei nº 7.347/1985 (Lei da Ação Civil Pública), Lei nº 8.078/1990 (Código de Deesa do Consumidor) e Lei nº 4.717/1965 (Lei da Ação Popular) *2
+
+Direio Penal | 3 | 3
+- Código Penal (Decreo-Lei nº 2.848/1940) - Pare Geral *2
+- princípios consucionais penais (legalidade, anerioridade, inervenção mínima, culpabilidade, proporcionalidade e individualização da pena) *2
+- lei penal no empo e no espaço, aplicação da lei penal e conio aparene de normas. 1.3 eoria do crime (ao pico, iliciude e culpabilidade). 1.4 dolo, culpa e erro (erro de po e erro de proib… *2
+- Código Penal (Decreo-Lei nº 2.848/1940) - Pare Especial *2
+- crimes conra a pessoa *2
+- crimes conra o parimônio *2
+- crimes conra a dignidade sexual *2
+- crimes conra a é pública *2
+- crimes conra a Adminisração Pública *2
+- crimes conra a incolumidade pública e a paz pública *2
+- crimes conra a amília e conra o senmeno religioso e o respeio aos moros *2
+- crimes conra a propriedade imaerial *2
+- Legislação Penal Especial *2
+- auação do Poder Judiciário na aplicação da lei penal e na execução penal *2
+- conrole judicial de legalidade de aos invesgavos e medidas cauelares *2
+- garanas processuais penais e sua relação com direios undamenais *2
+- proeção de grupos vulneráveis no processo penal *2
+- inegração enre jurisdição penal e polícas judiciárias *2
+- Decreo-Lei nº 2.848/1940 (Código Penal), Lei nº 7.210/1984 (Lei de Execução Penal), Lei nº 11.343/2006 (Lei de Drogas), Lei nº 11.340/2006 (Lei Maria da Penha), Lei nº 8.069/1990 (Esauo da Cria… *2
+
+Direio Processual Penal | 3 | 3
+- Código de Processo Penal (Decreo-Lei nº 3.689/1941) - Inrodução e undamenos *2
+- denições, ones e princípios do Direio Processual Penal *2
+- lei processual penal no empo e no espaço e direio ineremporal. 1.3 raados e convenções inernacionais e sua posição hierárquica. 1.4 sisemas processuais penais e garansmo. 1.5 princípios co… *2
+- Invesgação criminal e ase pré-processual *2
+- inquério policial, ermo circunsanciado e procedimenos invesgaórios (insauração, ramiação, arquivameno e desarquivameno) *2
+- invesgação pelo Minisério Público e conrole judicial *2
+- direios do invesgado e indiciameno *2
+- acordos na ase pré-processual (acordo de não persecução penal) *2
+- poderes invesgaórios e limies consucionais *2
+- Ação penal e jurisdição *2
+- ação penal (condições, princípios, espécies e classicação) *2
+- denúncia e queixa (requisios, recebimeno, rejeição e adiameno) *2
+- absolvição sumária *2
+- emendato e muato libelli *2
+- jurisdição e compeência (criérios, modicação, conexão e connência). 3.6 oro por prerrogava de unção e duplo grau de jurisdição *2
+- Processo e procedimenos *2
+- procedimenos comum (ordinário, sumário e sumaríssimo) e especiais. 4.2 ribunal do júri. 4.3 resposa à acusação, insrução e julgameno. 4.4 inerrogaório e meios de deesa. 4.5 aos processuais… *2
+- Prova: 5.1 eoria geral da prova (princípios, admissibilidade e valoração). 5.2 meios de prova picos e apicos. 5.3 cadeia de cusódia. 5.4 provas digiais. 5.5 prova ilícia e suas derivações. 5.… *2
+- Prisões e medidas cauelares *2
+- prisão processual (espécies e undamenos) *2
+- sisema consucional de prisão e liberdade *2
+- medidas cauelares diversas da prisão *2
+- liberdade provisória, com ou sem ança *2
+- audiências de cusódia *2
+- medidas cauelares reais (sequesro, inclusive pelo equivalene e alargado) *2
+- poder geral de cauela do juiz criminal *2
+- Nulidades e aos processuais *2
+- inexisência, nulidades e irregularidades *2
+- nulidades absoluas e relavas *2
+- princípio do prejuízo *2
+- Recursos e ações auônomas de impugnação: 8.1 eoria geral dos recursos (princípios, pressuposos e admissibilidade). 8.2 recursos em espécie no processo penal. 8.3 recursos nos ribunais e legisla… *2
+- Execução penal *2
+- princípios da execução penal *2
+- regimes de cumprimeno de pena *2
+- progressão e regressão de regime *2
+- remição e benecios *2
+- incidenes e recursos na execução *2
+- regime disciplinar dierenciado *2
+- Temas conemporâneos e polícas judiciárias *2
+- direios das vímas e polícas de aendimeno no âmbio do Poder Judiciário *2
+- jusça resaurava *2
+- violência domésca e medidas proevas de urgência *2
+- proeção de grupos vulneráveis no processo penal *2
+- obrigações esaais de invesgar, processar e julgar e combae à impunidade *2
+- Legislação processual penal especial *2
+- Lei nº 9.099/1995 (Lei dos Juizados Especiais Cíveis e Criminais), Lei nº 10.259/2001 (Lei dos Juizados Especiais Federais), Lei nº 11.343/2006 (Lei de Drogas), Lei nº 11.340/2006 (Lei Maria da Pen… *2
+
+Direios Humanos e Tuela Coleva | 3 | 3
+- Teoria geral dos direios humanos *2
+- Fones, princípios, caraceríscas, dimensões e obrigações esaais de respeiar, proeger e promover direios *2
+- Inerpreação e solução de conios enre direios *2
+- Proeção inernacional dos direios humanos *2
+- Sisemas global (ONU) e ineramericano (OEA): esruura, órgãos e mecanismos *2
+- Responsabilidade inernacional do Esado e ormas de reparação *2
+- Jurisprudência e casos relevanes *2
+- Direios humanos e ordenameno jurídico brasileiro *2
+- Incorporação e hierarquia dos raados *2
+- Conrole de convencionalidade e diálogo das cores *2
+- Implemenação e polícas públicas de direios humanos *2
+- Processo e garanas em direios humanos *2
+- Dever esaal de invesgar, processar e julgar violações e combae à impunidade *2
+- Acesso à jusça, cenralidade das vímas e proeção a vímas e esemunhas (Lei nº 9.807/1999 e normas insucionais) *2
+- Igualdade e não discriminação *2
+- Direio andiscriminaório e racismo (Lei nº 14.532/2023) *2
+- Proeção de grupos vulneráveis. Lei nº 8.069/1990 (ECA), Lei nº 10.741/2003 (Esauo do Idoso) *2
+- Direios humanos em conexos especícos *2
+- Sisema prisional, segurança pública e conrole judicial. Lei nº 7.210/1984 (Lei de Execução Penal) *2
+- Direios socioambienais. Lei nº 6.938/1981 (Políca Nacional do Meio Ambiene) e povos radicionais (Decreo nº 6.040/2007 - PNPCT) *2
+- Violência de gênero (Lei nº 11.340/2006 - Lei Maria da Penha) e ouros conexos de vulnerabilidade (Lei nº 13.146/2015 - Pessoa com Deciência) *2
+- Eevação dos direios humanos *2
+- Tuela coleva ação civil pública como insrumeno de proeção de direios undamenais, conrole de polícas públicas e enrenameno de violações esruurais (Lei nº 7.347/1985 - Ação Civil Pública) *2
+- Parcipação social, insrumenos de conrole e mínimo exisencial *2
+
+Engenharia de Sofware e Desenvolvimeno | 3 | 3
+- Conceios de engenharia de sofware *2
+- Processos de desenvolvimeno de sofware *2
+- Meodologias ágeis Scrum e Kanban *2
+- RUP *2
+- CMMI-DEV v2.0 *2
+- MR-MPS-SW Guia Geral MPS de Sofware 2024 *2
+- Engenharia de requisios *2
+- Análise de negócios *2
+- Orienação a objeos conceios undamenais análise e modelagem *2
+- Padrões de projeo *2
+- UML versão 2.1 *2
+- Ferramenas CASE *2
+- Linguagens de programação Java versão 17 ou superior Microsof .NET versão 8 ou superior e PHP versão 8 ou superior *2
+- Web Services padrões SOAP e REST *2
+- Desenvolvimeno de APIs *2
+- Ferramenas de conrole de versão SVN e Gi *2
+- Teses de sofware uniário inegração e sisema *2
+- Inegração connua e enrega connua CI CD *2
+
+Arquieura de Sisemas e Inegração | 3 | 3
+- Arquieura de sofware *2
+- Arquieura cliene servidor *2
+- Sisemas web e disposivos móveis *2
+- Padrões arquieurais MVC e DDD *2
+- Microsserviços *2
+- Inegração de sisemas *2
+- APIs RESTul e ormao JSON *2
+- Webhooks e APIs reversas *2
+- Arquieura de desenvolvimeno de PDPJ *2
+- Framework Spring Boo Spring Cloud Spring Eureka e Zuul *2
+- Service Discovery e API Gaeway *2
+- Persisência com JPA e Hibernae versão 4.3 ou superior *2
+- Hibernae Envers e Flyway *2
+- Mensageria e evenos negociais *2
+- Message Broker e RabbiMQ *2
+- Conainers Docker *2
+- Orquesração com Kubernees e Rancher *2
+- Ambienes disribuídos e escaláveis. Banco de Dados e Engenharia de Dados - .1 Bancos de dados ransacionais OLTP e analícos OLAP. 1.2 Modelagem de dados relacional. 1.3 Modelagem dimensional. 1.4… *2
+
+Inraesruura de Ti e Compuação em Nuvem | 3 | 3
+- Fundamenos de compuação em nuvem caraceríscas modelos pos arquieura serviços e aplicações *2
+- Modelos de serviço IaaS PaaS e SaaS *2
+- Tipos de nuvem pública privada e híbrida *2
+- Desenvolvimeno para nuvem e conainers *2
+- Redes de compuadores modelo OSI e proocolo TCP IP *2
+- Sisemas operacionais processos memória enrada e saída *2
+- Inraesruura de TI servidores armazenameno e virualização *2
+
+Segurança da Inormação e Governança de Ti | 3 | 3
+- Segurança da inormação *2
+- Fundamenos, condencialidade, inegridade, disponibilidade, auencação e auorização *2
+- Proeção de dados pessoais *2
+- Gesão de idendade e acesso *2
+- Single Sign On SSO *2
+- Keycloak *2
+- Proocolo OAuh2 RFC 6749 *2
+- OpenID Connec OIDC *2
+- Prácas DevSecOps *2
+- COBIT 2019 *2
+- ITIL 4 *2
+- Gesão de riscos em ecnologia da inormação *2
+- Connuidade de serviços de ecnologia da inormação *2
+- Lei nº 13.709/2018 (Lei Geral de Proeção de Dados Pessoais – LGPD) *2
+
+Governança Projeos e Ti no Seor Público | 3 | 3
+- Governança de ecnologia da inormação no seor público *2
+- Gerência de projeos PMBOK 7ª edição *2
+- Ciclo de vida de projeos *2
+- Meodologias ágeis Scrum e Kanban *2
+- Mensuração de sisemas em ponos de unção segundo o CPM versão 4.3.1 do IFPUG *2
+- Roeiro de méricas de sofware do SISP versão 2.0 *2
+- Conraações de ecnologia da inormação no seor público *2
+- Planejameno esraégico de ecnologia da inormação *2
+
+Arquiteto | 3 | 3
+- Cidade, inraesruura e espaço. Morologia urbana. Esruura urbana. Escalas de inervenção no urbano *2
+- Projeo e inserção urbana. Paisagem urbana *2
+- Arquieura, urbanismo e demandas sociais: ineresses públicos e privados na conormação da cidade. Plano e projeo como ação consruva do lugar, da cidade, da culura e do país *2
+- Redes urbanas e polícas públicas seoriais. Concepção de redes de equipamenos públicos. O equipameno público como caalisador da vida social. Esraégias de implanação e requalicação urbana *2
+- Planejameno urbano e regional. Parcelameno, uso e ocupação do solo urbano *2
+- Sisema viário: hierarquização, dimensionameno e geomeria. Mobilidade urbana e mobilidade ava *2
+- Evolução urbana: esruura morológica e uncional. Apropriação urbana. Imagem da cidade. Relação enre espaço público e privado *2
+- Análise críca de espaços urbanos e proposas urbaníscas *2
+- Lei nº 6.766/1979 (Lei de Parcelameno do Solo Urbano); Lei nº 10.257/2001 (Esauo da Cidade); Lei nº 12.587/2012 (Políca Nacional de Mobilidade Urbana). Tecnologia da Consrução, Sisemas Predi… *2
+- Imporância da acessibilidade para a qualidade de vida e inclusão social *2
+- Acessibilidade arquieônica e urbanísca: direrizes, parâmeros e aplicação em projeos *2
+- Segurança das edicações: prevenção e combae a incêndio, roas de uga, sinalização e acessibilidade emergencial *2
+- Código de obras e parâmeros urbaníscos e edilícios aplicáveis *2
+- Lei nº 13.146/2015 (Esauo da Pessoa com Deciência), Decreo nº 5.296/2004 (Regulamena as Leis de Acessibilidade), ABNT NBR 9050 (Acessibilidade a edicações, mobiliário, espaços e equipamenos… *2
+
+Serviço Social e Teoria Profissional | 3 | 3
+- Fundamenos hisóricos e eórico-meodológicos do serviço social *2
+- Surgimeno e insucionalização do Serviço Social no Brasil e relação com a quesão social *2
+- Inuências eórico- meodológicas e ormas de inervenção prossional nos disnos conexos hisóricos *2
+- Condições e relações de rabalho, espaços sócio-ocupacionais e aribuições do assisene social *2
+- A Quesão social na conemporaneidade e garana de direios *2
+- Projeo éco-políco do serviço social: undamenos écos, éca prossional e direrizes curriculares da prossão *2
+- Dimensão invesgava e processos de planejameno e inervenção prossional *2
+- Formulação de projeos de inervenção prossional, aspecos eóricos e meodológicos *2
+- Assessoria, consuloria e supervisão em serviço social *2
+- Auação em equipe mulprossional e inerdisciplinar *2
+- Enrevisa, visia domiciliar, visia insucional, reunião, rabalho em rede e ação socioeducava com indivíduos, grupos e amílias *2
+- Esudo social e perícia social: objevos, meodologia, regisro e produção de documenos como relaório, laudo e parecer *2
+- Tecnologias de inormação e comunicação aplicadas ao serviço social *2
+- O processo de rabalho do serviço social no campo sociojurídico: unções, aribuições, esraégias, insrumenalidade, possibilidades e limies *2
+- Abordagens individuais e grupais: undamenos e insrumenos *2
+- Trabalho e Serviço Social na conemporaneidade: redimensionameno da prossão, mudanças no mercado prossional e rumos éco-polícos *2
+
+Políca Social e Polícas Públicas | 3 | 3
+- Fundamenos, hisória e objevos das polícas sociais *2
+- Sisema de Seguridade Social no Brasil: princípios, organização e operacionalização *2
+- Polícas de saúde, assisência social e previdência social *2
+- Polícas e programas sociais dirigidos a segmenos especícos: crianças, adolescenes, jovens, idosos, mulheres, indígenas, quilombolas, arodescendenes, pessoas com deciência, pessoas com rans… *2
+- Sisema de proeção social e papel das polícas públicas na inervenção do serviço social *2
+- Lei nº 8.080/1990 (Lei Orgânica da Saúde), Lei nº 8.212/1991 (Plano de Cuseio da Seguridade Social), Lei nº 8.213/1991 (Plano de Benecios da Previdência Social), Lei nº 8.742/1993 (Lei Orgânica d… *2
+- Violência inraamiliar *2
+- Decreo nº 99.710/1990 (Convenção sobre os Direios da Criança), Decreo nº 6.949/2009 (Convenção sobre os Direios das Pessoas com Deciência), Lei nº 8.069/1990 (Esauo da Criança e do Adolesce… *2
+
+Sisema Judiciário e Auação Sociojurídica | 3 | 3
+- Esruura e uncionameno do sisema judiciário conemporâneo *2
+- Formas alernavas de resolução de conios *2
+- Auação do assisene social no conexo judicial: esudos sociais, perícias, laudos e pareceres *2
+- Trabalho em rede com órgãos públicos e insuições privadas *2
+- Mediação e inervenção juno à amília e indivíduos *2
+
+Saúde do Trabalhador | 3 | 3
+- Polícas e direrizes de saúde do rabalhador no SUS e na adminisração pública *2
+- Programas de prevenção de riscos ambienais (PGR) e Programa de Conrole Médico de Saúde Ocupacional (PCMSO) *2
+- Doenças ocupacionais, acidenes de rabalho e nexo écnico epidemiológico *2
+- Vigilância em saúde do rabalhador *2
+- Ergonomia e promoção da saúde no ambiene laboral *2
+- Programas de qualidade de vida no rabalho *2
+- Auação do enermeiro em perícias, aasamenos e readapação uncional *2
+- Consolidação das Leis do Trabalho – CLT (Decreo-Lei nº 5.452/1943); NR-7 (Programa de Conrole Médico de Saúde Ocupacional); NR-17 (Ergonomia) *2
+
+Saúde Pública | 4 | 3
+- Princípios e direrizes do SUS *2
+- Aenção primária à saúde e esraégias de promoção e prevenção *2
+- Vigilância epidemiológica e vigilância em saúde *2
+- Doenças ransmissíveis e não ransmissíveis *2
+- Programa Nacional de Imunizações *2
+- Políca Nacional de Aenção Básica e Políca Nacional de Humanização *2
+- Polícas de promoção da equidade no SUS *2
+- Modalidades assisenciais: hospial-dia e assisência domiciliar *2
+- Organização dos serviços de saúde, incluindo saúde menal (CAPS, ambulaórios e hospiais) *2
+- Organização do sisema de saúde no Esado de Sana Caarina. 2. Lei nº 8.080/1990 (Lei Orgânica da Saúde), Lei nº 8.142/1990 (Parcipação da Comunidade e Inerederava na Saúde). Enermagem Clínic… *2
+- Aendimeno ambulaorial e condições crônicas. Urgência e Procedimenos. 1 Aendimeno em urgência e emergência. 1.1 Supore básico de vida. 1.2 Organização dos serviços pré-hospialares e hospial… *2
+
+Biossegurança e Inecção | 3 | 3
+- Biossegurança no cuidado em saúde *2
+- Riscos biológicos e precauções padrão e por ransmissão *2
+- Conrole de inecção *2
+- Gerenciameno de resíduos de serviços de saúde *2
+- Cenral de maerial e eserilização *2
+- Processameno e eserilização de produos para saúde *2
+- Conrole de qualidade *2
+- Resolução Anvisa RDC 63/2011 (Requisios de Boas Prácas de Funcionameno para Serviços de Saúde) *2
+
+Legislação e Éca | 3 | 3
+- Exercício prossional e regulamenação da enermagem *2
+- Código de Éca e princípios bioécos *2
+- Bioéca *2
+- Consuição Federal de 1988: princípios da saúde e da seguridade social *2
+- Polícas de saúde e parcipação social *2
+- Direios do paciene e conrole social *2
+- Gesão em saúde *2
+- Lei nº 7.498/1986 (Lei do Exercício da Enermagem); Decreo nº 94.406/1987 (Regulamena a Lei do Exercício da Enermagem); Resolução COFEN nº 564/2017 (Código de Éca do Enermeiro); Consuição Fe… *2
+
+Projeos e Esruuras | 3 | 3
+- Projeos de obras civis *2
+- Arquieônico, esruural (concreo armado e proendido, aço e madeira), undações, insalações eléricas e hidrossaniárias e projeos complemenares (elevadores, venlação, exausão, climazação … *2
+- Análise e inerpreação de projeos. Compabilização de projeos *2
+- Resisência dos maeriais: ensões, deormações, exão simples e composa, orção, cisalhameno e ambagem *2
+- Esorços solicianes: esorço normal, esorço corane, momeno eor e orção. Diagramas de esorços *2
+- Esruuras isosácas e hiperesácas *2
+- Teoria das esruuras aplicada ao concreo, aço e madeira *2
+- Esruuras e pones: análise de esabilidade e comporameno esruural *2
+- Fundações e obras de erra: classicação e propriedades dos solos. Empuxos de erra. Esabilidade de aludes. Sondagens. Fundações superciais e proundas. Barragens de erra e mecanismos de rupura *2
+
+Maeriais e Processos Consruvos | 3 | 3
+- Maeriais de consrução: madeira, maeriais cerâmicos, meais, maeriais beuminosos, aglomeranes, cimeno, agregados e adivos *2
+- Tecnologia do concreo e conrole ecnológico. Ensaios de maeriais *2
+- Processos consruvos: preparo do erreno, caneiro de obras, locação, escavações, undações, ormas, concreagem, esruuras, alvenaria, revesmenos, pavimenação, coberuras, impermeabilização, … *2
+- Insalações prediais: elérica, hidráulica, saniária, drenagem e gás *2
+- Paologia das consruções: maniesações paológicas, causas e écnicas de recuperação *2
+
+Inraesruura e Saneameno | 3 | 3
+- Mecânica dos solos e geoecnia aplicada *2
+- Inraesruura viária: rodovias, errovias e merovias. Projeo geomérico. Terraplenagem. Pavimenação. Drenagem. Obras de are especiais e correnes *2
+- Sisemas de ranspore, ráego, logísca e sinalização *2
+- Recursos hídricos, hidráulica e hidrologia: hidrosáca, hidrodinâmica, escoamenos, ciclo hidrológico, bacias hidrográcas, conrole de cheias e medição de vazões *2
+- Saneameno básico: abasecimeno de água, esgoameno saniário, drenagem urbana e manejo de resíduos sólidos. Políca Nacional de Resíduos Sólidos *2
+- Licenciameno ambienal e avaliação de impacos ambienais *2
+- Lei nº 11.445/2007 (Direrizes Nacionais para o Saneameno Básico), Lei nº 14.026/2020 (Novo Marco Legal do Saneameno Básico), Lei nº 12.305/2010 (Políca Nacional de Resíduos Sólidos), Lei nº 6.9… *2
+
+Normas e Segurança | 3 | 3
+- Normas écnicas da ABNT aplicadas à engenharia civil, normas esruurais, de maeriais e de desempenho *2
+- Segurança do rabalho na consrução civil. Normas regulamenadoras *2
+- Segurança conra incêndio: sisemas prevenvos, roas de uga, sinalização e dimensionameno básico *2
+- Qualidade e desempenho das edicações *2
+- ABNT NBR 15575 (Edicações Habiacionais – Desempenho), Normas Regulamenadoras do Minisério do Trabalho (NR 6, NR 18, NR 35), Insrução Normava CBMSC nº 04/2024 (Manuenção dos Sisemas Prevenvos) *2
+
+Planejameno e Orçameno de Obras | 3 | 3
+- Planejameno de obras *2
+- Esudo de viabilidade écnica, econômica e sico- nanceira. Plano de rabalho *2
+- Orçamenação: levanameno de quanavos, composição de cusos uniários, cusos direos e indireos, BDI, encargos sociais *2
+- Sisemas reerenciais de cusos: SINAPI e SICRO *2
+- Formação de preços, análise de proposas e idencação de sobrepreço e superaurameno *2
+- Cronogramas e conrole: gráco de Gant, PERT/CPM, curva S, curva ABC e hisogramas de recursos *2
+- Execução e conrole de obras: medições, reajusameno de preços e acompanhameno sico-nanceiro *2
+- Fiscalização de obras: análise de projeos, ediais, conraos, adivos, cadernos de encargos e diários de obra *2
+
+Liciações e Gesão Pública | 3 | 3
+- Liciações e conraos adminisravos *2
+- Modalidades, ases, habiliação, dispensa, inexigibilidade e execução conraual *2
+- Conraação de obras e serviços de engenharia: projeo básico, projeo execuvo, orçameno, medições, adivos e reequilíbrio econômico-nanceiro *2
+- Governança, conrole inerno e scalização na adminisração pública *2
+- Normas do Tribunal de Conas do Esado de Sana Caarina aplicáveis à scalização de obras públicas *2
+- Lei nº 14.133/2021 (Lei de Liciações e Conraos Adminisravos); Decreo nº 10.024/2019 (Pregão Elerônico) *2
+
+Sisemas Eléricos de Poência | 3 | 3
+- Geração, ransmissão e disribuição de energia elérica *2
+- Sisemas riásicos equilibrados e desequilibrados. Poência em sisemas riásicos *2
+- Transormadores monoásicos e riásicos *2
+- Subesações em média ensão: pos, componenes e operação *2
+- Proeção de sisemas eléricos: relés, coordenação e selevidade. Proeção de subesações aéreas e abrigadas *2
+- Análise de sisemas eléricos de poência: represenação em pu, componenes siméricas e alas siméricas e assiméricas *2
+- Qualidade da energia elérica: harmônicas, disúrbios e correção de aor de poência *2
+- Projeo de linhas eléricas *2
+
+Insalações Eléricas | 3 | 3
+- Circuios eléricos: leis de Kirchho, eoremas de circuios, méodos de análise nodal e de malhas. 1.2 Solução de circuios de primeira e segunda ordem em correne connua e alernada. 1.3 Insala… *2
+
+Auomação e Eficiência Energéca | 3 | 3
+- Sisemas de auomação e conrole aplicados a insalações eléricas *2
+- Eciência energéca: conceios, indicadores e gesão de energia *2
+- Correção de aor de poência e qualidade do consumo *2
+- Eciência energéca em insalações eléricas de baixa ensão *2
+- Minigeração disribuída e energia solar oovolaica: requisios de projeo *2
+- Geração disribuída e seus aspecos regulaórios *2
+- ABNT NBR 16819:2020 (Eciência Energéca em Insalações Eléricas de Baixa Tensão), ABNT NBR 16690 (Sisemas Foovolaicos – Requisios de Projeo), Lei nº 14.300/2022 (Marco Legal da Geração Disr… *2
+- Proeção conra descargas amoséricas: princípios gerais, gerenciameno de riscos, proeção de esruuras e sisemas inernos *2
+- Prevenção e combae a incêndios: undamenos, sica e química do ogo, comporameno do ogo e inegridade esruural *2
+- Sisemas de deecção e alarme de incêndios *2
+- Segurança e desempenho das insalações eléricas. 8. Norma Regulamenadora do Minisério do Trabalho - NR-10 (Segurança em Insalações e Serviços em Elericidade); ABNT NBR 5419 (Proeção conra De… *2
+
+Liciações e Gesão Pública | 3 | 3
+- Liciações e conraos adminisravos *2
+- Modalidades, ases, habiliação, julgameno, dispensa e inexigibilidade *2
+- Conraação de serviços e obras de engenharia elérica *2
+- Fiscalização, acompanhameno e aceiação dos serviços *2
+- Adminisração de conraos e caderno de encargos *2
+- Lei nº 14.133/2021 (Lei de Liciações e Conraos Adminisravos), Decreo nº 10.024/2019 (Pregão Elerônico) *2
+
+Clínica Médica Geral | 4 | 3
+- Cuidados gerais com o paciene em Medicina inerna *2
+- Nurição *2
+- Hidraação *2
+- Prevenção e deecção precoce do câncer *2
+- Prevenção e deecção precoce da aerosclerose *2
+- Doenças cardiovasculares *2
+- Hiperensão arerial *2
+- Insuciência cardíaca *2
+- Miocardiopaas *2
+- Valvulopaas *2
+- Arrimias cardíacas *2
+- Síndromes isquêmicas coronárias *2
+- Faores predisponenes à ormação e insabilização da placa aeroscleróca *2
+- Doenças pulmonares *2
+- Asma brônquica *2
+- Doença pulmonar obsruva crônica *2
+- Embolia pulmonar *2
+- Pneumonias e abscessos pulmonares *2
+- Doenças gasroinesnais e hepácas *2
+- Úlcera pépca *2
+- Doença do reuxo gasroesoágico *2
+- Doenças inesnais inamaórias e parasiárias *2
+- Diarreia *2
+- Coleliase e colecise *2
+- Pancreae *2
+- Hepaes virais *2
+- Insuciência hepáca crônica *2
+- Síndromes disabsorvas *2
+- Abordagem das queixas comuns em serviços de urgência *2
+- Tonura e zumbido *2
+- Rinossinusopaas *2
+- Urcária e angioedema *2
+- Rinie alérgica *2
+- Cealeias *2
+- Doenças renais *2
+- Insuciência renal aguda e crônica *2
+- Glomeruloneries *2
+- Síndrome neróca *2
+- Liase renal *2
+- Equilíbrio ácido-base *2
+- Doenças endócrinas *2
+- Diabees melio *2
+- Obesidade *2
+- Síndrome meabólica *2
+- Hiporeoidismo e hiperreoidismo *2
+- Tireoidie e nódulos reoidianos *2
+- Disúrbios das glândulas suprarrenais *2
+- Disúrbios das glândulas parareoides *2
+- Doenças reumácas *2
+- Arrie reumaoide *2
+- Espondiloarropaas *2
+- Colagenoses *2
+- Goa *2
+- Inecologia *2
+- Síndrome da imunodeciência adquirida *2
+- Endocardie inecciosa *2
+- Inecções esalocócicas *2
+- Endemias nacionais e regionais de Sana Caarina (incluindo arboviroses, lepospirose e zoonoses prevalenes) *2
+- Candidíase *2
+- Doenças sexualmene ransmissíveis *2
+- Herpes simples e zoser *2
+- Terapia anbióca *2
+- Princípios gerais, armacologia, principais grupos de anbiócos, doses e duração do raameno *2
+- Exames complemenares invasivos e não invasivos de uso requene na práca clínica *2
+- Emergências clínicas *2
+- Vias aéreas e venlação *2
+- Ressusciação cardiopulmonar *2
+- Edema agudo pulmonar *2
+- Crise hiperensiva *2
+- Hemorragia digesva *2
+- Esados de choque *2
+- Analaxia *2
+- Inoxicações *2
+- Crise convulsiva *2
+- Acidene vascular enceálico *2
+- Alerações do esado de consciência *2
+- Hipoglicemia e hiperglicemia *2
+- Conceios undamenais das diversas especialidades clínicas *2
+- Abordagem inegrada das doenças: epidemiologia, siopaologia, diagnósco, raameno, prognósco e prevenção *2
+
+Saúde Ocupacional | 4 | 3
+- Fundamenos da saúde ocupacional *2
+- Relação enre rabalho e saúde *2
+- Deerminanes e condicionanes do processo saúde-doença no rabalho *2
+- Doenças relacionadas ao rabalho *2
+- Lesões por esorços repevos (LER/DORT) *2
+- Doenças oseomusculares relacionadas ao rabalho *2
+- Pneumoconioses *2
+- Transornos menais relacionados ao rabalho *2
+- Nexo causal e nexo écnico epidemiológico *2
+- Incapacidade laborava *2
+- Avaliação da capacidade uncional *2
+- Aasamenos e readapação uncional *2
+- Programas de saúde ocupacional *2
+- Programa de Conrole Médico de Saúde Ocupacional (PCMSO) *2
+- Programa de Gerenciameno de Riscos (PGR) *2
+- Abseneísmo e preseneísmo *2
+- Promoção da saúde no ambiene de rabalho *2
+- Direrizes da SES/SC para saúde do rabalhador: inegração da vigilância com a Rede de Aenção à Saúde do SUS, prevenção e moniorameno de agravos (Plano Esadual de Saúde 2024-2027) *2
+
+Saúde Pública | 4 | 3
+- Epidemiologia *2
+- Conceios undamenais *2
+- Medidas de requência e associação *2
+- Esudos epidemiológicos *2
+- Vigilância em saúde *2
+- Vigilância epidemiológica *2
+- Vigilância saniária *2
+- Vigilância ambienal *2
+- Promoção da saúde e prevenção de doenças *2
+- Indicadores de saúde *2
+- Endemias nacionais *2
+- Transição demográca e epidemiológica *2
+- Polícas públicas de saúde *2
+- Organização da rede de aenção à saúde no SUS *2
+- Pacuação inerederava e regionalização da saúde *2
+- Planos e polícas de saúde no Esado de Sana Caarina *2
+
+Medicina Legal e Perícia Médica | 3 | 3
+- Medicina legal *2
+- Conceios undamenais *2
+- Documenos médico-legais *2
+- Perícia médica *2
+- Perícia judicial *2
+- Elaboração de laudos e pareceres *2
+- Incapacidade e invalidez *2
+- Avaliação pericial *2
+- Criérios écnicos *2
+- Nexo causal e concausalidade *2
+- Avaliação do dano corporal *2
+- Inerace enre clínica médica, saúde ocupacional e perícia *2
+- Normas processuais aplicáveis à perícia médica: Código de Processo Civil (ar. 420- 480), Código de Processo Penal (ar. 159-232) *2
+- Auação do perio médico no serviço público *2
+
+Éca Médica e Bioéca | 3 | 3
+- Código de Éca Médica *2
+- Sigilo prossional *2
+- Relação médico-paciene *2
+- Consenmeno inormado *2
+- Responsabilidade prossional *2
+- Responsabilidade civil *2
+- Responsabilidade penal *2
+- Princípios da bioéca *2
+- Auonomia *2
+- Benecência *2
+- Não malecência *2
+- Jusça *2
+- Condua éca no exercício da medicina no serviço público e no Poder Judiciário *2
+- Código de Éca Médica (Conselho Federal de Medicina – Resolução CFM nº 2.217/2018) *2
+
+Legislação do Sus e Normas Insucionais | 3 | 3
+- Sisema Único de Saúde (SUS) *2
+- Princípios e direrizes *2
+- Organização e uncionameno *2
+- Polícas públicas de saúde no Brasil *2
+- Organização da saúde no Esado de Sana Caarina *2
+- Normas e direrizes da Secrearia de Esado da Saúde de Sana Caarina *2
+- Rede de aenção à saúde em Sana Caarina *2
+- Lei nº 8.080/1990 (Lei Orgânica da Saúde); Lei nº 8.142/1990 (Parcipação da Comunidade e Inerederava na Saúde) *2
+
+Direio Adminisravo | 3 | 3
+- Adminisração Pública *2
+- Conceio e princípios da Adminisração Pública: legalidade, impessoalidade, moralidade, publicidade e eciência *2
+- Aos adminisravos *2
+- Conceio, requisios, aribuos e invalidação de aos adminisravos *2
+- Poderes adminisravos *2
+- Poder de polícia e sua aplicação práca no cumprimeno de mandados *2
+- Discricionariedade e limies *2
+- Agenes públicos *2
+- Regime jurídico, deveres, responsabilidades e responsabilidade uncional no exercício das avidades judiciais *2
+- Serviços públicos *2
+- Conceio, presação, scalização e sua relação com ordens judiciais *2
+- Conrole da Adminisração *2
+- Noções gerais de conrole adminisravo, judicial e legislavo *2
+- Processo adminisravo *2
+- Garanas básicas e procedimenos aplicáveis ao cumprimeno de ordens judiciais *2
+- Responsabilidade civil do Esado *2
+- Responsabilidade civil e medidas de reparação *2
+- Auação adminisrava no cumprimeno de ordens judiciais *2
+- Cumprimeno de mandados, aos coercivos e medidas de segurança *2
+
+Direio Civil e Direio do Consumidor | 3 | 3
+- Lei de Inrodução às Normas do Direio Brasileiro-LINDB (Decreo-Lei nº 4.657/1942) *2
+- Vigência, aplicação, inerpreação e inegração das normas *2
+- Conio das leis no empo e ecácia no espaço *2
+- Código Civil (Lei nº 10.406/2002) - Pare geral *2
+- Pessoas naurais e jurídicas: personalidade, capacidade, direios e deveres *2
+- Bens: classicação e regime jurídico *2
+- Faos e negócios jurídicos: conceios, validade, nulidade e eeios *2
+- Obrigações *2
+- Conceio, modalidades, ransmissão, adimplemeno e inadimplemeno *2
+- Conraos *2
+- Teoria geral, ormação, inerpreação, eeios e exnção *2
+- Responsabilidade civil *2
+- Responsabilidade subjeva e objeva, danos maeriais e morais *2
+- Direios reais *2
+- Posse e propriedade: aquisição, perda e unção social *2
+- Usucapião *2
+- Penhora, avaliação e expropriação de bens em cumprimeno de mandados *2
+- Direio de amília *2
+- Alimenos: princípios, execução e cumprimeno *2
+- Direio das sucessões *2
+- Sucessão legíma e esamenária, invenário e parlha *2
+- Código de Deesa do Consumidor (Lei nº 8.078/1990) *2
+- Princípios e direios básicos *2
+- Responsabilidade pelo ao e vício de produos e serviços *2
+- Prácas comerciais, oera e cláusulas abusivas *2
+- Execução e cumprimeno de decisões nas relações de consumo *2
+
+Direio Processual Civil | 3 | 3
+- Código de Processo Civil (Lei nº 13.105/2015). Normas undamenais do processo civil *2
+- Princípios, nalidade e aplicação das normas *2
+- Cooperação, boa-é processual e eevidade da jurisdição *2
+- Jurisdição, ação e compeência *2
+- Conceio de jurisdição e ação *2
+- Compeência: noções gerais e modicação de compeência *2
+- Conexão, connência e compeência erriorial (noções) *2
+- Sujeios do processo *2
+- Pares, capacidade e represenação *2
+- Lisconsórcio e inervenção de erceiros (noções) *2
+- Aos processuais *2
+- Forma, empo e lugar *2
+- Comunicação dos aos processuais *2
+- Ciação, inmação e nocação *2
+- Modalidades e meios de realização *2
+- Fé pública e cercação pelo Ocial de Jusça *2
+- Cumprimeno de mandados *2
+- Requisios, ormalidades e diligências *2
+- Limies legais e respeio aos direios undamenais *2
+- Procedimenos em caso de resisência ou impossibilidade de cumprimeno *2
+- Processo de conhecimeno *2
+- Peção inicial e condições da ação *2
+- Procedimenos básicos de conesação e réplica (noções) *2
+- Audiências e meios de auocomposição (mediação, conciliação e ouros meios) *2
+- Tuelas provisórias *2
+- Tuela de urgência e de evidência *2
+- Limies e requisios (noções) *2
+- Cumprimeno de senença e execução *2
+- Execução de ulos judiciais e exrajudiciais *2
+- Penhora, avaliação e expropriação (noções) *2
+- Medidas execuvas (básicas e usuais) *2
+- Busca e apreensão *2
+- Imissão na posse *2
+- Reinegração e manuenção de posse *2
+- Cumprimeno de ordens de alimenos *2
+- Procedimenos especiais *2
+- Execução de alimenos *2
+- Juizados especiais cíveis: regras básicas, compeências e procedimenos simplicados *2
+- Temas prácos do Ocial de Jusça *2
+- Planejameno e segurança nas diligências *2
+- Limies de auação *2
+- Garanas undamenais no cumprimeno de mandados *2
+- Comunicação com pares e advogados *2
+- Regisro e cercação de aos processuais *2
+
+Direio Penal | 3 | 3
+- Código Penal (Decreo-Lei nº 2.848/1940) - Pare Geral *2
+- Noções essenciais de Direio Penal: princípios, legalidade, picidade, iliciude, culpabilidade, dolo, culpa e ier criminis *2
+- Penas e medidas alernavas: aplicação, individualização e eeios *2
+- Concurso de pessoas e exnção da punibilidade *2
+- Código Penal (Decreo-Lei nº 2.848/1940) - Pare Especial *2
+- Crimes conra a pessoa: lesões, ameaça e homicídio *2
+- Crimes conra o parimônio: uro, roubo, apropriação indébia e dano *2
+- Crimes conra a Adminisração Pública: corrupção, peculao, prevaricação e concussão *2
+- Crimes de desobediência, resisência e desacao à auoridade judicial *2
+- Ouras inrações relevanes à práca direa do Ocial de Jusça, como ameaça e violência conra servidores públicos *2
+- Legislação penal especial *2
+- Legislação complemenar relevane à execução de mandados e proeção de pessoas vulneráveis *2
+- Lei nº 11.340/2006 (Lei Maria da Penha), Lei nº 10.741/2003 (Esauo do Idoso), Lei nº 8.069/1990 (Esauo da Criança e do Adolescene) *2
+
+Direio Processual Penal | 3 | 3
+- Código de Processo Penal (Decreo-Lei no 3.689/1941). Inrodução e princípios *2
+- Conceio, ones e nalidade *2
+- Princípios consucionais do processo penal (devido processo legal, conradiório, ampla deesa e presunção de inocência) *2
+- Aplicação da lei processual penal no empo e no espaço (noções) *2
+- Invesgação criminal *2
+- Inquério policial: conceio, nalidade e caraceríscas *2
+- Insauração, ramiação e encerrameno (noções) *2
+- Direios do invesgado *2
+- Ação penal *2
+- Conceio, condições e espécies *2
+- Tiularidade e iniciava *2
+- Denúncia e queixa (noções) *2
+- Compeência (noções gerais) *2
+- Aos processuais *2
+- Forma, empo e lugar dos aos *2
+- Comunicação dos aos processuais *2
+- Ciação, inmação e nocação *2
+- Modalidades e meios de realização *2
+- Fé pública e cercação pelo Ocial de Jusça *2
+- Cumprimeno de mandados *2
+- Requisios e ormalidades *2
+- Procedimenos e diligências *2
+- Limies legais e respeio aos direios undamenais *2
+- Prisões e medidas cauelares *2
+- Prisão processual: espécies e undamenos *2
+- Mandado de prisão: requisios e cumprimeno *2
+- Direios do preso *2
+- Medidas cauelares diversas da prisão (noções) *2
+- Condução coerciva: hipóeses e limies *2
+- Nulidades processuais *2
+- Conceio e princípios *2
+- Nulidades relacionadas à comunicação dos aos *2
+- Temas prácos relevanes *2
+- Auação do Ocial de Jusça em conexos de violência domésca e cumprimeno de medidas proevas *2
+- Auação em siuações de risco e proocolos de segurança *2
+- Garanas de direios undamenais no cumprimeno de diligências *2
+- Ineração com orças policiais e auoridades judiciais *2
+
+Direios Humanos e Tuela Coleva | 3 | 3
+- Teoria geral dos direios humanos *2
+- Fones, princípios, caraceríscas, dimensões e obrigações esaais de respeiar, proeger e promover direios *2
+- Inerpreação e solução de conios enre direios *2
+- Proeção inernacional dos direios humanos *2
+- Sisemas global (ONU) e ineramericano (OEA): esruura, órgãos e mecanismos *2
+- Responsabilidade inernacional do Esado e ormas de reparação *2
+- Jurisprudência e casos relevanes *2
+- Direios humanos e ordenameno jurídico brasileiro *2
+- Incorporação e hierarquia dos raados *2
+- Conrole de convencionalidade e diálogo das cores *2
+- Implemenação e polícas públicas de direios humanos *2
+- Processo e garanas em direios humanos *2
+- Dever esaal de invesgar, processar e julgar violações e combae à impunidade *2
+- Acesso à jusça, cenralidade das vímas e proeção a vímas e esemunhas (Lei nº 9.807/1999 e normas insucionais) *2
+- Igualdade e não discriminação *2
+- Direio andiscriminaório e racismo (Lei nº 14.532/2023) *2
+- Proeção de grupos vulneráveis. Lei nº 8.069/1990 (ECA), Lei nº 10.741/2003 (Esauo do Idoso) *2
+- Direios humanos em conexos especícos *2
+- Sisema prisional, segurança pública e conrole judicial. Lei nº 7.210/1984 (Lei de Execução Penal) *2
+- Direios socioambienais. Lei nº 6.938/1981 (Políca Nacional do Meio Ambiene) e povos radicionais (Decreo nº 6.040/2007 - PNPCT) *2
+- Violência de gênero (Lei nº 11.340/2006 - Lei Maria da Penha) e ouros conexos de vulnerabilidade (Lei nº 13.146/2015 - Pessoa com Deciência) *2
+- Eevação dos direios humanos *2
+- Tuela coleva ação civil pública como insrumeno de proeção de direios undamenais, conrole de polícas públicas e enrenameno de violações esruurais (Lei nº 7.347/1985 - Ação Civil Pública) *2
+- Parcipação social, insrumenos de conrole e mínimo exisencial *2
+
+Psicologia e Desenvolvimeno Humano | 3 | 3
+- Teorias da personalidade *2
+- Processos psicológicos básicos: percepção, aenção, movação, cognição, memória, aprendizagem e emoção *2
+- Desenvolvimeno humano em dierenes ases da vida *2
+- Psicologia Social e Insucional *2
+- Processos grupais e dinâmicas de grupo *2
+- Relações sociais e insucionais *2
+- Preconceio, esgma e exclusão social *2
+- Idendade social e culura *2
+
+Psicologia Clínica e Avaliação | 4 | 3
+- Psicologia Clínica *2
+- Abordagens psicológicas (psicanálise, humanismo, behaviorismo, Terapia Cognivo-Comporamenal) *2
+- Psicopaologia *2
+- Enrevisa clínica *2
+- Diagnósco psicológico *2
+- Avaliação Psicológica *2
+- Técnicas e insrumenos (eses, enrevisas, observação) *2
+- Elaboração de laudos, pareceres e relaórios psicológicos *2
+- Resolução CFP nº 9/2018 (esabelece direrizes para a realização de Avaliação Psicológica e regulamena o Sisema de Avaliação de Teses Psicológicos), Resolução CFP nº 6/2019 (Procedimenos e dire… *2
+
+Psicologia Jurídica e Polícas Públicas | 3 | 3
+- Psicologia Jurídica *2
+- Inerace com o sisema de jusça *2
+- Auação do psicólogo no Minisério Público, no Judiciário e em polícas públicas *2
+- Escua qualicada e acolhimeno de vímas *2
+- Avaliação psicológica no conexo orense *2
+- Depoimeno especial de crianças e adolescenes vímas de violência *2
+- Polícas Públicas e Direios Humanos *2
+- Polícas nacionais de assisência social *2
+- Sisema Único de Assisência Social (SUAS) *2
+- Proeção inegral de crianças e adolescenes *2
+- Proeção de pessoas idosas *2
+- Direios das mulheres, das pessoas com deciência, da população LGBTQIA+ e de grupos em siuação de vulnerabilidade *2
+- Esauo da Criança e do Adolescene (Lei nº 8.069/1990); Esauo do Idoso (Lei nº 10.741/2003); Políca Nacional de Assisência Social; Sisema Único de Assisência Social (SUAS); Resolução CFP n… *2
+- Código de Éca do Psicólogo *2
+- Sigilo prossional e limies da auação *2
+- Éca na auação inerdisciplinar *2
+
+Língua Poruguesa | 3 | 3
+- Compreensão e inerpreação de exos de gêneros variados, incluindo exos do dia a dia, ociais e inormavos *2
+- Reconhecimeno de pos e gêneros exuais, como caras, ocios, relaórios, comunicados e e-mails *2
+- Domínio da orograa e acenuação, incluindo o uso correo das leras e acenuação gráca *2
+- Domínio dos mecanismos de coesão exual, como conecores, repeção, reerência e encadeameno de ideias *2
+- Domínio da gramáca práca, incluindo concordância verbal e nominal, uso da ponuação, emprego do sinal indicavo de crase, colocação de pronomes áonos e esruura básica do período, compreendendo… *2
+- Reescriura e adapação de exos, envolvendo subsuição de palavras, simplicação de rechos e ajuse da linguagem e ormalidade *2
+
+Legislação Insucional do Pjsc | 3 | 3
+- Organização e uncionameno do Poder Judiciário de Sana Caarina, incluindo compeências dos órgãos e unções básicas *2
+- Regimeno Inerno do Tribunal de Jusça de Sana Caarina, abrangendo sessões, processameno de processos e auação adminisrava *2
+- Normas da Corregedoria-Geral da Jusça, compreendendo regras básicas de uncionameno e condua *2
+- Regime jurídico e disciplinar dos servidores, incluindo deveres, direios, responsabilidades e regras de condua no âmbio do PJSC *2
+
+Éca e Gesão no Serviço Público | 3 | 3
+- Princípios básicos da Adminisração Pública, como legalidade, moralidade, ineresse público, inegridade e probidade *2
+- Deveres e responsabilidades do servidor, abrangendo condua, sanções e processos disciplinares *2
+- Noções de improbidade adminisrava, com desaque para aos proibidos e suas consequências *2
+- Gesão de pessoas e comporameno organizacional, incluindo rabalho em equipe, comunicação e audes écas *2
+- Inegridade insucional no Poder Judiciário, abordando padrões écos, ransparência, prevenção de irregularidades e observância ao Código de Éca e Condua do Poder Judiciário de Sana Caarina *2
+- Resolução TJ nº 22/2021 do Tribunal de Jusça de Sana Caarina (esabelece direrizes de éca, condua e inegridade insucional para os servidores do Poder Judiciário) *2
+
+Noções de Inormáca e Proeção de Dados | 3 | 3
+- Fundamenos de inormáca, incluindo hardware, sofware, sisemas operacionais, aplicavos e inerne *2
+- Segurança da inormação, compreendendo cuidados com senhas, vírus, ameaças e boas prácas *2
+- Proeção de dados pessoais, incluindo direios do ular, deveres do servidor, segurança e condencialidade *2
+- Aplicação práca no âmbio do Poder Judiciário de Sana Caarina, abrangendo polícas de privacidade, raameno seguro de dados e normas insucionais *2
+- Lei nº 13.709/2018 (Lei Geral de Proeção de Dados), Resolução TJ nº 3/2021 do Tribunal de Jusça de Sana Caarina (esabelece direrizes sobre proeção de dados, segurança e raameno de inorma… *2
+
+Direios Humanos e Acesso à Jusça | 3 | 3
+- Princípios básicos dos direios humanos, incluindo dignidade da pessoa humana e igualdade *2
+- Proeção inernacional e consucional dos direios undamenais, com enoque na aplicação práca no Brasil *2
+- Acesso à jusça e garanas processuais, incluindo noções de conradiório, ampla deesa e eevidade da presação jurisdicional *2
+- Igualdade, não discriminação e grupos vulneráveis, com aenção a crianças, idosos, pessoas com deciência, mulheres e minorias *2
+- Polícas judiciárias de inclusão e cidadania, conemplando a auação do Poder Judiciário na promoção de direios e no acesso à jusça *2
+
+Noções de Direio Adminisravo | 3 | 3
+- Noções de organização adminisrava *2
+- Adminisração direa e indirea, cenralizada e descenralizada *2
+- Desconcenração *2
+- Princípios expressos e implícios da adminisração pública *2
+- Órgãos públicos *2
+- Agenes públicos *2
+- Poderes adminisravos *2
+- Ao adminisravo *2
+- Liciação e Conraos *2
+- Esruura adminisrava do Poder Judiciário de Sana Caarina e suas unções básicas. 12. Procedimenos inernos para aos adminisravos e ramiação de documenos. 13. Lei nº 14.133/2021 (Lei de … *2
+
+Noções de Direio Consucional | 3 | 3
+- Consuição Federal de 1988. Princípios undamenais *2
+- Direios e garanas undamenais: direios e deveres individuais e colevos, direios sociais, nacionalidade, cidadania, direios polícos e pardos polícos *2
+- Organização políco-adminisrava: União, Esados, Disrio Federal, Municípios e Terriórios *2
+- Adminisração pública: disposições gerais, servidores públicos *2
+- Poder Judiciário *2
+- Disposições gerais *2
+- Órgãos do Poder Judiciário: compeências *2
+- Esruura do TJSC: órgãos colegiados, varas e câmaras *2
+- Funções essenciais à Jusça: Minisério Público, advocacia e deensoria públicas *2
+- Conselho Nacional de Jusça (CNJ): composição, compeências e aplicação práca no TJSC *2
+
+Noções de Direio Civil | 3 | 3
+- Lei de Inrodução às Normas do Direio Brasileiro-LINDB (Decreo-Lei nº 4.657/1942) *2
+- Vigência, aplicação, inerpreação e inegração das leis *2
+- Conio das leis no empo *2
+- Ecácia da lei no espaço *2
+- Código Civil (Lei nº 10.406/2002) *2
+- Pessoas naurais: personalidade, capacidade, nome, esado, domicílio, direios da personalidade *2
+- Pessoas jurídicas: disposições gerais, domicílio, associações e undações *2
+- Bens *2
+- Faos jurídicos *2
+- Negócios jurídicos: aos lícios, ilícios *2
+- Noções de ramiação de processos judiciais e adminisravos no TJSC *2
+- Lei nº 12.682/2012 (dispõe sobre a elaboração e o arquivameno de documenos em meios eleromagnécos), Decreo Federal n. 8.539/2015 (dispõe sobre o uso do meio elerônico para a realização do pro… *2
+
+Noções de Direio Processual Civil | 3 | 3
+- Código de Processo Civil (Lei nº 13.105/2015) *2
+- Princípio do devido processo legal *2
+- Princípios do conradiório, da ampla deesa e do juiz naural *2
+- Pressuposos processuais *2
+- Jurisdição *2
+- Princípio da inércia *2
+- Ação *2
+- Condições da ação *2
+- Elemenos da ação *2
+- Classicação *2
+- Cooperação inernacional *2
+- Disposições gerais *2
+- Auxílio direo *2
+- Cara rogaória *2
+- Compeência *2
+
+Noções de Direio Penal | 3 | 3
+- Código Penal (Decreo-Lei nº 2.848/1940) *2
+- Aplicação da lei penal. Princípios da legalidade e da anerioridade *2
+- A lei penal no empo e no espaço *2
+- Tempo e lugar do crime *2
+- Conagem de prazo *2
+- Inerpreação da lei penal *2
+- Analogia *2
+- Irreroavidade da lei penal *2
+- Teoria do crime *2
+- Tipo penal objevo *2
+- Tipo penal subjevo *2
+- Iliciude *2
+- Causas excludenes. 13. Culpabilidade *2
+- Crimes conra a pessoa *2
+- Crimes conra o parimônio *2
+- Crimes conra a adminisração pública *2
+- Disposições consucionais aplicáveis ao direio penal *2
+- Crimes hediondos *2
+- Abuso de auoridade *2
+- Esauo da Criança e do Adolescene *2
+- Compeência das varas criminais do TJSC (Resolução TJ n. 35/2025, que especica as compeências de odas as unidades judiciárias) *2
+
+Noções de Direio Processual Penal | 3 | 3
+- Disposições preliminares do Código de Processo Penal *2
+- Inquério policial *2
+- Ação penal *2
+- Do juiz, do Minisério Público, do acusado e deensor, dos assisenes e auxiliares da jusça, dos perios e inérprees *2
+- Das ciações e inmações *2
+- Da senença *2
+- Do processo comum *2
+- Da Insrução criminal *2
+- Do procedimeno relavo aos processos da compeência do ribunal do júri *2
+- Da acusação e da insrução preliminar *2
+- Da pronúncia, da impronúncia e da absolvição sumária *2
+- Da preparação do processo para julgameno em plenário *2
+- Do alisameno dos jurados *2
+- Do desaorameno *2
+- Da organização da paua *2
+- Do soreio e da convocação dos jurados *2
+- Da unção do jurado *2
+- Da composição do Tribunal do Júri e da ormação do Conselho de Senença *2
+- Da reunião e das sessões do Tribunal do Júri *2
+- Da insrução em plenário *2
+- Dos debaes *2
+- Do quesonário e sua voação *2
+- Da aa dos rabalhos *2
+- Das aribuições do presidene do Tribunal do Júri *2
+- Prisão e liberdade provisória *2
+- Processo e julgameno dos crimes de responsabilidade dos uncionários públicos *2
+- O habeas corpus e seu processo *2
+- Disposições consucionais aplicáveis ao direio processual penal *2

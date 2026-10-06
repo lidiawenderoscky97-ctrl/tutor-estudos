@@ -1,0 +1,317 @@
+@concurso: Tribunal de Contas do Distrito Federal (tcdf) – Analista Administrativo de Controle Externo
+@banca: CEBRASPE
+Língua Portuguesa | 3 | 3
+- Compreensão e interpretação de textos de gêneros variados *2
+- Reconhecimento de tipos e gêneros textuais *2
+- Domínio da ortografia oficial *2
+- Domínio dos mecanismos de coesão textual *2
+- Emprego de elementos de referenciação, substituição e repetição, de conectores e de outros elementos de sequenciação textual *2
+- Emprego de tempos e modos verbais *2
+- Domínio da estrutura morfossintática do período *2
+- Emprego das classes de palavras *2
+- Relações de coordenação entre orações e entre termos da oração *2
+- Relações de subordinação entre orações e entre termos da oração *2
+- Emprego dos sinais de pontuação *2
+- Concordância verbal e nominal *2
+- Regência verbal e nominal *2
+- Emprego do sinal indicativo de crase *2
+- Colocação dos pronomes átonos *2
+- Reescrita de frases e parágrafos do texto *2
+- Significação das palavras *2
+- Substituição de palavras ou de trechos de texto *2
+- Reorganização da estrutura de orações e de períodos do texto *2
+- Reescrita de textos de diferentes gêneros e níveis de formalidade *2
+
+Lei Orgânica do Distrito Federal | 3 | 3
+- Fundamentos da organização dos poderes e do Distrito Federal *2
+- Organização do Distrito Federal *2
+- Organização dos poderes *2
+- Tributação e orçamento do Distrito Federal *2
+- Ordem econômica do Distrito Federal *2
+
+Conhecimentos do Distrito Federal e Política para Mulheres | 3 | 3
+- Domínio de tópicos atuais e relevantes acerca da realidade étnica, social, histórica, geográfica, cultural, política e econômica do Distrito Federal e da Região Integrada de Desenvolvimento do Dist… *2
+- Plano Distrital de Política para Mulheres (2020–2023) *2
+- Lei Federal nº 11.340/2006 – Lei Maria Penha *2
+
+Noções de Primeiros Socorros | 3 | 3
+- Cuidados iniciais com a vítima, reconhecimento de situações de urgência e emergência, acionamento do socorro especializado e condutas básicas em casos de engasgo, sangramento, fratura, queimadura, … *2
+
+Raciocínio Lógico e Matemática Financeira | 3 | 3
+- Estruturas lógicas *2
+- Lógica de argumentação *2
+- Analogias, inferências, deduções e conclusões *2
+- Lógica sentencial (ou proposicional) *2
+- Proposições simples e compostas *2
+- Tabelas-verdade *2
+- Equivalências *2
+- Leis de De Morgan *2
+- Diagramas lógicos *2
+- Lógica de primeira ordem *2
+- Princípios de contagem e probabilidade *2
+- Operações com conjuntos *2
+- Matemática financeira *2
+- Razão e proporção, porcentagem, juros simples e compostos, taxas de juros (nominal, efetiva, equivalente), sistemas de amortização e fluxo de caixa *2
+
+Lei Orgânica do Tcdf e Regimento Interno | 3 | 3
+- Lei Orgânica do TCDF *2
+- Natureza, competência e jurisdição *2
+- Composição *2
+- Plenário e câmaras *2
+- Presidente, vice-presidente, conselheiros, auditores e Ministério Público *2
+- Serviços auxiliares do TCDF *2
+- Regimento Interno do TCDF *2
+- Resolução nº 296/2016, títulos I, II e III (art. 1º a 116) *2
+
+Direito Constitucional | 3 | 3
+- Constituição da República Federativa do Brasil de 1988 *2
+- Princípios fundamentais *2
+- Aplicabilidade das normas constitucionais *2
+- Normas de eficácia plena, contida e limitada; normas programáticas *2
+- Emenda, reforma e revisão constitucional *2
+- Direitos e garantias fundamentais *2
+- Direitos e deveres individuais e coletivos, direitos sociais, direitos de nacionalidade, direitos políticos, partidos políticos *2
+- Organização político-administrativa do Estado *2
+- Estado federal brasileiro, União, estados, Distrito Federal e municípios *2
+- Administração pública *2
+- Disposições gerais *2
+- Servidores públicos *2
+- Poder Executivo *2
+- Atribuições e responsabilidades do presidente da República *2
+- Poder Legislativo *2
+- Estrutura *2
+- Funcionamento e atribuições *2
+- Processo legislativo *2
+- Fiscalização contábil, financeira e orçamentária *2
+- Comissões parlamentares de inquérito *2
+- Poder Judiciário *2
+- Órgãos do poder judiciário *2
+- Funções essenciais à justiça *2
+- Ministério Público *2
+- Advocacia pública *2
+- Defensoria Pública *2
+
+Direito Previdenciário | 3 | 3
+- Seguridade social *2
+- Origem e evolução legislativa no Brasil *2
+- Conceito, organização e princípios constitucionais *2
+- Regime geral da previdência social – RGPS: Lei federal nº 8.212/1991 e Lei federal nº 8.213/1991 *2
+- Regime próprio de previdência social dos servidores públicos – RPPS. 3 Regime Próprio de Previdência Social do Distrito Federal – RPPS/DF: Lei Complementar distrital nº 769/2008 *2
+- Previdência complementar: Lei Complementar federal nº 108/2001, Lei Complementar federal nº 109/2001 e Lei Complementar distrital nº 932/2017 *2
+
+Noções de Direito Civil | 3 | 3
+- Lei de Introdução às Normas do Direito Brasileiro *2
+- Pessoas *2
+- Pessoas naturais *2
+- Pessoas jurídicas *2
+- Domicílio *2
+- Bens *2
+- Fatos jurídicos *2
+- Negócio jurídico *2
+- Atos jurídicos lícitos e ilícitos *2
+- Prescrição e decadência *2
+
+Noções de Direito Tributário | 3 | 3
+- Direito tributário *2
+- Conceito *2
+- Fontes do direito tributário *2
+- Sistema Tributário Nacional *2
+- Princípios do direito tributário *2
+- Limitações constitucionais do poder de tributar da União, dos estados, do Distrito Federal e dos municípios *2
+- Repartição das receitas tributárias *2
+- Tributo *2
+- Natureza jurídica *2
+- Espécies *2
+- Imposto *2
+- Taxa *2
+- Contribuição de melhoria *2
+- Empréstimo compulsório *2
+- Contribuições *2
+
+Análise de Dados, Noções de Estatística e Inteligência Artificial | 3 | 3
+- Fundamentos de análise de dados *2
+- Tipos de dados (estruturados e não estruturados; quantitativos e qualitativos) *2
+- Produtos da análise de dados (base de dados, relatórios, planilhas e dashboards) *2
+- Estatística descritiva e análise exploratória de dados *2
+- Tabelas de distribuição de frequências, medidas de tendência central (média, mediana e moda) e medidas de dispersão (variância e desvio-padrão) voltadas à identificação de anomalias *2
+- Identificação de outliers e análise de séries históricas *2
+- Introdução à visualização de dados e storytelling *2
+- tipos de gráficos (barras, pizza, linha, dispersão, histograma) *2
+- boas práticas para construção de gráficos *2
+- Princípios de narrativa com dados *2
+- Inteligência artificial generativa *2
+- Engenharia de prompt (contexto, persona, exemplos e estrutura de saída; encandeamento de prompt) *2
+- Vieses cognitivos *2
+- Ética no uso de dados e inteligência artificial *2
+- Utilização de Excel (Microsoft 365) para análise de dados *2
+- Operação em Microsoft Excel Avançado (Power Query para extração e tratamento de dados) *2
+- Fórmulas lógicas, financeiras e de busca *2
+- Tabelas dinâmicas e tratamento de grandes bases relacionais *2
+
+Direito Administrativo | 3 | 3
+- Estado, governo e administração pública *2
+- Conceitos *2
+- Elementos *2
+- Direito administrativo *2
+- Conceito *2
+- Objeto *2
+- Fontes *2
+- Ato administrativo *2
+- Conceito, requisitos, atributos, classificação e espécies *2
+- Extinção do ato administrativo: cassação, anulação, revogação e convalidação *2
+- Decadência administrativa *2
+- Agentes públicos *2
+- Disposições constitucionais aplicáveis *2
+- Espécies *2
+- Cargo, emprego e função pública *2
+- Provimento *2
+- Vacância *2
+- Efetividade, estabilidade e vitaliciedade *2
+- Remuneração *2
+- Direitos e deveres *2
+- Responsabilidades *2
+- Sindicância e processo administrativo disciplinar *2
+- Poderes da administração pública *2
+- Hierárquico, disciplinar, regulamentar e de polícia *2
+- Uso e abuso do poder *2
+- Regime jurídico-administrativo *2
+- Princípios expressos e implícitos da administração pública *2
+- Responsabilidade civil do Estado *2
+- Evolução histórica *2
+- Responsabilidade por ato comissivo do Estado *2
+- Responsabilidade por omissão do Estado *2
+- Requisitos para a demonstração da responsabilidade do Estado *2
+- Causas excludentes e atenuantes da responsabilidade do Estado *2
+- Reparação do dano *2
+- Direito de regresso *2
+- Serviços públicos *2
+- Elementos constitutivos *2
+- Classificação *2
+- Princípios *2
+- Formas de prestação e meios de execução *2
+- Organização administrativa *2
+- Autarquias, fundações, empresas públicas e sociedades de economia mista *2
+- Entidades paraestatais e terceiro setor *2
+- Serviços sociais autônomos, entidades de apoio, organizações sociais, organizações da sociedade civil de interesse público *2
+- Controle da administração pública *2
+- Controle exercido pela administração pública *2
+- Controle judicial *2
+- Controle legislativo *2
+- Improbidade administrativa: Lei federal nº 8.429/1992 *2
+- Lei federal nº 9.784/1999 e suas alterações (processo administrativo) aplicável ao Distrito Federal por força da Lei distrital nº 2.834/2001 *2
+- Licitações e contratos administrativos *2
+- Lei federal nº 14.133/2021 *2
+- Contratos administrativos *2
+- Decreto distrital nº 44.330/2023 *2
+- Lei nº 12.527/2011 (Lei de Acesso à Informação) *2
+- Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais – LGPD) *2
+
+Administração Financeira e Orçamentária | 3 | 3
+- Orçamento público *2
+- Conceito *2
+- Técnicas orçamentárias *2
+- Princípios orçamentários *2
+- Ciclo orçamentário *2
+- Processo orçamentário *2
+- Orçamento público no Brasil *2
+- Sistema de planejamento e de orçamento federal *2
+- Plano plurianual *2
+- Diretrizes orçamentárias *2
+- Orçamento anual *2
+- Sistema e processo de orçamentação *2
+- Classificações orçamentárias *2
+- Estrutura programática *2
+- Créditos ordinários e adicionais *2
+- Programação e execução orçamentária e financeira *2
+- Descentralização orçamentária e financeira *2
+- Acompanhamento da execução *2
+- Sistemas de informações *2
+- Alterações orçamentárias *2
+- Receita pública *2
+- Conceito e classificações *2
+- Estágios *2
+- Fontes *2
+- Dívida ativa *2
+- Despesa pública *2
+- Restos a pagar *2
+- Despesas de exercícios anteriores *2
+- Dívida flutuante e fundada *2
+- Suprimento de fundos *2
+- Lei Complementar nº 101/2000 e suas alterações (Lei de Responsabilidade Fiscal) *2
+- Lei nº 4.320/1964 e suas alterações *2
+- Transferências voluntárias *2
+- Decreto distrital nº 32.598/2010 (normas de planejamento, orçamento, finanças, patrimônio e contabilidade do Distrito Federal) *2
+
+Administração Geral e Pública | 3 | 3
+- Evolução da administração *2
+- Perspectiva clássica *2
+- Administração científica *2
+- Organizações burocráticas *2
+- Perspectiva humanista *2
+- Movimento das relações humanas *2
+- Perspectiva dos recursos humanos *2
+- Abordagem das ciências comportamentais *2
+- Ciência administrativa *2
+- Pensamento sistêmico *2
+- Teoria da contingência *2
+- Evolução da administração do setor público brasileiro *2
+- Estrutura organizacional do Estado: três poderes *2
+- Formas de administração pública *2
+- Administração pública patrimonialista *2
+- Administração pública burocrática *2
+- Administração pública gerencial *2
+- Governança *2
+- Princípios da governança pública *2
+- Capacidade de resposta *2
+- Integridade *2
+- Confiabilidade *2
+- Melhoria regulatória *2
+- Transparência *2
+- Prestação de contas e responsabilidades *2
+- Práticas e mecanismos de governança pública *2
+- Liderança *2
+- Estratégia *2
+- Controle *2
+- Funções administrativas; planejamento, organização, direção e controle *2
+- Ferramentas da administração *2
+- Análise SWOT *2
+- Matriz GUT. 6.3 5W2H. 6.4 Ciclo PDCA. 6.5 Mapas estratégicos. 6.6 Benchmarking. 6.7 Fatores críticos de sucesso *2
+- Modelagem de processos *2
+- Propósito da modelagem de processos *2
+- Notações *2
+- BPMN *2
+- Cadeia de processos orientada a eventos (EPC) *2
+- IDF0 *2
+- Cadeia de valor *2
+- Gestão de pessoas por competências *2
+- Conhecimentos, habilidades e atitudes (CHA) *2
+- Matriz de competência *2
+- Avaliação participativa por objetivo (APPO) *2
+- Motivação *2
+- Gestão de projetos e portfólios *2
+- Padrões de referência em gerenciamento de projetos: PMBOK, Prince, Scrum e métodos ágeis *2
+- Cronogramas *2
+- Decomposição de escopo *2
+- Sequenciamento de atividades *2
+- Estimativa de esforço e duração *2
+- Alocação de pessoas *2
+- Kanban *2
+
+Regime Jurídico dos Servidores Públicos Civis do Distrito Federal | 3 | 3
+- Lei Complementar nº 840/2011 (regime jurídico dos servidores públicos civis do Distrito Federal, das autarquias e das fundações públicas distritais) *2
+
+Gestão de Contratos | 3 | 3
+- Legislação aplicável à contratação de bens e serviços *2
+- Lei nº 14.133/2021 *2
+- Instrução Normativa nº 5/2017 da Secretaria de Gestão do Ministério do Planejamento, Desenvolvimento e Gestão *2
+- Decreto distrital nº 44.330/2023 *2
+- Elaboração e fiscalização de contratos *2
+- Cláusulas e indicadores de nível de serviço *2
+- Papel do fiscalizador do contrato *2
+- Papel do preposto da contratada *2
+- Acompanhamento da execução contratual *2
+- Registro e notificação de irregularidades *2
+- Definição e aplicação de penalidades e sanções administrativas *2
+- Equação econômico-financeira *2
+- Reajuste *2
+- Repactuação *2
