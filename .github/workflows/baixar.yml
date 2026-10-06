@@ -1,0 +1,20 @@
+name: baixar-editais
+on:
+  push:
+    branches: [editais-teste]
+    paths: [fontes.txt, .github/workflows/baixar.yml]
+permissions:
+  contents: write
+jobs:
+  baixar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p pdf
+          while read id url; do [ -z "$id" ] && continue
+            curl -sSL -m 120 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126 Safari/537.36" -o "pdf/$id.pdf" "$url" || true
+            echo "$id $(file -b --mime-type pdf/$id.pdf) $(stat -c%s pdf/$id.pdf)" | tee -a pdf/relatorio.txt
+          done < fontes.txt
+          git config user.name bot; git config user.email bot@users.noreply.github.com
+          git add pdf; git commit -qm "editais de teste" || true; git push origin HEAD:editais-teste
