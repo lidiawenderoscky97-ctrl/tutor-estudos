@@ -1,0 +1,32 @@
+name: baixar-leis
+on:
+  push:
+    branches: [leis-fonte]
+    paths: [fontes.txt, .github/workflows/leis.yml]
+permissions:
+  contents: write
+jobs:
+  baixar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: baixar
+        run: |
+          sudo apt-get install -y -q poppler-utils >/dev/null
+          mkdir -p fonte
+          while read id url; do
+            [ -z "$id" ] && continue
+            ok=0
+            for t in 1 2 3; do
+              if curl -sSL --compressed -m 120 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36" -o "fonte/$id.bin" "$url"; then ok=1; break; fi
+              sleep 5
+            done
+            tipo=$(file -b --mime-type "fonte/$id.bin" || true)
+            echo "$id $ok $tipo $(stat -c%s fonte/$id.bin 2>/dev/null)" | tee -a fonte/relatorio.txt
+            if [ "$tipo" = "application/pdf" ]; then pdftotext "fonte/$id.bin" "fonte/$id.txt"; rm "fonte/$id.bin"; else mv "fonte/$id.bin" "fonte/$id.html"; fi
+          done < fontes.txt
+      - name: gravar
+        run: |
+          git config user.name "estudo-guiado-bot"; git config user.email "bot@users.noreply.github.com"
+          git add fonte; git commit -qm "fontes das leis $(date -u +%F)" || true
+          git push origin HEAD:leis-fonte
