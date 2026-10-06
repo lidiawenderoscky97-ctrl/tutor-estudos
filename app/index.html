@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="35">
+<meta name="versao" content="36">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -1477,8 +1477,8 @@ function ehCabecalho(l){
 // Formatos cobertos: "MATÉRIA: 1 item. 2 item. 2.1 subitem" (Cebraspe), "Matéria - 1 item" (FGV), matéria em linha própria
 // com itens numerados (FGV/FCC/Vunesp), "BLOCO I: Língua Portuguesa" + "(16) questões" (Vunesp) e "1. DIREITO PENAL: …".
 // Editais com vários cargos: cada matéria guarda o grupo (cargo/módulo) para a pessoa escolher o que importar.
-const ED_INICIO = /conte[úu]dos? program[áa]tico|objetos? de avalia[çc][ãa]o|programas? (das|de) provas?|^(\d[\d.\s]*)?conhecimentos (b[áa]sicos|gerais|espec[íi]ficos|comuns|especializados)\b|^(\d[\d.\s]*)?(bloco|m[óo]dulo)\s+[ivx\d]+\b/i;
-const ED_GRUPO = /^(\d[\d.\s]*)?((conhecimentos (gerais|b[áa]sicos|espec[íi]ficos|comuns|especializados|complementares|em [a-zà-ú ]+|de direito)|prova (objetiva|discursiva)|parte (geral|espec[íi]fica|[ivx\d]+))\b.*|(bloco|m[óo]dulo|grupo|eixo)\s+[ivx\d]+\b.*|n[íi]vel (m[ée]dio|superior|fundamental)\b.*|(todos os|para (todos|o cargo|os cargos))\b.*|cargos?\s*[:\-–]?.*|[áa]reas? (de|do|da)\b.*|especialidades?\s*[:\-–].*|disciplinas?|mat[ée]rias?)$/i;
+const ED_INICIO = /conte[úu]dos? program[áa]tico|objetos? de avalia[çc][ãa]o|programas? (das|de) provas?|^(\d[\d.\s]*)?conhecimentos (b[áa]sicos|gerais|espec[íi]ficos|comuns|especializados)\b|^(\d[\d.\s]*)?(bloco|m[óo]dulo)\s+(?:[ivx\d]+|um|dois|tr[êe]s|quatro|cinco|seis)\b|^anexo\s+[ivxl\d]+\s*[-–—:]?\s*(programas?|conte[úu]dos?)\b|^programas?( das provas)?\s*[-–—:]?\s*$/i;
+const ED_GRUPO = /^(\d[\d.\s]*)?((conhecimentos (gerais|b[áa]sicos|espec[íi]ficos|comuns|especializados|complementares|em [a-zà-ú ]+|de direito)|prova (objetiva|discursiva)|parte (geral|espec[íi]fica|[ivx\d]+))\b.*|(bloco|m[óo]dulo|grupo|eixo)\s+(?:[ivx\d]+|um|dois|tr[êe]s|quatro|cinco|seis)\b.*|n[íi]vel (m[ée]dio|superior|fundamental)\b.*|(todos os|para (todos|o cargo|os cargos))\b.*|cargos?\s*[:\-–]?.*|[áa]reas? (de|do|da)\b.*|especialidades?\s*[:\-–].*|disciplinas?|mat[ée]rias?)$/i;
 const ED_CARGO = /\b(analista|t[ée]cnic[oa]|auxiliar|escrevente|agente|oficial|auditor|assistente|escriv[ãa]o|delegado|soldado|professor|especialista|procurador|inspetor|perito|investigador|cargo|especialidade|engenheir[oa]|contador|m[ée]dico|enfermeir[oa]|psic[óo]log[oa]|assessor|juiz|promotor|defensor|policial|guarda|bombeiro)\b/i;
 function edLimparLinhas(linhas){
   // tira cabeçalhos e rodapés (2 primeiras e 2 últimas linhas de cada página que se repetem), números de página e endereços soltos
@@ -1537,7 +1537,7 @@ function editalParaTexto(linhasBrutas){
   const linhas = edLimparLinhas(linhasBrutas), n = linhas.map(norm);
   const curta = i => linhas[i].length <= 110;
   // início: o candidato com mais matérias logo abaixo
-  const cands = n.map((l,i) => i).filter(i => curta(i) && ED_INICIO.test(linhas[i].trim()) && !/(constante|conforme|de acordo|abrangendo|previsto|presente)\b/.test(n[i]));
+  const cands = n.map((l,i) => i).filter(i => curta(i) && ED_INICIO.test(linhas[i].trim()) && !/(constante|consta|conforme|de acordo|abrangendo|previsto|presente|deste edital|neste edital)\b/.test(n[i]) && (edMaius(linhas[i]) || /^anexo/i.test(linhas[i].trim()) || (linhas[i].trim().length <= 60 && !/^\d/.test(linhas[i].trim()))));
   const pont = i => { let p = 0; for(let j = i+1; j < Math.min(linhas.length, i+400); j++){ const l = linhas[j].trim(), dp = l.match(/^(?:\d{1,2}[.)]\s*)?([^:]{3,80}):\s*(.*)$/), hf = l.match(/^([^:\-–]{3,70}?)\s+[-–]\s+(\d.*)$/);
     let resto = null;
     if(dp && edEhMateria(dp[1])) resto = dp[2]; else if(hf && edEhMateria(hf[1])) resto = hf[2]; else if(l.length < 90 && edEhMateria(l)) resto = '';
@@ -1548,58 +1548,70 @@ function editalParaTexto(linhasBrutas){
     return p * (/conte[úu]do|objetos? de avalia/i.test(linhas[i]) ? 1.3 : 1); };
   let ini = -1, melhor = 0;
   const ps = cands.map(i => [i, pont(i)]); ps.forEach(([,p]) => { if(p > melhor) melhor = p; });
-  const bom = ps.find(([,p]) => p >= Math.max(2, melhor*.6)); if(bom) ini = bom[0];
+  const bons = ps.filter(([,p]) => p >= Math.max(2, melhor*.5)); if(bons.length) ini = bons[0][0];
   if(ini < 0){ const cp = cands.find(i => /conte[úu]dos? program[áa]tico/i.test(linhas[i]) && linhas[i].length <= 80); if(cp !== undefined) ini = cp; }
+  const analisar = ini => {
   let fim = linhas.length;
-  if(ini >= 0) for(let i = ini+3; i < linhas.length; i++){
-    const l = linhas[i].trim();
-    if((/^anexo\s+[ivxl\d]+\b/i.test(l) && !/conte[úu]do|program/i.test(l)) || (/^\d{1,2}\s*\.?\s+D[AOE]S?\s+[A-ZÀ-Þ ]{4,}$/.test(l) && !/conhecimento|avalia/i.test(l)) || /^(cronograma|quadro de vagas|requisitos e atribui|modelo de|formul[áa]rio|despacho\b|subse[çc][ãa]o\s+[ivxl]+\s*[-–])/i.test(l)){ fim = i; break; } }
-  const corpo = linhas.slice(ini >= 0 ? ini+1 : 0, fim);
-  const repet = {}; linhasBrutas.forEach(l => { const k = norm(l.trim().replace(/[:\-–]\s*$/,'')); repet[k] = (repet[k]||0) + 1; });
-  const mats = []; let atual = null, grupo = '', cargo = '', area = '', ultCargo = -9, ultArea = false, ultMat = -9, k = 0;
-  const semRepetir = x => { const w = x.split(/\s+/); if(w.length % 2 === 0 && w.slice(0, w.length/2).join(' ').toLowerCase() === w.slice(w.length/2).join(' ').toLowerCase()) return w.slice(0, w.length/2).join(' '); return x; };
-  const nova = (nome, resto) => { atual = {nome: tituloMat(semRepetir(nome.replace(/^[\dIVX]+[.)\-–]?\s+/,'').replace(/[:\-–\s]+$/,'').trim())), txt: resto || '', grupo, cargo, area, q: null, nomeBruto: nome}; mats.push(atual); ultMat = k; };
-  for(k = 0; k < corpo.length; k++){
-    let l = corpo[k].trim();
-    const q = l.match(/^\(?(\d{1,3})\)?\s*quest[õo]es\b[^a-z]*$/i) || l.match(/^(?:n[úu]mero de )?quest[õo]es\s*[:\-–]\s*(\d{1,3})\b/i);
-    if(q){ if(atual) atual.q = +q[1]; continue; }
-    // nome de matéria quebrado em duas linhas ("AUDITORIA …(COMUM A TODAS AS ÁREAS" / "DE HABILITAÇÃO)")
-    if(atual && !atual.daArea && ultMat === k-1 && !atual.txt.trim() && l.length <= 90 && edMaius(l) && !/^\d/.test(l) && (/[(,]\s*[^)]*$/.test(atual.nomeBruto) || /^(d[aeo]s?|e|ou|em|a)\b/i.test(l) || /\)$/.test(l))){
-      atual.nomeBruto += ' ' + l; atual.nome = tituloMat(semRepetir(atual.nomeBruto.replace(/^[\dIVX]+[.)\-–]?\s+/,'').replace(/[:\-–\s]+$/,''))); ultMat = k; continue; }
-    // "ÁREA DE HABILITAÇÃO: DIREITO", "ESPECIALIDADE: …": a pessoa escolhe a sua, como o cargo
-    const ar = l.match(/^(?:[áa]reas?\s+de\s+(?:habilita[çc][ãa]o|forma[çc][ãa]o|atua[çc][ãa]o|conhecimento)|especialidades?|perfil|[áa]rea)\s*[:\-–]\s*(.{3,})$/i);
-    if(ar && edMaius(l)){ area = tituloMat(ar[1].replace(/[:\-–]\s*$/,'')); ultCargo = k; ultArea = true; nova('Conhecimentos específicos – ' + area, ''); atual.daArea = true; continue; }
-    // "BLOCO I: Língua Portuguesa" / "MÓDULO II – Conhecimentos Específicos"
-    const bl = l.match(/^((?:bloco|m[óo]dulo|grupo|eixo|parte)\s+[ivx\d]+)\s*[:\-–(]\s*(.+?)\)?$/i);
-    if(bl){ grupo = bl[1].toUpperCase() + ' – ' + bl[2]; if(edEhMateria(bl[2]) && !ED_GRUPO.test(norm(bl[2]))) nova(bl[2], ''); else atual = null; continue; }
-    if(l.length <= 140 && ED_GRUPO.test(norm(l.replace(/[:\-–]\s*$/,''))) && (edMaius(l) || (!/^\d/.test(l.trim()) && /^(conhecimentos|bloco|m[óo]dulo|parte|grupo|eixo|n[íi]vel|cargos?\s*\d*\s*:|prova)/i.test(l.trim())))){
-      const g = l.replace(/[:\-–]\s*$/,'').trim();
-      if(repet[norm(g)] >= 3 && !/^cargos?\b/i.test(g) && !(ED_CARGO.test(g) && edMaius(g))) continue; // título repetido em todas as páginas (cabeçalho de tabela)
-      if(/^cargos?\b/i.test(g) || (ED_CARGO.test(g) && edMaius(g))){ cargo = tituloMat(g.replace(/^cargos?\s*\d*\s*[:\-–]?\s*/i,'')); grupo = ''; area = ''; ultCargo = k; ultArea = false; }
-      else grupo = tituloMat(semRepetir(g.replace(/^[\d.\s]+/,'').replace(/\s+\d{1,3}$/,'')));
-      // "CONHECIMENTOS GERAIS (cargo de nível médio – Técnico…)" muda o cargo; "(todos os cargos…)" vale para todos
-      const pc = g.match(/\(([^)]*)\)/);
-      if(pc && /tod[oa]s|comum/i.test(pc[1])){ cargo = ''; area = ''; }
-      else if(pc && /cargos?\b/i.test(pc[1])){ cargo = tituloMat(pc[1].replace(/^(para )?(o |os )?cargos?\s*(de\s*)?/i,'')); area = ''; }
-      atual = null; continue; }
-    // título de cargo quebrado em duas linhas ("…ESPECIALIDADE:" / "MÉDICO PSIQUIATRA")
-    if(ultCargo === k-1 && l.length <= 90 && edMaius(l) && !MATERIA_CONHECIDA.test(l.toLowerCase()) && !/:\s*\S/.test(l) && /([,(:–\-]|\b(de|da|do|das|dos|e|em|sem|com|para))\s*$/i.test(corpo[k-1].trim())){ const c = tituloMat(l.replace(/[:\-–]\s*$/,'')); if(ultArea){ area += ' ' + c; if(atual && atual.daArea){ atual.area = area; atual.nome = tituloMat('Conhecimentos específicos – ' + area); } } else cargo += ' ' + c; ultCargo = k; continue; }
-    // cargo em linha própria, em maiúsculas (ex.: "ANALISTA JUDICIÁRIO – SEM ESPECIALIDADE", "CARGO 3: ANALISTA – ESPECIALIDADE: MÉDICO")
-    const iniCargo = new RegExp('^(cargo\\b|' + ED_CARGO.source.replace(/^\\b\(/,'(?:').replace(/\)\\b$/,')') + '\\b)', 'i');
-    if(l.length <= 140 && edMaius(l) && (iniCargo.test(l.trim()) || (ED_CARGO.test(l) && !/:\s*\S/.test(l))) && !MATERIA_CONHECIDA.test(l.toLowerCase())){
-      cargo = tituloMat(l.replace(/^cargos?\s*\d*\s*[:\-–]?\s*/i,'').replace(/[:\-–]\s*$/,'')); grupo = ''; area = ''; atual = null; ultCargo = k; ultArea = false; continue; }
-    // continuação de título quebrado (linha toda em maiúsculas logo após um cargo/matéria sem texto)
-    const dp = l.match(/^(\d{1,2}[.)]\s*)?([^:]{3,80}):\s*(.*)$/);
-    if(dp){ dp.splice(1,1,...[]); }
-    if(dp && edEhMateria(dp[1]) && !(/^\d/.test(l) && !edMaius(dp[1])) && !/^(lei|decreto|resolu[çc][ãa]o|art)\b.*\d/i.test(dp[1].trim())){ nova(dp[1], dp[2]); continue; }
-    const hf = l.match(/^([A-ZÀ-Þ][^:\-–]{2,70}?)\s+[-–]\s+(\d.*|[A-ZÀ-Þ].*)$/);
-    if(hf && (edEhMateria(hf[1]) || /^\d/.test(hf[2])) && !/[.;,]/.test(hf[1]) && hf[1].split(' ').length <= 10){ nova(hf[1], hf[2]); continue; }
-    if(l.length <= 90 && edEhMateria(l) && !(atual && !/[.;:]$/.test(atual.txt.trim()) && atual.txt && !edMaius(l))){ nova(l, ''); continue; }
-    if(atual) atual.txt += ' ' + l;
-  }
-  let out = mats.map(m => ({...m, tops: edItens(m.txt)})).filter(m => m.tops.length);
-  // mesma matéria repetida no mesmo grupo/cargo: junta
-  const porChave = {}; out = out.filter(m => { const k = norm(m.nome)+'|'+m.cargo+'|'+m.area; if(porChave[k]){ porChave[k].tops.push(...m.tops.filter(x => !porChave[k].tops.includes(x))); return false; } porChave[k] = m; return true; });
+    if(ini >= 0) for(let i = ini+3; i < linhas.length; i++){
+      const l = linhas[i].trim();
+      if((/^anexo\s+[ivxl\d]+\b/i.test(l) && !/conte[úu]do|program/i.test(l + ' ' + (linhas[i+1]||'') + ' ' + (linhas[i+2]||''))) || (/^\d{1,2}\s*\.?\s+D[AOE]S?\s+[A-ZÀ-Þ ]{4,}$/.test(l) && !/conhecimento|avalia/i.test(l)) || /^(cronograma|quadro de vagas|requisitos e atribui|modelo de|formul[áa]rio|despacho\b|subse[çc][ãa]o\s+[ivxl]+\s*[-–])/i.test(l)){ fim = i; break; } }
+    const corpo = linhas.slice(ini >= 0 ? ini+1 : 0, fim);
+    const repet = {}; linhasBrutas.forEach(l => { const k = norm(l.trim().replace(/[:\-–]\s*$/,'')); repet[k] = (repet[k]||0) + 1; });
+    const mats = []; let atual = null, grupo = '', cargo = '', area = '', ultCargo = -9, ultArea = false, ultMat = -9, k = 0;
+    const semRepetir = x => { const w = x.split(/\s+/); if(w.length % 2 === 0 && w.slice(0, w.length/2).join(' ').toLowerCase() === w.slice(w.length/2).join(' ').toLowerCase()) return w.slice(0, w.length/2).join(' '); return x; };
+    const nova = (nome, resto) => { atual = {nome: tituloMat(semRepetir(nome.replace(/^[\dIVX]+[.)\-–]?\s+/,'').replace(/[:\-–\s]+$/,'').trim())), txt: resto || '', grupo, cargo, area, q: null, nomeBruto: nome}; mats.push(atual); ultMat = k; };
+    for(k = 0; k < corpo.length; k++){
+      let l = corpo[k].trim();
+      const q = l.match(/^\(?(\d{1,3})\)?\s*quest[õo]es\b[^a-z]*$/i) || l.match(/^(?:n[úu]mero de )?quest[õo]es\s*[:\-–]\s*(\d{1,3})\b/i);
+      if(q){ if(atual) atual.q = +q[1]; continue; }
+      // nome de matéria quebrado em duas linhas ("AUDITORIA …(COMUM A TODAS AS ÁREAS" / "DE HABILITAÇÃO)")
+      if(atual && !atual.daArea && ultMat === k-1 && !atual.txt.trim() && l.length <= 90 && edMaius(l) && !/^\d/.test(l) && (/[(,]\s*[^)]*$/.test(atual.nomeBruto) || /^(d[aeo]s?|e|ou|em|a)\b/i.test(l) || /\)$/.test(l))){
+        atual.nomeBruto += ' ' + l; atual.nome = tituloMat(semRepetir(atual.nomeBruto.replace(/^[\dIVX]+[.)\-–]?\s+/,'').replace(/[:\-–\s]+$/,''))); ultMat = k; continue; }
+      // "ÁREA DE HABILITAÇÃO: DIREITO", "ESPECIALIDADE: …": a pessoa escolhe a sua, como o cargo
+      const ar = l.match(/^(?:[áa]reas?\s+de\s+(?:habilita[çc][ãa]o|forma[çc][ãa]o|atua[çc][ãa]o|conhecimento)|especialidades?|perfil|[áa]rea)\s*[:\-–]\s*(.{3,})$/i);
+      if(ar && edMaius(l)){ area = tituloMat(ar[1].replace(/[:\-–]\s*$/,'')); ultCargo = k; ultArea = true; nova('Conhecimentos específicos – ' + area, ''); atual.daArea = true; continue; }
+      // "BLOCO I: Língua Portuguesa" / "MÓDULO II – Conhecimentos Específicos"
+      const bl = l.match(/^((?:bloco|m[óo]dulo|grupo|eixo|parte)\s+(?:[ivx\d]+|um|dois|tr[êe]s|quatro|cinco|seis))\s*[:\-–(]\s*(.+?)\)?$/i);
+      if(bl){ grupo = bl[1].toUpperCase() + ' – ' + bl[2]; if(edEhMateria(bl[2]) && !ED_GRUPO.test(norm(bl[2]))) nova(bl[2], ''); else atual = null; continue; }
+      if(l.length <= 140 && ED_GRUPO.test(norm(l.replace(/[:\-–]\s*$/,''))) && (edMaius(l) || (!/^\d/.test(l.trim()) && /^(conhecimentos|bloco|m[óo]dulo|parte|grupo|eixo|n[íi]vel|cargos?\s*\d*\s*:|prova)/i.test(l.trim())))){
+        const g = l.replace(/[:\-–]\s*$/,'').trim();
+        if(repet[norm(g)] >= 3 && !/^cargos?\b/i.test(g) && !(ED_CARGO.test(g) && edMaius(g))) continue; // título repetido em todas as páginas (cabeçalho de tabela)
+        if(/^cargos?\b/i.test(g) || (ED_CARGO.test(g) && edMaius(g))){ cargo = tituloMat(g.replace(/^cargos?\s*\d*\s*[:\-–]?\s*/i,'')); grupo = ''; area = ''; ultCargo = k; ultArea = false; if(atual && !atual.txt.trim() && /^cargos?\s*:/i.test(g)){ atual.cargo = cargo; atual.area = ''; continue; } }
+        else grupo = tituloMat(semRepetir(g.replace(/^[\d.\s]+/,'').replace(/\s+\d{1,3}$/,'')));
+        // "CONHECIMENTOS GERAIS (cargo de nível médio – Técnico…)" muda o cargo; "(todos os cargos…)" vale para todos
+        const pc = g.match(/\(([^)]*)\)/);
+        if(pc && /tod[oa]s|comum/i.test(pc[1])){ cargo = ''; area = ''; }
+        else if(pc && /cargos?\b/i.test(pc[1])){ cargo = tituloMat(pc[1].replace(/^(para )?(o |os )?cargos?\s*(de\s*)?/i,'')); area = ''; }
+        atual = null; continue; }
+      // título de cargo quebrado em duas linhas ("…ESPECIALIDADE:" / "MÉDICO PSIQUIATRA")
+      if(ultCargo === k-1 && l.length <= 90 && edMaius(l) && !MATERIA_CONHECIDA.test(l.toLowerCase()) && !/:\s*\S/.test(l) && /([,(:–\-]|\b(de|da|do|das|dos|e|em|sem|com|para))\s*$/i.test(corpo[k-1].trim())){ const c = tituloMat(l.replace(/[:\-–]\s*$/,'')); if(ultArea){ area += ' ' + c; if(atual && atual.daArea){ atual.area = area; atual.nome = tituloMat('Conhecimentos específicos – ' + area); } } else cargo += ' ' + c; ultCargo = k; continue; }
+      // cargo em linha própria, em maiúsculas (ex.: "ANALISTA JUDICIÁRIO – SEM ESPECIALIDADE", "CARGO 3: ANALISTA – ESPECIALIDADE: MÉDICO")
+      const iniCargo = new RegExp('^(cargo\\b|' + ED_CARGO.source.replace(/^\\b\(/,'(?:').replace(/\)\\b$/,')') + '\\b)', 'i');
+      if(l.length <= 140 && edMaius(l) && (iniCargo.test(l.trim()) || (ED_CARGO.test(l) && !/:\s*\S/.test(l))) && !MATERIA_CONHECIDA.test(l.toLowerCase())){
+        cargo = tituloMat(l.replace(/^cargos?\s*\d*\s*[:\-–]?\s*/i,'').replace(/[:\-–]\s*$/,'')); grupo = ''; area = ''; atual = null; ultCargo = k; ultArea = false; continue; }
+      // continuação de título quebrado (linha toda em maiúsculas logo após um cargo/matéria sem texto)
+      const pg = l.match(/^(?:programas?|conte[úu]dos?(?: program[áa]tico)?|assuntos?|t[óo]picos?)\s*:\s*(.*)$/i);
+      if(pg){ if(atual && atual.cargo === cargo && atual.area === area) atual.txt += ' ' + pg[1]; else { nova('Conhecimentos específicos – ' + (area || cargo || 'gerais'), pg[1]); atual.daArea = true; } continue; }
+      const dp = l.match(/^(\d{1,2}[.)]\s*)?([^:]{3,80}):\s*(.*)$/);
+      if(dp){ dp.splice(1,1,...[]); }
+      if(dp && edEhMateria(dp[1]) && !(/^\d/.test(l) && !edMaius(dp[1])) && !/^(lei|decreto|resolu[çc][ãa]o|art)\b.*\d/i.test(dp[1].trim())){ nova(dp[1], dp[2]); continue; }
+      const hf = l.match(/^([A-ZÀ-Þ][^:\-–]{2,70}?)\s+[-–]\s+(\d.*|[A-ZÀ-Þ].*)$/);
+      if(hf && (edEhMateria(hf[1]) || /^\d/.test(hf[2])) && !/[.;,]/.test(hf[1]) && hf[1].split(' ').length <= 10){ nova(hf[1], hf[2]); continue; }
+      if(l.length <= 90 && edEhMateria(l) && !(atual && !/[.;:]$/.test(atual.txt.trim()) && atual.txt && !edMaius(l))){ nova(l, ''); continue; }
+      if(atual) atual.txt += ' ' + l;
+    }
+    let out = mats.map(m => ({...m, tops: edItens(m.txt)})).filter(m => m.tops.length);
+    out.forEach(m => { if(/^(programas?|conte[úu]dos?( program[áa]tico)?|conhecimentos espec[íi]ficos|mat[ée]rias?)$/i.test(m.nome.trim()) && (m.cargo || m.area)) m.nome = tituloMat('Conhecimentos específicos – ' + (m.area || m.cargo)); });
+    // mesma matéria repetida no mesmo grupo/cargo: junta
+    const porChave = {}; out = out.filter(m => { const k = norm(m.nome)+'|'+m.cargo+'|'+m.area; if(porChave[k]){ porChave[k].tops.push(...m.tops.filter(x => !porChave[k].tops.includes(x))); return false; } porChave[k] = m; return true; });
+  return {ini, out}; };
+  // testa os melhores candidatos de início e fica com o que acha mais assuntos (preferindo o primeiro)
+  const ordem = [...new Set([...bons.map(x => x[0]), ...(ini >= 0 ? [ini] : []), ...ps.slice().sort((a,b) => b[1]-a[1]).map(x => x[0])])].slice(0, 10).concat(-1);
+  const tot = r => r.out.reduce((t,m) => t + m.tops.length, 0);
+  const res = ordem.filter(c => c >= 0).map(c => analisar(c)), maxA = Math.max(0, ...res.map(tot));
+  let escolha = res.find(r => r.out.length >= 2 && tot(r) >= maxA*.5);
+  if(!escolha){ const doc = analisar(-1); escolha = doc.out.length ? doc : (res.find(r => r.out.length) || doc); }
+  ini = escolha.ini; let out = escolha.out;
   // pesos: "(16) questões" dentro do conteúdo ou o nº de questões no quadro de provas
   const antes = n.slice(0, ini > 0 ? ini : 0).join('\n');
   out.forEach(m => {
@@ -1627,12 +1639,12 @@ function identificarEdital(linhas){
 }
 async function lerEditalPdf(file){
   if(!file) return;
-  pdfEstado = {msg:'Lendo o PDF...', texto:'', resumo:'', arquivo:file.name}; render();
+  pdfEstado = {msg:'Lendo o PDF...', texto:'', resumo:'', arquivo:file.name, bruto:''}; render();
   try{
     const linhas = await linhasDoPdf(await file.arrayBuffer());
     if(linhas.join('').length < 200) throw new Error('o PDF parece ser uma imagem escaneada, sem texto selecionável');
     const r = editalParaTexto(linhas);
-    if(!r.materias) throw new Error('não encontrei matérias e assuntos no texto. Copie o conteúdo programático e cole em “Importar edital em texto”, mais abaixo');
+    if(!r.materias){ pdfEstado.bruto = edLimparLinhas(linhas).join('\n'); throw new Error('não encontrei matérias e assuntos no texto. Abaixo está o texto que consegui tirar do PDF: copie o conteúdo programático e cole em “Importar edital em texto”, mais abaixo. Se puder, mande este PDF para o suporte do tutor (Claude) para a leitura ser ajustada'); }
     pdfEstado.r = r; pdfEstado.conc = r.concurso || file.name.replace(/\.pdf$/i,'').replace(/[_-]+/g,' ').trim();
     pdfEstado.perfis = r.cargos; pdfEstado.sel = r.cargos.length > 1 ? [] : r.cargos.slice();
     edMontarTexto();
@@ -1673,7 +1685,8 @@ function cardPdf(){
   return `<div class="card" style="margin-top:16px"><h2>Enviar o PDF do edital</h2>
     <p class="mut">Escolha o arquivo do edital. O tutor encontra o conteúdo programático, separa matérias e assuntos e, quando o quadro de provas traz o nº de questões, calcula os pesos. Você revisa antes de importar.</p>
     <input id="pdfarq" type="file" accept="application/pdf,.pdf" onchange="lerEditalPdf(this.files[0])">
-    ${pdfEstado.msg?`<p class="mut">${pdfEstado.msg}</p>`:''}
+    ${pdfEstado.msg?`<div class="alert ${/^Não foi/.test(pdfEstado.msg)?'bad':'info'}" style="margin-top:10px">${pdfEstado.msg}</div>`:''}
+    ${pdfEstado.bruto && !pdfEstado.texto ? `<details style="margin-top:8px" open><summary style="cursor:pointer"><b>Texto tirado do PDF</b></summary><textarea readonly style="min-height:220px;margin-top:6px">${esc(pdfEstado.bruto)}</textarea></details>` : ''}
     ${pdfEstado.texto && (pdfEstado.perfis||[]).length > 1 ? `<div class="caixa" style="margin:10px 0"><b>Este edital tem ${pdfEstado.perfis.length} cargos/áreas. Marque o seu</b> <span class="mut">(as matérias comuns a todos já entram):</span>
       ${pdfEstado.perfis.map((p,i) => `<label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);margin:6px 0;cursor:pointer"><input type="checkbox" style="width:18px;height:18px;flex:none;margin-top:3px" ${pdfEstado.sel.includes(p)?'checked':''} onchange="edMarcarPerfil(pdfEstado.perfis[${i}],this.checked)"> <span>${esc(p)} <span class="mut">· ${pdfEstado.r.mats.filter(m => m.perfil === p).length} matérias</span></span></label>`).join('')}
       ${pdfEstado.sel.length ? '' : '<div class="alert warn" style="margin-top:8px">Nenhum cargo marcado: abaixo estão só as matérias comuns.</div>'}</div>` : ''}
