@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="43">
+<meta name="versao" content="44">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -542,10 +542,23 @@ const F_INC   = {1:.7, 2:1, 3:1.3};
 const SEM_PAG = {1:40, 2:60, 3:90};
 // Com o caderno do TEC importado, o peso do assunto é contínuo: questões do assunto ÷ média dos assuntos da matéria
 // (raiz quadrada para não exagerar; entre 0,6 e 1,8). Sem caderno, vale a incidência baixa/média/alta.
+// Pós-edital: também vale a análise estatística do Estratégia (% de cobrança do assunto, t.estatP).
+const posEdital = () => S.config.fase === 'pos';
+// incidência relativa do assunto dentro da matéria (1 = média): % do Estratégia, questões do TEC ou baixa/média/alta
+function incRelativa(m,t){
+  const rel = k => { const v = m.topicos.filter(x => x[k] != null).map(x => +x[k]); const media = v.reduce((s,x)=>s+x,0) / (v.length||1); return (+t[k]||0) / (media||1); };
+  if(t.estatP != null && (posEdital() || t.tecQ == null)) return rel('estatP');
+  if(t.tecQ != null) return rel('tecQ');
+  return {1:.5, 2:1, 3:1.6}[t.incid] || 1;
+}
 function fatorIncid(m,t){
-  if(t.tecQ == null) return F_INC[t.incid] || 1;
-  const v = m.topicos.filter(x => x.tecQ != null).map(x => +x.tecQ); const media = v.reduce((s,x)=>s+x,0) / (v.length||1);
-  return Math.min(1.8, Math.max(.6, Math.sqrt((+t.tecQ||0) / (media||1))));
+  if(t.tecQ == null && t.estatP == null) return F_INC[t.incid] || 1;
+  return Math.min(1.8, Math.max(.6, Math.sqrt(incRelativa(m,t))));
+}
+// ponto fraco do pré-edital: acerto abaixo do limiar no assunto (1 = sem fraqueza; até 1,6)
+function fatorFraco(t){
+  const ix = indice(t.id); if(ix.q < 5 || ix.p == null || ix.p >= lim()) return 1;
+  return Math.min(1.6, 1 + (lim() - ix.p) * 2);
 }
 function tempoTopico(m,t){
   const nv = F_NIVEL[m.nivel] || 1, fi = fatorIncid(m,t);
@@ -615,7 +628,11 @@ function ciclo(extra){
   extra = extra || {};
   let ativos = S.materias.filter(m => m.topicos.some(t => t.status!=='concluido'));
   const porVez = +S.config.materiasPorVez||0; if(porVez > 0) ativos = ativos.slice(0, porVez); // ciclo com N matérias por vez, na ordem do Meu plano
-  const ws = ativos.map(m => ({m, w:(+m.peso||1) * (6-(+m.nivel||3)) * fatorMateria(m)}));
+  const relev = m => { if(!posEdital()) return +m.peso||1; const cd = S.materias.filter(x => x.estat && x.estat.disc != null);
+    if(!(m.estat && m.estat.disc != null) || !cd.length) return +m.peso||1;
+    const mp = S.materias.reduce((s,x)=>s+(+x.peso||1),0) / S.materias.length, md = cd.reduce((s,x)=>s+x.estat.disc,0) / cd.length;
+    return Math.max(.5, m.estat.disc / (md||1) * mp); };
+  const ws = ativos.map(m => ({m, w:relev(m) * (6-(+m.nivel||3)) * fatorMateria(m)}));
   const tot = ws.reduce((s,x)=>s+x.w,0) || 1;
   const unid = Math.floor(Math.max(0, minSemana() - minFixasSemana())/5);
   const cotas = ws.map(x => unid*x.w/tot), base = cotas.map(Math.floor);
@@ -637,6 +654,9 @@ function ordemTopicos(m){
   const temAula = m.topicos.some(t => numAula(t)!=null);
   const crono = x => temAula ? (numAula(x.t) ?? 999)*1000 + x.i : x.i;
   const onda = x => modo==='crono-inc' && (+x.t.incid||2)===1 ? 1 : 0;
+  if(posEdital()){ const sc = t => incRelativa(m,t) * fatorFraco(t);
+    return m.topicos.map((t,i)=>({t,i,s:sc(t)})).filter(x=>x.t.status!=='concluido')
+      .sort((a,b)=> ord[a.t.status]-ord[b.t.status] || b.s-a.s || crono(a)-crono(b)).map(x=>x.t); }
   return m.topicos.map((t,i)=>({t,i})).filter(x=>x.t.status!=='concluido')
     .sort((a,b)=> ord[a.t.status]-ord[b.t.status]
       || (modo==='inc' ? (+b.t.incid||2)-(+a.t.incid||2) : 0)
@@ -681,7 +701,17 @@ function montarMetas(dia, base){
   const fracos = [];
   S.materias.forEach(m => m.topicos.forEach(t => { const ix = indice(t.id); if(ix.q>=10 && ix.p<lim() && !naMeta.has(t.id)) fracos.push({m,t,p:ix.p}); }));
   fracos.sort((a,b)=>a.p-b.p);
-  if(fracos[0] && revUsado + 30 <= cap*.6 && usado + 30 <= cap){ metas.push({id:uid(), tipo:'reforco', materiaId:fracos[0].m.id, topicoId:fracos[0].t.id, min:30}); usado += 30; }
+  if(posEdital()){
+    // balanceamento com os pontos fracos do pré-edital: (quanto falta para o limiar) × (quanto o assunto cai)
+    S.materias.forEach(m => m.topicos.forEach(t => { const ix = indice(t.id);
+      if(!naMeta.has(t.id) && !fracos.some(f => f.t.id===t.id) && ix.q>=5 && ix.p<lim()) fracos.push({m,t,p:ix.p}); }));
+    fracos.forEach(f => f.s = (lim() - f.p + .05) * incRelativa(f.m, f.t));
+    const semTreino = []; S.materias.forEach(m => m.topicos.forEach(t => { if(t.status==='concluido' && indice(t.id).q < 5 && !naMeta.has(t.id) && incRelativa(m,t) >= 1.3) semTreino.push({m,t,p:null,s:.02*incRelativa(m,t),semTreino:true}); }));
+    const fila = fracos.sort((a,b)=>b.s-a.s).concat(semTreino.sort((a,b)=>b.s-a.s));
+    let n = 0;
+    for(const f of fila){ if(n >= 2 || revUsado + 30 > cap*.6 || usado + 30 > cap) break;
+      metas.push({id:uid(), tipo:'reforco', materiaId:f.m.id, topicoId:f.t.id, min:30, ...(f.semTreino?{semTreino:true}:{})}); usado += 30; revUsado += 30; n++; }
+  } else if(fracos[0] && revUsado + 30 <= cap*.6 && usado + 30 <= cap){ metas.push({id:uid(), tipo:'reforco', materiaId:fracos[0].m.id, topicoId:fracos[0].t.id, min:30}); usado += 30; }
   const extra = {}, plan = {}, cont = {}; let ultima = null, guarda = 0;
   metas.filter(x=>x.tipo==='conteudo').forEach(x=>{ plan[x.topicoId]=(plan[x.topicoId]||0)+(x.feita?0:1); cont[x.materiaId]=(cont[x.materiaId]||0)+1; ultima=x.materiaId; });
   // questões já liberadas (teoria concluída) entram antes de conteúdo novo, até 2 por dia
@@ -1217,10 +1247,13 @@ const rotuloMeta = x => x.tipo==='conteudo' ? (x.fase==='questoes' ? 'Questões'
 function detalheMeta(x,m,t){
   if(x.tipo==='extra') return `Tempo extra para continuar ${x.origem==='revisao'?'a revisão':x.origem==='reforco'?'o reforço':'o assunto'} · feche com questões do TEC`;
   if(x.tipo==='conteudo' && x.fase==='questoes') return `Questões ${x.parte} de ${x.n} · caderno do TEC só da banca ${S.config.banca?esc(S.config.banca)+' ':''}sobre o assunto, lendo os comentários dos erros`;
-  if(x.tipo==='conteudo') return `Teoria ${x.parte} de ${x.n}` + (x.de ? ` · PDF págs. ${x.de}–${x.ate}` : '') + ' · leia a aula e faça seu resumo; as questões vêm quando a teoria acabar';
+  if(x.tipo==='conteudo') return `Teoria ${x.parte} de ${x.n}` + (x.de ? ` · PDF págs. ${x.de}–${x.ate}` : '') + ' · leia a aula e faça seu resumo; as questões vêm quando a teoria acabar' + incTxt(m,t);
   if(x.tipo==='revisao') return `Revisão ${x.etapa+1} · questões do TEC, depois resumo dos erros`;
-  return `Assunto abaixo de ${S.config.limiar}% · caderno de questões do TEC`;
+  if(x.semTreino) return `Assunto muito cobrado estudado no pré-edital e ainda sem questões · caderno de questões do TEC` + incTxt(m,t);
+  return `Assunto abaixo de ${S.config.limiar}% · caderno de questões do TEC` + incTxt(m,t);
 }
+// "cai X% nas provas": mostrado nas metas do pós-edital
+const incTxt = (m,t) => !posEdital() || !t ? '' : t.estatP != null ? ` · cai ${String(t.estatP).replace('.',',')}% nas provas (Estratégia)` : t.tecQ != null ? ` · ${t.tecQ} questões no TEC` : '';
 function cardFixa(x,i){
   const ativa = S.timer && S.timer.metaId===x.id, m = mat(x.materiaId);
   let h = `<div class="meta fixa ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
@@ -3007,8 +3040,15 @@ function vConfig(){
     <div class="row"><div><label>Ritmo de leitura (min por página)</label><input type="number" step=".25" min=".5" value="${c.ritmoPag}" onchange="setCfg('ritmoPag',+this.value||2)"></div>
       <div><label>Bloco mínimo (min)</label><input type="number" step="5" min="15" value="${c.blocoMin}" onchange="setCfg('blocoMin',+this.value||30)"></div>
       <div><label>Bloco máximo (min)</label><input type="number" step="5" min="30" value="${c.blocoMax}" onchange="setCfg('blocoMax',+this.value||120)"></div></div>
+    <h3>Fase do concurso</h3>
+    <label for="cfg_fase">Momento</label><select id="cfg_fase" onchange="setFase(this.value)">
+      <option value="pre" ${(c.fase||'pre')==='pre'?'selected':''}>Pré-edital: estudo pela ordem das aulas</option>
+      <option value="pos" ${c.fase==='pos'?'selected':''}>Pós-edital: estudo pela incidência e pelos pontos fracos</option></select>
+    <p class="mut">${c.fase==='pos' ? `<b>Pós-edital${c.posDesde?' desde '+br(c.posDesde):''}.</b> Cada matéria segue os assuntos que mais caem (análise estatística do Estratégia ou cadernos do TEC); as disciplinas mais relevantes ganham mais tempo; e os pontos fracos do pré-edital entram como reforço todo dia (até 2 metas de questões), começando pelos fracos que mais caem.` : 'Quando o edital sair, mude para Pós-edital: o plano passa a seguir a incidência dos assuntos baixada na plataforma e equilibra com os seus pontos fracos do pré-edital.'}</p>
+    ${c.fase==='pos' && !S.materias.some(m => m.topicos.some(t => t.estatP != null || t.tecQ != null)) ? '<div class="alert warn">Ainda não há incidência baixada: cole a análise estatística do Estratégia (Edital → Análise estatística) ou importe os cadernos do TEC. Até lá vale a incidência baixa/média/alta de cada assunto.</div>' : ''}
     <h3>Ordem de estudo</h3>
-    <label for="cfg_ordem">Dentro de cada matéria</label><select id="cfg_ordem" onchange="setCfg('ordemEstudo',this.value)">
+    ${c.fase==='pos' ? '<p class="mut">No pós-edital, os assuntos de cada matéria seguem a incidência (o que mais cai primeiro), com prioridade extra para os seus pontos fracos. A opção abaixo volta a valer no pré-edital.</p>' : ''}
+    <label for="cfg_ordem">Dentro de cada matéria${c.fase==='pos'?' (pré-edital)':''}</label><select id="cfg_ordem" ${c.fase==='pos'?'disabled':''} onchange="setCfg('ordemEstudo',this.value)">
       ${[['crono-inc','Ordem das aulas, deixando os assuntos de baixa incidência para o fim (recomendado)'],['crono','Só a ordem das aulas'],['inc','Maior incidência primeiro']].map(([v,n])=>`<option value="${v}" ${(c.ordemEstudo||'crono-inc')===v?'selected':''}>${n}</option>`).join('')}</select>
     <p class="mut">A ordem das aulas mantém a sequência lógica do conteúdo (o que é base vem antes). A incidência também define o tempo de cada assunto e quantas questões ele recebe.</p>
     <h3>Cronômetro</h3>
@@ -3040,6 +3080,11 @@ function vConfig(){
 }
 const REPLANEJA = ['horasUtil','horasFds','blocoMin','blocoMax','ritmoPag','limiar','ordemEstudo'];
 let avisoCfg = '';
+function setFase(v){
+  S.config.fase = v; if(v === 'pos' && !S.config.posDesde) S.config.posDesde = hoje();
+  if(S.materias.length){ gerarMetas(true); avisoCfg = v === 'pos' ? 'Plano de pós-edital: assuntos pela incidência e reforço dos pontos fracos. As metas pendentes de hoje foram refeitas.' : 'Plano de pré-edital: ordem das aulas. As metas pendentes de hoje foram refeitas.'; }
+  save(); render();
+}
 function setCfg(k,v){
   S.config[k]=v;
   if(REPLANEJA.includes(k) && S.materias.length){ gerarMetas(true); avisoCfg = 'Cronograma e metas pendentes de hoje recalculados com '+hm(minSemana())+' líquidas por semana.'; }
