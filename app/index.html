@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="46">
+<meta name="versao" content="47">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -373,6 +373,7 @@ function migrar(){
   S = Object.assign(padrao(), S);
   S.config = Object.assign(padrao().config, S.config);
   if(daV1){ S.config.blocoMin = 30; S.config.blocoMax = 120; }
+  (S.materias||[]).forEach(m => { if(m.estat && (m.estat.itens||[]).some(Array.isArray)) m.estat.itens = anItens(m); });
   if(!S.metas) S.metas = {};
   if(!S.cadernos || typeof S.cadernos!=='object') S.cadernos = {};
   if(!Array.isArray(S.simulados)) S.simulados = [];
@@ -2468,14 +2469,16 @@ function anSalvar(){
     anEstado = {mid:'', txt:'', lidos:null}; save(); render(); avisar(`Relevância de ${n} disciplina(s) guardada.`); return;
   }
   const m = mat(mid); if(!m) return avisar('Escolha a matéria desta análise.');
-  m.estat = {...(m.estat||{}), itens: lidos.map(x => [x.nome, Math.round(x.p*100)/100]), data: hoje()};
+  m.estat = {...(m.estat||{}), itens: lidos.map(x => ({n: x.nome, p: Math.round(x.p*100)/100})), data: hoje()};
   anLigarAssuntos(m);
   anEstado = {mid:'', txt:'', lidos:null}; save(); render(); avisar(`Análise de ${m.nome} guardada: ${lidos.length} assuntos.`);
 }
 // liga cada linha da análise ao assunto do edital mais parecido
+// itens da análise como objetos {n, p} (o banco do Firebase não aceita lista dentro de lista)
+const anItens = m => ((m && m.estat && m.estat.itens) || []).map(x => Array.isArray(x) ? {n: x[0], p: +x[1]} : {n: x.n, p: +x.p});
 function anLigarAssuntos(m){
   m.topicos.forEach(t => delete t.estatP);
-  ((m.estat||{}).itens||[]).forEach(([nome, p]) => {
+  anItens(m).forEach(({n: nome, p}) => {
     let melhor = null, mp = 0; m.topicos.forEach(t => { const x = anParecido(nome, t.nome); if(x > mp){ mp = x; melhor = t; } });
     if(melhor && mp >= .34) melhor.estatP = Math.round(((melhor.estatP||0) + p)*100)/100; });
 }
@@ -2513,10 +2516,10 @@ function vAnalise(){
   h += `<div class="card" style="margin-top:16px"><h2>Assuntos mais cobrados em cada matéria</h2>
     <p class="mut">Pela análise estatística do curso do Estratégia: quanto maior o percentual, mais o assunto cai nas provas da banca.</p>`;
   const comAn = S.materias.filter(m => m.estat && (m.estat.itens||[]).length);
-  h += comAn.length ? comAn.map(m => { const it = [...m.estat.itens].sort((a,b) => b[1]-a[1]), mx = Math.max(...it.map(x=>x[1]), 1);
+  h += comAn.length ? comAn.map(m => { const it = anItens(m).sort((a,b) => b.p-a.p), mx = Math.max(...it.map(x=>x.p), 1);
       const lig = m.topicos.filter(t => t.estatP != null).length;
       return `<details class="mat" ${abertas.has('an'+m.id)?'open':''} ontoggle="this.open?abertas.add('an${m.id}'):abertas.delete('an${m.id}')"><summary><b style="flex:1;min-width:160px">${esc(m.nome)}</b><span class="mut">${it.length} assuntos · ${lig}/${m.topicos.length} ligados ao edital${m.estat.data?' · '+br(m.estat.data):''}</span></summary><div class="body">
-        ${it.map(([n,p]) => `<div class="brow"><span>${esc(n)}</span><div class="bar"><i class="${p>=mx*.6?'ok':p>=mx*.25?'':'warn'}" style="width:${p/mx*100}%"></i></div><span><b>${String(p).replace('.',',')}%</b></span></div>`).join('')}
+        ${it.map(({n,p}) => `<div class="brow"><span>${esc(n)}</span><div class="bar"><i class="${p>=mx*.6?'ok':p>=mx*.25?'':'warn'}" style="width:${p/mx*100}%"></i></div><span><b>${String(p).replace('.',',')}%</b></span></div>`).join('')}
         <div class="inl"><button class="g" onclick="anUsarIncidencia('${m.id}')">Usar na incidência dos assuntos</button><button class="g" style="color:var(--bad)" onclick="anApagar('${m.id}')">Apagar análise</button></div></div></details>`; }).join('')
     + `<div class="inl"><button class="b" onclick="anUsarIncidencia()">Usar a análise em todas as matérias</button><span class="mut">Assunto mais cobrado vira incidência alta, ganha mais tempo e prioridade no plano.</span></div>`
     : '<div class="empty">Nenhuma análise colada ainda.</div>';
