@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="42">
+<meta name="versao" content="43">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -2332,11 +2332,134 @@ function cardEstrategia(){
 }
 async function copiarColetor(){ try{ await navigator.clipboard.writeText(linkColetor()); avisar('Código copiado. Crie um favorito e cole como endereço.'); }catch(e){ avisar('Não consegui copiar. Arraste o botão para a barra de favoritos.'); } }
 
+/* ---------- Análise estatística (Estratégia) ----------
+   Os cursos do Estratégia trazem, no PDF das aulas, a "Análise estatística": o percentual de cobrança de cada
+   assunto (ou de cada disciplina) nas provas da banca. A pessoa cola essa tabela; o tutor guarda na matéria
+   (m.estat), liga cada linha ao assunto do edital (t.estatP) e mostra a relevância de cada disciplina. */
+let edAba = 'vert', anEstado = {mid:'', txt:'', lidos:null};
+function lerAnaliseEstatistica(texto){
+  const linhas = String(texto||'').replace(/\r/g,'').split('\n').map(l => l.replace(/\s+/g,' ').trim()).filter(Boolean);
+  const CAB = /^(assuntos?|t[óo]picos?|disciplinas?|mat[ée]rias?|conte[úu]dos?|%|percentual|grau de incid[êe]ncia|incid[êe]ncia|cobran[çc]a|% de cobran[çc]a|total|an[áa]lise estat[íi]stica|quantidade de quest[õo]es|n[ºo°]? ?de quest[õo]es|quest[õo]es)\b.*$/i;
+  const out = []; let buf = [];
+  const limpa = x => x.replace(/^[\s|•\-–—:.\d)]*(?=[A-Za-zÀ-ÿ])/,'').replace(/[\s|:–—.\-]+$/,'')
+    .replace(/(^|\s)(?!(?:lei|n[ºo°]?|decreto|art|arts|lc|ec|s[úu]mula|cap[íi]tulo)\s)(\S+)\s+\d{1,4}$/i, (mm, a, w) => a + w).replace(/[\s|:–—.\-]+$/,'').trim(); // coluna de nº de questões
+  for(const l of linhas){
+    const re = /([^%]*?)\s*(\d{1,3}(?:[.,]\d{1,2})?)\s*%/g; let m, achou = false, resto = l;
+    while((m = re.exec(l))){
+      achou = true; let nome = limpa(m[1]);
+      if(!nome || nome.length < 3) nome = limpa(buf.join(' '));
+      else if(buf.length && /^[a-zà-ú(]/.test(nome)) nome = limpa(buf.join(' ') + ' ' + nome);
+      buf = []; const p = parseFloat(m[2].replace(',','.'));
+      if(nome && p > 0 && p <= 100 && !CAB.test(nome) && nome.length <= 220) out.push({nome, p});
+      resto = l.slice(re.lastIndex);
+    }
+    if(!achou){ if(CAB.test(l) || l.length > 220) buf = []; else { buf.push(l); if(buf.length > 3) buf.shift(); } }
+    else if(limpa(resto).length >= 3) buf = [limpa(resto)];
+  }
+  // mesmo assunto repetido: soma
+  const porNome = {}; out.forEach(x => { const k = norm(x.nome); if(porNome[k]) porNome[k].p += x.p; else porNome[k] = {...x}; });
+  return Object.values(porNome);
+}
+// parecido entre dois textos (palavras em comum)
+function anParecido(a, b){
+  const A = new Set(tecTokens(a)), B = new Set(tecTokens(b)); if(!A.size || !B.size) return 0;
+  let c = 0; A.forEach(w => { if(B.has(w) || [...B].some(x => x.length > 4 && w.length > 4 && (x.startsWith(w.slice(0,5)) || w.startsWith(x.slice(0,5))))) c++; });
+  return c / Math.min(A.size, B.size);
+}
+function anMateriaDoNome(nome){
+  let melhor = null, mp = 0; S.materias.forEach(m => { const p = norm(m.nome) === norm(nome) ? 2 : anParecido(nome, m.nome); if(p > mp){ mp = p; melhor = m; } });
+  return mp >= .6 ? melhor : null;
+}
+function anLer(){
+  const txt = (document.getElementById('anTxt')||{}).value || '', mid = (document.getElementById('anMat')||{}).value || '';
+  const itens = lerAnaliseEstatistica(txt);
+  anEstado = {mid, txt, lidos: itens};
+  if(!itens.length) avisar('Não encontrei percentuais no texto. Copie a tabela da “Análise estatística” do PDF da aula (assunto e %), com os números.');
+  render();
+}
+function anSalvar(){
+  const {mid, lidos} = anEstado; if(!lidos || !lidos.length) return;
+  if(mid === '*'){ // tabela de disciplinas do concurso
+    let n = 0; lidos.forEach(x => { const m = anMateriaDoNome(x.nome); if(m){ m.estat = m.estat || {itens:[]}; m.estat.disc = x.p; n++; } });
+    anEstado = {mid:'', txt:'', lidos:null}; save(); render(); avisar(`Relevância de ${n} disciplina(s) guardada.`); return;
+  }
+  const m = mat(mid); if(!m) return avisar('Escolha a matéria desta análise.');
+  m.estat = {...(m.estat||{}), itens: lidos.map(x => [x.nome, Math.round(x.p*100)/100]), data: hoje()};
+  anLigarAssuntos(m);
+  anEstado = {mid:'', txt:'', lidos:null}; save(); render(); avisar(`Análise de ${m.nome} guardada: ${lidos.length} assuntos.`);
+}
+// liga cada linha da análise ao assunto do edital mais parecido
+function anLigarAssuntos(m){
+  m.topicos.forEach(t => delete t.estatP);
+  ((m.estat||{}).itens||[]).forEach(([nome, p]) => {
+    let melhor = null, mp = 0; m.topicos.forEach(t => { const x = anParecido(nome, t.nome); if(x > mp){ mp = x; melhor = t; } });
+    if(melhor && mp >= .34) melhor.estatP = Math.round(((melhor.estatP||0) + p)*100)/100; });
+}
+// relevância da disciplina: % do Estratégia quando houver; senão, a participação do peso da matéria no edital
+function anRelevancia(){
+  const comDisc = S.materias.filter(m => m.estat && m.estat.disc != null), totPeso = S.materias.reduce((s,m) => s + (+m.peso||0), 0) || 1;
+  const totDisc = comDisc.reduce((s,m) => s + m.estat.disc, 0);
+  return S.materias.map(m => {
+    const disc = m.estat && m.estat.disc != null ? m.estat.disc : null;
+    return {m, p: disc != null ? disc : (+m.peso||0) / totPeso * 100, fonte: disc != null ? 'Estratégia' : 'peso do edital', disc}; })
+    .sort((a,b) => b.p - a.p);
+}
+function anUsarIncidencia(mid){
+  const ms = mid ? [mat(mid)] : S.materias.filter(m => m.estat && (m.estat.itens||[]).length); let n = 0;
+  ms.forEach(m => { anLigarAssuntos(m); const ps = m.topicos.map(t => t.estatP).filter(x => x != null); if(!ps.length) return;
+    const media = ps.reduce((s,x)=>s+x,0) / ps.length;
+    m.topicos.forEach(t => { if(t.estatP != null){ t.incid = t.estatP >= media*1.3 ? 3 : t.estatP >= media*.6 ? 2 : 1; n++; } }); });
+  delete S.metas[hoje()]; gerarMetas(false); save(); render();
+  avisar(`Incidência de ${n} assuntos ajustada pela análise do Estratégia. As metas foram refeitas.`);
+}
+function anUsarPeso(){
+  let n = 0; anRelevancia().forEach(r => { if(r.disc == null) return; r.m.peso = r.p >= 15 ? 5 : r.p >= 9 ? 4 : r.p >= 5 ? 3 : r.p >= 3 ? 2 : 1; n++; });
+  delete S.metas[hoje()]; gerarMetas(false); save(); render(); avisar(`Peso de ${n} disciplina(s) ajustado pela relevância. As metas foram refeitas.`);
+}
+function anApagar(mid){ const m = mat(mid); if(!m) return; delete m.estat; m.topicos.forEach(t => delete t.estatP); save(); render(); }
+function vAnalise(){
+  if(!S.materias.length) return `<div class="card" style="margin-top:16px"><h2>Análise estatística</h2><div class="empty">Monte o edital primeiro (aba Edital verticalizado).</div></div>`;
+  const rel = anRelevancia(), maxP = Math.max(...rel.map(r => r.p), 1), algumaDisc = rel.some(r => r.disc != null);
+  const cor = p => p >= 15 ? 'ok' : p >= 7 ? '' : 'warn';
+  let h = `<div class="card" style="margin-top:16px"><h2>Relevância das disciplinas no concurso <span class="mut">${esc(S.config.concurso||'')}</span></h2>
+    <p class="mut">${algumaDisc ? 'Percentual de cobrança de cada disciplina pela análise estatística do Estratégia (as sem análise aparecem pelo peso do edital).' : 'Ainda sem a análise do Estratégia por disciplina: a relevância abaixo vem do peso de cada matéria no edital. Cole a tabela de disciplinas mais abaixo para usar os números do curso.'}</p>
+    ${rel.map((r,i) => `<div class="brow"><span><b>${i+1}.</b> ${esc(r.m.nome)}</span><div class="bar"><i class="${cor(r.p)}" style="width:${r.p/maxP*100}%"></i></div><span><b>${r.p.toFixed(1).replace('.',',')}%</b> <small class="mut">${r.fonte==='Estratégia'?'Estratégia':'peso '+r.m.peso}</small></span></div>`).join('')}
+    ${algumaDisc ? `<div class="inl"><button class="g" onclick="anUsarPeso()">Usar no peso das matérias</button><span class="mut">Ajusta o peso (1–5) de cada disciplina pela relevância e refaz o plano.</span></div>` : ''}</div>`;
+  // por matéria
+  h += `<div class="card" style="margin-top:16px"><h2>Assuntos mais cobrados em cada matéria</h2>
+    <p class="mut">Pela análise estatística do curso do Estratégia: quanto maior o percentual, mais o assunto cai nas provas da banca.</p>`;
+  const comAn = S.materias.filter(m => m.estat && (m.estat.itens||[]).length);
+  h += comAn.length ? comAn.map(m => { const it = [...m.estat.itens].sort((a,b) => b[1]-a[1]), mx = Math.max(...it.map(x=>x[1]), 1);
+      const lig = m.topicos.filter(t => t.estatP != null).length;
+      return `<details class="mat" ${abertas.has('an'+m.id)?'open':''} ontoggle="this.open?abertas.add('an${m.id}'):abertas.delete('an${m.id}')"><summary><b style="flex:1;min-width:160px">${esc(m.nome)}</b><span class="mut">${it.length} assuntos · ${lig}/${m.topicos.length} ligados ao edital${m.estat.data?' · '+br(m.estat.data):''}</span></summary><div class="body">
+        ${it.map(([n,p]) => `<div class="brow"><span>${esc(n)}</span><div class="bar"><i class="${p>=mx*.6?'ok':p>=mx*.25?'':'warn'}" style="width:${p/mx*100}%"></i></div><span><b>${String(p).replace('.',',')}%</b></span></div>`).join('')}
+        <div class="inl"><button class="g" onclick="anUsarIncidencia('${m.id}')">Usar na incidência dos assuntos</button><button class="g" style="color:var(--bad)" onclick="anApagar('${m.id}')">Apagar análise</button></div></div></details>`; }).join('')
+    + `<div class="inl"><button class="b" onclick="anUsarIncidencia()">Usar a análise em todas as matérias</button><span class="mut">Assunto mais cobrado vira incidência alta, ganha mais tempo e prioridade no plano.</span></div>`
+    : '<div class="empty">Nenhuma análise colada ainda.</div>';
+  h += `</div>`;
+  // colar
+  const opt = `<option value="">Escolha…</option><option value="*" ${anEstado.mid==='*'?'selected':''}>Disciplinas do concurso (relevância de cada matéria)</option>` + S.materias.map(m => `<option value="${m.id}" ${anEstado.mid===m.id?'selected':''}>${esc(m.nome)}</option>`).join('');
+  h += `<div class="card" style="margin-top:16px"><h2>Colar análise estatística do Estratégia</h2>
+    <p class="mut">No PDF da aula do curso (normalmente a Aula 00 ou o início de cada aula), copie a tabela <b>“Análise estatística”</b>, com o nome de cada assunto e o percentual de cobrança, e cole aqui. Escolha a matéria a que ela pertence. Se a tabela for das disciplinas do concurso, escolha “Disciplinas do concurso”.</p>
+    <div class="row"><div><label for="anMat">A tabela é de</label><select id="anMat">${opt}</select></div></div>
+    <label for="anTxt">Tabela copiada</label><textarea id="anTxt" style="min-height:150px" placeholder="Assunto   % de cobrança
+Pontuação   15,43%
+Concordância verbal e nominal   12,10%
+Crase   8,20%">${esc(anEstado.txt||'')}</textarea>
+    <div class="inl"><button class="b" onclick="anLer()">Ler a tabela</button></div>
+    ${anEstado.lidos && anEstado.lidos.length ? `<h3>Confira (${anEstado.lidos.length} linhas)</h3>${anEstado.lidos.map(x => `<div class="brow"><span>${esc(x.nome)}</span><div class="bar"><i style="width:${Math.min(100,x.p)}%"></i></div><span>${String(x.p).replace('.',',')}%</span></div>`).join('')}
+      <div class="inl"><button class="b" onclick="anSalvar()">Guardar análise</button><button class="g" onclick="anEstado={mid:'',txt:'',lidos:null};render()">Descartar</button></div>` : ''}</div>`;
+  return h;
+}
+function edAbas(){
+  return `<div class="inl" style="margin:0 0 4px;gap:8px">${[['vert','Edital verticalizado'],['estat','Análise estatística']].map(([k,r]) => `<button class="${edAba===k?'b':'g'}" onclick="edAba='${k}';render()">${r}</button>`).join('')}</div>`;
+}
 /* ---------- Edital ---------- */
 const abertas = new Set();
 function vEdital(){
+  if(edAba === 'estat') return edAbas() + vAnalise();
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
-  let h = cardBusca() + cardPdf() + cardEstrategia() + cardTec() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
+  let h = edAbas() + cardBusca() + cardPdf() + cardEstrategia() + cardTec() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
     <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca.</p>`;
   h += S.materias.map(m => {
     const mc = m.topicos.filter(t=>t.status==='concluido').length, st = stats(s=>s.materiaId===m.id);
@@ -2353,7 +2476,7 @@ function vEdital(){
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
       ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp"><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
-        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>
+        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.estatP!=null?'Estratégia: '+String(t.estatP).replace('.',',')+'% de cobrança':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>
           <span class="tptec"><input value="${esc(t.tecLink||'')}" placeholder="Link do caderno no TEC deste assunto" title="Link do caderno do TEC Concursos para este assunto" onchange="setTopTec('${m.id}','${t.id}',this.value)">${t.tecLink?`<a href="${esc(t.tecLink)}" target="_blank" rel="noopener">Abrir no TEC ↗</a>`:''}</span></span>
         <input type="number" min="0" value="${t.paginas||''}" placeholder="?" onchange="setTop('${m.id}','${t.id}','paginas',+this.value||0)">
         <select class="hide" onchange="setTop('${m.id}','${t.id}','incid',+this.value)">${[1,2,3].map(k=>`<option value="${k}" ${k==t.incid?'selected':''}>${INCID[k]}</option>`).join('')}</select>
