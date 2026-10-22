@@ -1,4 +1,4 @@
 {
-  "versao": 45,
-  "notas": "Análise estatística: botão Adicionar imagem (print da tabela do Estratégia), com leitura automática dos assuntos e percentuais"
+  "versao": 46,
+  "notas": "Análise estatística: corrigido o aviso de matéria não escolhida ao guardar a análise"
 }

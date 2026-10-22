@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="45">
+<meta name="versao" content="46">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -2459,7 +2459,10 @@ function anLer(){
   render();
 }
 function anSalvar(){
+  // vale a matéria escolhida na tela agora (mesmo que tenha sido escolhida depois de ler a tabela)
+  const sel = document.getElementById('anMat'); if(sel && sel.value) anEstado.mid = sel.value;
   const {mid, lidos} = anEstado; if(!lidos || !lidos.length) return;
+  if(!mid) return avisar('Escolha no campo “A tabela é de” a matéria desta análise (ou “Disciplinas do concurso”).');
   if(mid === '*'){ // tabela de disciplinas do concurso
     let n = 0; lidos.forEach(x => { const m = anMateriaDoNome(x.nome); if(m){ m.estat = m.estat || {itens:[]}; m.estat.disc = x.p; n++; } });
     anEstado = {mid:'', txt:'', lidos:null}; save(); render(); avisar(`Relevância de ${n} disciplina(s) guardada.`); return;
@@ -2522,7 +2525,7 @@ function vAnalise(){
   const opt = `<option value="">Escolha…</option><option value="*" ${anEstado.mid==='*'?'selected':''}>Disciplinas do concurso (relevância de cada matéria)</option>` + S.materias.map(m => `<option value="${m.id}" ${anEstado.mid===m.id?'selected':''}>${esc(m.nome)}</option>`).join('');
   h += `<div class="card" style="margin-top:16px"><h2>Colar análise estatística do Estratégia</h2>
     <p class="mut">No PDF da aula do curso (normalmente a Aula 00 ou o início de cada aula), copie a tabela <b>“Análise estatística”</b> (ou tire um print dela e use <b>Adicionar imagem</b>), com o nome de cada assunto e o percentual de cobrança, e cole aqui. Escolha a matéria a que ela pertence. Se a tabela for das disciplinas do concurso, escolha “Disciplinas do concurso”.</p>
-    <div class="row"><div><label for="anMat">A tabela é de</label><select id="anMat">${opt}</select></div></div>
+    <div class="row"><div><label for="anMat">A tabela é de</label><select id="anMat" onchange="anEstado.mid=this.value">${opt}</select></div></div>
     <label for="anTxt">Tabela copiada</label><textarea id="anTxt" style="min-height:150px" placeholder="Assunto   % de cobrança
 Pontuação   15,43%
 Concordância verbal e nominal   12,10%
