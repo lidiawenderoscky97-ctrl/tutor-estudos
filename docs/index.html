@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="44">
+<meta name="versao" content="45">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -2380,12 +2380,18 @@ function lerAnaliseEstatistica(texto){
     const re = /([^%]*?)\s*(\d{1,3}(?:[.,]\d{1,2})?)\s*%/g; let m, achou = false, resto = l;
     while((m = re.exec(l))){
       achou = true; let nome = limpa(m[1]);
-      if(!nome || nome.length < 3) nome = limpa(buf.join(' '));
-      else if(buf.length && /^[a-zà-ú(]/.test(nome)) nome = limpa(buf.join(' ') + ' ' + nome);
+      const doBuf = () => { if(!buf.length) return ''; let i = buf.length - 1;
+        while(i > 0 && (/(\s(e|de|da|do|das|dos|em|a|o|ao|com|para)|[,(\-–])$/i.test(buf[i-1]) || /^[a-zà-ú(]/.test(buf[i]))) i--;
+        return buf.slice(i).join(' '); };
+      if(!nome || nome.length < 3) nome = limpa(doBuf());
+      else if(buf.length && /^[a-zà-ú(]/.test(nome)) nome = limpa(doBuf() + ' ' + nome);
       buf = []; const p = parseFloat(m[2].replace(',','.'));
       if(nome && p > 0 && p <= 100 && !CAB.test(nome) && nome.length <= 220) out.push({nome, p});
       resto = l.slice(re.lastIndex);
     }
+    // continuação do nome que ficou depois do percentual ("Concordância verbal e  12%" / "nominal")
+    if(!achou && !buf.length && out.length && out[out.length-1].fim === undefined && l.length <= 60 && !/\d/.test(l)
+       && (/(\s(e|de|da|do|das|dos|em|a|o|ao|com|para)|[,(\-–])$/i.test(out[out.length-1].nome) || /^[a-zà-ú(]/.test(l))){ out[out.length-1].nome += ' ' + limpa(l); continue; }
     if(!achou){ if(CAB.test(l) || l.length > 220) buf = []; else { buf.push(l); if(buf.length > 3) buf.shift(); } }
     else if(limpa(resto).length >= 3) buf = [limpa(resto)];
   }
@@ -2403,10 +2409,70 @@ function anMateriaDoNome(nome){
   let melhor = null, mp = 0; S.materias.forEach(m => { const p = norm(m.nome) === norm(nome) ? 2 : anParecido(nome, m.nome); if(p > mp){ mp = p; melhor = m; } });
   return mp >= .6 ? melhor : null;
 }
+// leitura de imagem (print da tabela) com OCR no próprio navegador (Tesseract.js, português)
+const OCR_CDN = {js:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', worker:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+  core:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1', lang:'https://cdn.jsdelivr.net/npm/@tesseract.js-data/por@1.0.0/4.0.0_best_int'};
+async function carregarOcr(){
+  if(window.Tesseract) return window.Tesseract;
+  await new Promise((ok,err)=>{ const s=document.createElement('script'); s.src=OCR_CDN.js; s.onload=ok; s.onerror=()=>err(new Error('não foi possível carregar o leitor de imagens. Verifique a internet.')); document.head.appendChild(s); });
+  return window.Tesseract;
+}
+// amplia imagens pequenas para o OCR acertar melhor os números
+async function imgParaOcr(file){
+  const url = URL.createObjectURL(file);
+  try{ const img = await new Promise((ok,err)=>{ const i = new Image(); i.onload=()=>ok(i); i.onerror=()=>err(new Error('imagem inválida')); i.src=url; });
+    const k = img.width < 1400 ? Math.min(3, 1800/img.width) : 1, c = document.createElement('canvas');
+    c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+    const g = c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height); g.imageSmoothingQuality='high'; g.drawImage(img,0,0,c.width,c.height);
+    // tons de cinza + preto e branco, e apaga as linhas da tabela (atrapalham a leitura)
+    const W = c.width, H = c.height, id = g.getImageData(0,0,W,H), d = id.data, esc = new Uint8Array(W*H);
+    let soma = 0; for(let i = 0; i < W*H; i++){ const v = .299*d[i*4] + .587*d[i*4+1] + .114*d[i*4+2]; soma += v; esc[i] = v; }
+    const lim = Math.min(200, soma/(W*H) * .75), pr = new Uint8Array(W*H);
+    for(let i = 0; i < W*H; i++) pr[i] = esc[i] < lim ? 1 : 0;
+    // fundo escuro (texto claro): inverte
+    if(pr.reduce((s,x)=>s+x,0) > W*H*.5) for(let i = 0; i < W*H; i++) pr[i] = 1 - pr[i];
+    const corrida = (len, get) => { let best = 0, cur = 0; for(let k = 0; k < len; k++){ if(get(k)){ cur++; if(cur > best) best = cur; } else cur = 0; } return best; };
+    for(let y = 0; y < H; y++) if(corrida(W, x => pr[y*W+x]) > W*.35) for(let x = 0; x < W; x++) pr[y*W+x] = 0;
+    for(let x = 0; x < W; x++) if(corrida(H, y => pr[y*W+x]) > H*.35) for(let y = 0; y < H; y++) pr[y*W+x] = 0;
+    for(let i = 0; i < W*H; i++){ const v = pr[i] ? 0 : 255; d[i*4] = d[i*4+1] = d[i*4+2] = v; d[i*4+3] = 255; }
+    g.putImageData(id, 0, 0);
+    return c; } finally { setTimeout(()=>URL.revokeObjectURL(url), 2000); }
+}
+async function anImagens(files){
+  files = [...(files||[])].filter(f => /^image\//.test(f.type)); if(!files.length) return;
+  const sel = document.getElementById('anMat'); anEstado.mid = sel ? sel.value : anEstado.mid;
+  const ta = document.getElementById('anTxt'); anEstado.txt = ta ? ta.value : anEstado.txt;
+  anEstado.ocr = 'Carregando o leitor de imagens…'; render();
+  let worker = null;
+  try{
+    const T = await carregarOcr();
+    worker = await T.createWorker('por', 1, {workerPath:OCR_CDN.worker, corePath:OCR_CDN.core, langPath:OCR_CDN.lang,
+      logger: m => { if(m.status==='recognizing text'){ const el = document.getElementById('anOcr'); if(el) el.textContent = `Lendo a imagem… ${Math.round((m.progress||0)*100)}%`; } }});
+    try{ await worker.setParameters({tessedit_pageseg_mode: '6', preserve_interword_spaces: '1'}); }catch(e){}
+    const textos = [];
+    for(let i = 0; i < files.length; i++){
+      anEstado.ocr = `Lendo a imagem ${i+1} de ${files.length}…`; render();
+      const {data} = await worker.recognize(await imgParaOcr(files[i]));
+      textos.push((data.text||'').replace(/(\d)\s+%/g,'$1%').replace(/(\d)\s*[°º]\/?o\b/g,'$1%'));
+    }
+    const novo = textos.join('\n').trim();
+    anEstado.txt = [anEstado.txt, novo].filter(Boolean).join('\n');
+    anEstado.lidos = lerAnaliseEstatistica(anEstado.txt);
+    anEstado.ocr = anEstado.lidos.length ? `Imagem lida: ${anEstado.lidos.length} linhas com percentual. Confira os números abaixo (a leitura de imagem pode errar algum dígito) e corrija no texto se precisar.` : 'Li a imagem, mas não achei percentuais. Confira o texto lido na caixa e ajuste, ou tente uma imagem mais nítida.';
+  }catch(e){ anEstado.ocr = 'Não foi possível ler a imagem: '+(e.message||e)+'.'; }
+  finally{ if(worker) try{ await worker.terminate(); }catch(e){} }
+  render();
+}
+// Ctrl+V de uma imagem na aba Análise estatística
+document.addEventListener('paste', e => {
+  if(typeof aba === 'undefined' || aba !== 'edital' || edAba !== 'estat') return;
+  const imgs = [...((e.clipboardData||{}).items||[])].filter(i => i.kind === 'file' && /^image\//.test(i.type)).map(i => i.getAsFile()).filter(Boolean);
+  if(imgs.length){ e.preventDefault(); anImagens(imgs); }
+});
 function anLer(){
   const txt = (document.getElementById('anTxt')||{}).value || '', mid = (document.getElementById('anMat')||{}).value || '';
   const itens = lerAnaliseEstatistica(txt);
-  anEstado = {mid, txt, lidos: itens};
+  anEstado = {mid, txt, lidos: itens, ocr:''};
   if(!itens.length) avisar('Não encontrei percentuais no texto. Copie a tabela da “Análise estatística” do PDF da aula (assunto e %), com os números.');
   render();
 }
@@ -2473,13 +2539,16 @@ function vAnalise(){
   // colar
   const opt = `<option value="">Escolha…</option><option value="*" ${anEstado.mid==='*'?'selected':''}>Disciplinas do concurso (relevância de cada matéria)</option>` + S.materias.map(m => `<option value="${m.id}" ${anEstado.mid===m.id?'selected':''}>${esc(m.nome)}</option>`).join('');
   h += `<div class="card" style="margin-top:16px"><h2>Colar análise estatística do Estratégia</h2>
-    <p class="mut">No PDF da aula do curso (normalmente a Aula 00 ou o início de cada aula), copie a tabela <b>“Análise estatística”</b>, com o nome de cada assunto e o percentual de cobrança, e cole aqui. Escolha a matéria a que ela pertence. Se a tabela for das disciplinas do concurso, escolha “Disciplinas do concurso”.</p>
+    <p class="mut">No PDF da aula do curso (normalmente a Aula 00 ou o início de cada aula), copie a tabela <b>“Análise estatística”</b> (ou tire um print dela e use <b>Adicionar imagem</b>), com o nome de cada assunto e o percentual de cobrança, e cole aqui. Escolha a matéria a que ela pertence. Se a tabela for das disciplinas do concurso, escolha “Disciplinas do concurso”.</p>
     <div class="row"><div><label for="anMat">A tabela é de</label><select id="anMat">${opt}</select></div></div>
     <label for="anTxt">Tabela copiada</label><textarea id="anTxt" style="min-height:150px" placeholder="Assunto   % de cobrança
 Pontuação   15,43%
 Concordância verbal e nominal   12,10%
 Crase   8,20%">${esc(anEstado.txt||'')}</textarea>
-    <div class="inl"><button class="b" onclick="anLer()">Ler a tabela</button></div>
+    <div class="inl"><button class="b" onclick="anLer()">Ler a tabela</button>
+      <label class="g" style="display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer;color:var(--ink);font-size:15px;padding:9px 15px;border:1px solid var(--line);border-radius:11px;background:var(--card)">🖼️ Adicionar imagem<input type="file" accept="image/*" multiple style="display:none" onchange="anImagens(this.files);this.value=''"></label>
+      <span class="mut">Print da tabela (PNG ou JPG). Também dá para colar a imagem aqui com Ctrl+V.</span></div>
+    ${anEstado.ocr ? `<div class="alert ${/^Não foi|não achei/.test(anEstado.ocr)?'bad':'info'}" id="anOcr" style="margin-top:10px">${esc(anEstado.ocr)}</div>` : ''}
     ${anEstado.lidos && anEstado.lidos.length ? `<h3>Confira (${anEstado.lidos.length} linhas)</h3>${anEstado.lidos.map(x => `<div class="brow"><span>${esc(x.nome)}</span><div class="bar"><i style="width:${Math.min(100,x.p)}%"></i></div><span>${String(x.p).replace('.',',')}%</span></div>`).join('')}
       <div class="inl"><button class="b" onclick="anSalvar()">Guardar análise</button><button class="g" onclick="anEstado={mid:'',txt:'',lidos:null};render()">Descartar</button></div>` : ''}</div>`;
   return h;
