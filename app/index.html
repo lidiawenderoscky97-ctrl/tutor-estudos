@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="47">
+<meta name="versao" content="48">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -256,6 +256,7 @@ main code{font-size:14px}
 .lsq-ctx{margin-top:16px;padding:14px 18px;border-left:4px solid var(--mut);color:var(--ink);font-size:17px;line-height:1.6;background:var(--soft);border-radius:0 12px 12px 0}
 .lsq-ctx small{display:block;font-size:13px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
 .lsq-txt{font-size:27px;line-height:1.55;margin:20px 0 8px;font-weight:600;color:var(--ink);letter-spacing:-.01em;padding:22px 26px;background:var(--acc2);border-left:6px solid var(--acc);border-radius:0 16px 16px 0}
+.fc-lac{display:inline-block;min-width:90px;padding:0 10px;border-bottom:3px solid var(--acc);color:var(--acc);font-weight:700}
 .lsq-txt .rot{display:block;font-size:14px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 .lsq-bts{display:flex;gap:14px;flex-wrap:wrap;margin-top:20px}
 .lsb{font:inherit;font-size:20px;font-weight:700;padding:16px 36px;border-radius:14px;border:2px solid;cursor:pointer;min-width:190px;background:var(--card)}
@@ -365,7 +366,8 @@ const padrao = () => ({
           ritmoPag:2,blocoMin:30,blocoMax:120,limiar:75,cicloTs:Date.now(),pomodoro:{ativo:true,foco:25,curta:5,longa:15,ciclos:4},
           horasDia:null, pausas:[], materiasPorVez:0, fixas:[], metaQSemana:100},
   materias:[], sessoes:[], revisoes:[], metas:{}, timer:null, cadernos:{}, simulados:[],
-  leiSeca:{st:{}, dias:{}, extras:[]}, leisProprias:[]
+  leiSeca:{st:{}, dias:{}, extras:[]}, leisProprias:[],
+  flash:{st:{}, cards:[], dias:{}, novosDia:20}
 });
 let S;
 function migrar(){
@@ -379,6 +381,8 @@ function migrar(){
   if(!Array.isArray(S.simulados)) S.simulados = [];
   if(!S.leiSeca || typeof S.leiSeca!=='object') S.leiSeca = {};
   S.leiSeca = Object.assign({st:{}, dias:{}, extras:[]}, S.leiSeca);
+  if(!S.flash || typeof S.flash!=='object') S.flash = {};
+  S.flash = Object.assign({st:{}, cards:[], dias:{}, novosDia:20}, S.flash);
   if(!Array.isArray(S.leisProprias)) S.leisProprias = [];
   if(!Array.isArray(S.config.pausas)) S.config.pausas = [];
   if(!Array.isArray(S.config.fixas)) S.config.fixas = [];
@@ -448,6 +452,9 @@ function dividirEstado(){
     Object.entries(porLei).forEach(([l,st]) => docs['tutor/estado/extras/ls-'+l] = {leiSeca:l, st});
     docs['tutor/estado/extras/ls-geral'] = {dias:(S.leiSeca||{}).dias||{}, extras:(S.leiSeca||{}).extras||[]};
   } else { docs['tutor/estado'].cadernos = S.cadernos||{}; docs['tutor/estado'].simulados = S.simulados||[]; docs['tutor/estado'].leiSeca = S.leiSeca||{}; }
+  // flashcards (Claude e Firebase): progresso em partes de 1.500 cards, fora do documento principal
+  { const {st:fst, ...fresto} = S.flash||{}; docs['tutor/estado/extras/flash'] = {flash: fresto};
+    const fk = Object.keys(fst||{}); for(let i = 0; i*1500 < fk.length; i++){ const parte = {}; fk.slice(i*1500, (i+1)*1500).forEach(k => parte[k] = fst[k]); docs['tutor/estado/extras/flash-st-'+i] = {flashSt: parte}; } }
   // leis enviadas em PDF: texto em partes de até 200 mil caracteres
   (S.leisProprias||[]).forEach(p => { const {texto, ...meta} = p, partes = Math.max(1, Math.ceil((texto||'').length/200000));
     for(let i = 0; i < partes; i++) docs['tutor/estado/leis/'+p.id+'-'+i] = {...meta, parte:i, partes, texto:(texto||'').slice(i*200000, (i+1)*200000)}; });
@@ -468,10 +475,16 @@ async function carregarOnline(){
     try{ const ex = await db.doc('tutor/estado').collection('extras').get();
       ex.docs.forEach(x => { const j = JSON.stringify(x.data()||{}), o = JSON.parse(j); ultimoSalvo['tutor/estado/extras/'+x.id] = j;
         if(x.id==='simulados') d.simulados = o.lista||[];
+        else if(x.id==='flash') d.flash = Object.assign(d.flash||{}, o.flash||{}, {st: (d.flash||{}).st||{}});
+        else if(o.flashSt){ d.flash = d.flash || {}; d.flash.st = Object.assign(d.flash.st||{}, o.flashSt); }
         else if(o.leiSeca){ d.leiSeca = d.leiSeca || {st:{}}; d.leiSeca.st = d.leiSeca.st || {}; Object.assign(d.leiSeca.st, o.st||{}); }
         else if(x.id==='ls-geral'){ d.leiSeca = d.leiSeca || {st:{}}; d.leiSeca.dias = o.dias||{}; d.leiSeca.extras = o.extras||[]; }
         else if(o.materiaId) d.cadernos[o.materiaId] = o.texto||''; }); }catch(e){}
   }
+  if(ONLINE.tipo!=='claude'){ try{ const ex = await db.doc('tutor/estado').collection('extras').get();
+    ex.docs.forEach(x => { const j = JSON.stringify(x.data()||{}), o = JSON.parse(j); ultimoSalvo['tutor/estado/extras/'+x.id] = j;
+      if(x.id==='flash') d.flash = Object.assign(d.flash||{}, o.flash||{}, {st: (d.flash||{}).st||{}});
+      else if(o.flashSt){ d.flash = d.flash || {}; d.flash.st = Object.assign(d.flash.st||{}, o.flashSt); } }); }catch(e){} }
   try{ const lp = await db.doc('tutor/estado').collection('leis').get(), partes = {};
     lp.docs.forEach(x => { const j = JSON.stringify(x.data()||{}), o = JSON.parse(j); ultimoSalvo['tutor/estado/leis/'+x.id] = j; (partes[o.id] = partes[o.id] || []).push(o); });
     d.leisProprias = Object.values(partes).map(l => { l.sort((a,b) => a.parte-b.parte); const {parte, partes:n, texto, ...meta} = l[0];
@@ -1104,6 +1117,7 @@ const ICON = {
   edital:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>',
   revisoes:'<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
   desempenho:'<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/></svg>',
+  flash:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 6V4h14v14h-4"/><path d="M7 13h6"/></svg>',
   leiseca:'<svg viewBox="0 0 24 24"><path d="M12 3v18M8 21h8M4 7h16M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/></svg>',
   questoes:'<svg viewBox="0 0 24 24"><path d="M9 11l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 17h10"/></svg>',
   registrar:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
@@ -1112,7 +1126,7 @@ const ICON = {
   cadernos:'<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5M8 7h8M8 11h6"/></svg>',
   config:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
 };
-const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['plano','Meu plano'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['questoes','Lançar questões'],['leiseca','Lei seca'],['simulados','Simulados'],['cadernos','Cadernos'],['registrar','Registro avulso'],['config','Configurações']];
+const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['plano','Meu plano'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['questoes','Lançar questões'],['leiseca','Lei seca'],['flash','Flashcards'],['simulados','Simulados'],['cadernos','Cadernos'],['registrar','Registro avulso'],['config','Configurações']];
 let aba = 'painel';
 function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHoje=''; } if(a!=='config') avisoCfg=''; if(a!=='plano'){ avisoPlano=''; simData=null; } if(a!=='simulados') simForm=false; render(); window.scrollTo(0,0); }
 function render(){
@@ -1124,7 +1138,7 @@ function render(){
   const ct = document.getElementById('contagem');
   ct.innerHTML = S.config.dataProva ? (d => d>=0 ? `<span class="chip">Prova em <b>${d}</b> dias</span>` : '')(diff(hoje(),S.config.dataProva)) : '';
   desenharCron();
-  const V = {painel:vPainel, hoje:vHoje, semana:vSemana, plano:vPlano, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, questoes:vQuestoes, leiseca:vLeiSeca, simulados:vSimulados, cadernos:vCadernos, registrar:vRegistrar, config:vConfig};
+  const V = {painel:vPainel, hoje:vHoje, semana:vSemana, plano:vPlano, revisoes:vRevisoes, edital:vEdital, desempenho:vDesempenho, questoes:vQuestoes, leiseca:vLeiSeca, flash:vFlash, simulados:vSimulados, cadernos:vCadernos, registrar:vRegistrar, config:vConfig};
   document.body.classList.toggle('larga', aba==='hoje');
   document.getElementById('app').innerHTML = V[aba]();
   if(aba==='registrar') atualizaTopicos();
@@ -3158,6 +3172,189 @@ async function exportar(){
 function exportarArquivo(){const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='tutor-estudos-backup-'+hoje()+'.json'; a.click();}
 function restaurar(f){if(!f)return; const r=new FileReader(); r.onload=async ()=>{try{const d=JSON.parse(r.result); if(!d.materias) throw 0; confirmar('Substituir os dados atuais pelo backup?').then(ok=>{if(ok){S=d; migrar(); save(); render();}})}catch(e){avisar('Arquivo de backup inválido.');}}; r.readAsText(f);}
 
+/* ============ Flashcards ============
+   Baralho montado a partir do edital: (1) cards de lei — cada dispositivo dos artigos que o edital cobra, das leis do
+   catálogo e das enviadas em PDF, com a palavra-chave escondida para lembrar; (2) cards criados por você em cada assunto.
+   Repetição espaçada (Errei / Difícil / Bom / Fácil): st[id] = {i: intervalo em dias, e: facilidade, d: próxima data, r: acertos seguidos, l: erros}. */
+let FC = {mid:'', tid:'', fonte:'todos', sessao:null, criar:null, lote:'', verLista:''};
+const fcSt = () => S.flash.st;
+// palavra-chave do dispositivo: número/prazo ou termo trocável (o que mais cai em "decoreba")
+function fcLacuna(t, semente){
+  const tr = leiTrocas(t, rndSemente(semente)).filter(x => x.tipo !== 'negação' && x.de.trim().length >= 2);
+  if(!tr.length) return null;
+  tr.sort((a,b) => b.peso - a.peso || b.de.length - a.de.length);
+  return tr[0];
+}
+// todos os cards disponíveis (lei do edital + seus), com matéria e assunto
+function fcBaralho(){
+  const out = [], vistos = new Set();
+  (LS.alvos||[]).forEach(a => {
+    const lei = LS.leis[a.lei]; if(!lei) return;
+    lei.arts.filter(x => leiNaFaixa(x.k, a.faixas) && (a.faixas.length || !/^ADCT/.test(x.k))).forEach(x => x.d.forEach((d, di) => {
+      if(!leiDispOk(x, d)) return; const id = 'L|'+a.lei+'|'+x.k+'|'+di; if(vistos.has(id)) return; vistos.add(id);
+      out.push({id, tipo:'lei', lei:a.lei, k:x.k, di, mid:a.materiaId||'', tid:a.topicoId||'', w:a.peso||1}); }));
+  });
+  (S.flash.cards||[]).forEach(c => out.push({id:'C|'+c.id, tipo:'meu', c, mid:c.mid||'', tid:c.tid||'', w:3}));
+  return out;
+}
+function fcFiltrar(b, op){
+  op = op || FC;
+  return b.filter(x => (!op.mid || x.mid === op.mid) && (!op.tid || x.tid === op.tid) && (op.fonte === 'todos' || !op.fonte || (op.fonte === 'lei') === (x.tipo === 'lei')));
+}
+const fcDevido = x => { const s = fcSt()[x.id]; return s && s.d <= hoje(); };
+const fcNovo = x => !fcSt()[x.id];
+const fcDominado = x => { const s = fcSt()[x.id]; return s && s.i >= 21; };
+function fcNovosHoje(){ return (S.flash.dias[hoje()]||{}).n || 0; }
+// frente e verso do card
+function fcConteudo(x){
+  if(x.tipo === 'meu') return {ref: [mat(x.mid)?mat(x.mid).nome:'', (topico(mat(x.mid), x.tid)||{}).nome||''].filter(Boolean).join(' › '), frente: esc(x.c.f).replace(/\n/g,'<br>'), verso: esc(x.c.v).replace(/\n/g,'<br>')};
+  const lei = LS.leis[x.lei], art = lei && lei.porK[x.k]; if(!art) return {ref:'', frente:'(dispositivo não encontrado)', verso:''};
+  const d = art.d[x.di], ref = (lei.sigla ? lei.sigla + ', ' : '') + art.rot.replace(/^Art\./,'art.') + (d.r !== 'caput' ? ', ' + leiRotDisp(d.r) : '');
+  const ctx = d.r === 'caput' ? '' : (art.d.find(y => y.r === 'caput') || {}).t || '';
+  const ctxH = ctx && ctx !== d.t ? `<div class="lsq-ctx"><small>Caput</small>${esc(curto(ctx, 300))}</div>` : '';
+  const lac = fcLacuna(d.t, x.id);
+  if(lac){ const a = esc(d.t.slice(0, lac.i)), b = esc(d.t.slice(lac.i + lac.de.length));
+    return {ref, ctx: ctxH, frente: `${a}<span class="fc-lac">[ … ]</span>${b}`, verso: `${a}<mark class="ok">${esc(lac.de)}</mark>${b}`, pergunta:'Complete a lacuna'}; }
+  return {ref, ctx: ctxH, frente: `O que diz o ${esc(ref)}?`, verso: esc(d.t), pergunta:'Lembre o texto do dispositivo'};
+}
+// próximos intervalos de cada botão
+function fcIntervalos(x){
+  const s = fcSt()[x.id] || {i:0, e:2.5, r:0};
+  const bom = s.i < 1 ? 1 : s.i < 3 ? 3 : Math.round(s.i * s.e);
+  return {errei: 0, dificil: Math.max(1, Math.round((s.i||1) * 1.2)), bom, facil: Math.max(bom + 1, Math.round((s.i < 1 ? 3 : s.i * s.e) * 1.4))};
+}
+const fcRotDias = n => n === 0 ? 'hoje' : n === 1 ? '1 dia' : n < 30 ? n + ' dias' : n < 365 ? Math.round(n/30) + ' m' : (n/365).toFixed(1).replace('.',',') + ' a';
+function fcIniciar(op){
+  op = Object.assign({}, FC, op || {});
+  const b = fcFiltrar(fcBaralho(), op), st = fcSt();
+  const dev = b.filter(fcDevido).sort((a,c) => st[a.id].d < st[c.id].d ? -1 : 1);
+  const limNovos = Math.max(0, (+S.flash.novosDia||20) - fcNovosHoje());
+  // novos: os assuntos mais importantes primeiro (peso da matéria × incidência), sem embaralhar a ordem dos artigos dentro do assunto
+  // intercala as matérias (uma de cada vez), mantendo dentro de cada uma os assuntos mais importantes primeiro
+  const filas = {}; b.filter(fcNovo).sort((a,c) => c.w - a.w).forEach(x => (filas[x.mid] = filas[x.mid] || []).push(x));
+  const intercalados = []; let resta = true; while(resta){ resta = false; Object.values(filas).forEach(f => { if(f.length){ intercalados.push(f.shift()); resta = true; } }); }
+  const novos = intercalados.slice(0, op.so === 'novos' ? Math.max(limNovos, 10) : limNovos);
+  let itens = op.so === 'novos' ? novos : dev.concat(novos);
+  if(op.so === 'todos') itens = b.slice().sort(() => Math.random() - .5).slice(0, 30);
+  if(!itens.length){ avisar(b.length ? 'Nada para revisar agora neste baralho. Volte amanhã ou estude cards novos.' : 'Nenhum card neste filtro ainda.'); return; }
+  FC.sessao = {itens: itens.slice(0, 60), i:0, virado:false, cont:{errei:0, dificil:0, bom:0, facil:0}};
+  render(); const el = document.getElementById('fcq'); if(el && el.scrollIntoView) el.scrollIntoView({block:'start', behavior:'smooth'});
+}
+function fcVirar(){ const s = FC.sessao; if(!s || s.virado) return; s.virado = true; render(); }
+function fcResponder(nota){
+  const s = FC.sessao; if(!s || !s.virado) return;
+  const x = s.itens[s.i], st = fcSt(), novo = !st[x.id], v = st[x.id] || {i:0, e:2.5, r:0, l:0, d:hoje()}, iv = fcIntervalos(x);
+  if(nota === 'errei'){ v.l = (v.l||0) + 1; v.r = 0; v.e = Math.max(1.3, v.e - .2); v.i = 0; v.d = hoje(); s.itens.push(x); }
+  else { v.r = (v.r||0) + 1; if(nota === 'dificil') v.e = Math.max(1.3, v.e - .15); if(nota === 'facil') v.e = Math.min(3, v.e + .15); v.i = iv[nota]; v.d = addDias(hoje(), v.i); }
+  st[x.id] = v; s.cont[nota]++;
+  const d = S.flash.dias[hoje()] = S.flash.dias[hoje()] || {n:0, v:0, a:0}; d.v++; if(nota !== 'errei') d.a++; if(novo) d.n++;
+  Object.keys(S.flash.dias).forEach(k => { if(diff(k, hoje()) > 120) delete S.flash.dias[k]; });
+  s.i++; s.virado = false; if(s.i >= s.itens.length) s.fim = true;
+  save(); render();
+}
+document.addEventListener('keydown', e => {
+  if(typeof aba === 'undefined' || aba !== 'flash' || !FC.sessao || FC.sessao.fim || /INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')) return;
+  const k = e.key;
+  if(!FC.sessao.virado && (k === ' ' || k === 'Enter')){ e.preventDefault(); fcVirar(); }
+  else if(FC.sessao.virado && ({'1':'errei','2':'dificil','3':'bom','4':'facil',' ':'bom','Enter':'bom'})[k]){ e.preventDefault(); fcResponder(({'1':'errei','2':'dificil','3':'bom','4':'facil',' ':'bom','Enter':'bom'})[k]); }
+});
+// criar cards
+function fcSalvarCard(){
+  const f = (document.getElementById('fc_f')||{}).value || '', v = (document.getElementById('fc_v')||{}).value || '';
+  const mid = (document.getElementById('fc_m')||{}).value || '', tid = (document.getElementById('fc_t')||{}).value || '';
+  if(!f.trim() || !v.trim()) return avisar('Preencha a frente e o verso do card.');
+  if(FC.criar && FC.criar.id){ const c = S.flash.cards.find(x => x.id === FC.criar.id); if(c){ Object.assign(c, {f:f.trim(), v:v.trim(), mid, tid}); } }
+  else S.flash.cards.push({id:uid(), mid, tid, f:f.trim(), v:v.trim(), criado:hoje()});
+  FC.criar = {mid, tid}; save(); render(); avisar('Card salvo.');
+  const el = document.getElementById('fc_f'); if(el) el.focus();
+}
+function fcImportarLote(){
+  const txt = (document.getElementById('fc_lote')||{}).value || '', mid = (document.getElementById('fc_m')||{}).value || '', tid = (document.getElementById('fc_t')||{}).value || '';
+  let n = 0;
+  txt.split('\n').forEach(l => { const i = l.search(/\s*(\||;|\t|\s[-–—]\s)\s*/); if(i <= 0) return; const sep = l.slice(i).match(/^\s*(\||;|\t|\s[-–—]\s)\s*/)[0];
+    const f = l.slice(0, i).trim(), v = l.slice(i + sep.length).trim(); if(f && v){ S.flash.cards.push({id:uid(), mid, tid, f, v, criado:hoje()}); n++; } });
+  if(!n) return avisar('Use uma linha por card: frente | verso');
+  FC.lote = ''; save(); render(); avisar(n + ' card(s) criados.');
+}
+async function fcApagar(id){ if(!(await confirmar('Apagar este card?'))) return; S.flash.cards = S.flash.cards.filter(c => c.id !== id); delete fcSt()['C|'+id]; save(); render(); }
+function fcOptsAssunto(mid, sel){ const m = mat(mid); return `<option value="">Toda a matéria</option>` + (m ? m.topicos.map(t => `<option value="${t.id}" ${t.id===sel?'selected':''}>${esc(curto(t.nome, 90))}</option>`).join('') : ''); }
+function vFlash(){
+  if(!S.materias.length) return `<div class="card"><h2>Flashcards</h2><div class="empty">Monte o edital primeiro (aba Edital): os flashcards seguem as matérias, os assuntos e as leis do seu edital.</div></div>`;
+  if(!LS.pronto && !LS.preparando) lsPreparar();
+  const b = fcBaralho(), st = fcSt(), filt = fcFiltrar(b);
+  const nDev = filt.filter(fcDevido).length, nNovo = filt.filter(fcNovo).length, nDom = filt.filter(fcDominado).length;
+  const dh = S.flash.dias[hoje()] || {n:0, v:0, a:0}, limNovos = Math.max(0, (+S.flash.novosDia||20) - dh.n);
+  let h = `<div class="hk"><div><span class="ic">🃏</span><div><small>Para revisar hoje</small><b>${nDev}</b></div></div>
+    <div><span class="ic">✨</span><div><small>Cards novos</small><b>${nNovo}</b><small>${limNovos} liberados hoje</small></div></div>
+    <div><span class="ic">✅</span><div><small>Estudados hoje</small><b>${dh.v}</b><small>${dh.v ? pct(dh.a/dh.v)+' lembrados' : '—'}</small></div></div>
+    <div><span class="ic">🏆</span><div><small>Dominados</small><b>${nDom}</b><small>de ${filt.length} cards</small></div></div></div>`;
+  if(LS.preparando && !LS.pronto) h += `<div class="alert info">Carregando as leis do seu edital para montar os cards…</div>`;
+  if(LS.erro) h += `<div class="alert bad">${esc(LS.erro)}</div>`;
+  // sessão
+  const s = FC.sessao;
+  if(s && !s.fim){
+    const x = s.itens[s.i], c = fcConteudo(x), iv = fcIntervalos(x), m = mat(x.mid), t = topico(m, x.tid);
+    h += `<div class="card lsq" id="fcq"><div class="lsq-top"><span class="tag">${s.i+1} de ${s.itens.length}</span>${x.tipo==='lei'?'<span class="tag rev">Lei seca</span>':'<span class="tag ok">Meu card</span>'}${fcNovo(x)?'<span class="tag warn">novo</span>':''}
+        <span class="mut">${esc([m?m.nome:'', t?curto(t.nome,70):''].filter(Boolean).join(' › '))}</span><span style="flex:1"></span><button class="g" onclick="FC.sessao=null;render()">Encerrar</button></div>
+      ${c.ref && x.tipo==='lei' ? `<div class="lsq-ref"><b>${esc(c.ref)}</b></div>` : ''}${c.ctx||''}
+      <div class="lsq-txt"><span class="rot">${c.pergunta||'Frente'}</span>${c.frente}</div>
+      ${s.virado ? `<div class="lsq-orig"><div class="mut">Resposta</div>${c.verso}</div>
+        <div class="lsq-bts"><button class="lsb errado" onclick="fcResponder('errei')">Errei<small>1 · ${fcRotDias(iv.errei)}</small></button>
+          <button class="lsb" style="border-color:var(--warn);color:var(--warn)" onclick="fcResponder('dificil')">Difícil<small>2 · ${fcRotDias(iv.dificil)}</small></button>
+          <button class="lsb certo" onclick="fcResponder('bom')">Bom<small>3 · ${fcRotDias(iv.bom)}</small></button>
+          <button class="lsb" style="border-color:var(--acc);color:var(--acc)" onclick="fcResponder('facil')">Fácil<small>4 · ${fcRotDias(iv.facil)}</small></button></div>`
+      : `<div class="lsq-bts"><button class="b" style="font-size:19px;padding:15px 34px" onclick="fcVirar()">Mostrar resposta <small style="opacity:.75">(espaço)</small></button></div>`}</div>`;
+  } else if(s && s.fim){
+    const t = s.cont.errei + s.cont.dificil + s.cont.bom + s.cont.facil;
+    h += `<div class="card lsq" id="fcq"><h2>Sessão concluída 🎉</h2><p style="font-size:18px">${t} respostas · lembrou de primeira em <b>${pct(t ? (t - s.cont.errei)/t : null)}</b>. Errei ${s.cont.errei} · Difícil ${s.cont.dificil} · Bom ${s.cont.bom} · Fácil ${s.cont.facil}.</p>
+      <div class="inl"><button class="b" onclick="fcIniciar()">Estudar mais</button><button class="g" onclick="FC.sessao=null;render()">Fechar</button></div></div>`;
+  }
+  // filtros e iniciar
+  h += `<div class="card"><h2>Estudar</h2>
+    <div class="row"><div><label>Matéria</label><select onchange="FC.mid=this.value;FC.tid='';render()"><option value="">Todas as matérias</option>${S.materias.map(m => `<option value="${m.id}" ${FC.mid===m.id?'selected':''}>${esc(m.nome)}</option>`).join('')}</select></div>
+      <div><label>Assunto</label><select ${FC.mid?'':'disabled'} onchange="FC.tid=this.value;render()">${fcOptsAssunto(FC.mid, FC.tid)}</select></div>
+      <div><label>Cards</label><select onchange="FC.fonte=this.value;render()">${[['todos','Leis do edital e os meus'],['lei','Só leis do edital'],['meu','Só os meus cards']].map(([v,n]) => `<option value="${v}" ${FC.fonte===v?'selected':''}>${n}</option>`).join('')}</select></div>
+      <div><label>Cards novos por dia</label><input type="number" min="0" max="200" step="5" value="${S.flash.novosDia}" onchange="S.flash.novosDia=Math.max(0,+this.value||0);save();render()"></div></div>
+    <div class="inl"><button class="b" onclick="fcIniciar()">▶ Estudar (${nDev} para revisar + ${Math.min(nNovo, limNovos)} novos)</button>
+      <button class="g" onclick="fcIniciar({so:'novos'})">Só cards novos</button><button class="g" onclick="fcIniciar({so:'todos'})">Revisão livre (30 aleatórios)</button></div>
+    <p class="mut">Atalhos: <b>espaço</b> mostra a resposta; depois <b>1</b> Errei, <b>2</b> Difícil, <b>3</b> Bom, <b>4</b> Fácil. Quanto melhor você lembra, mais tempo o card demora a voltar.</p></div>`;
+  // baralho por matéria e assunto
+  h += `<div class="card" style="margin-top:16px"><h2>Baralhos do edital</h2><p class="mut">Cards de lei saem dos artigos que o edital cobra em cada assunto (leis do sistema e as enviadas em PDF). Em qualquer assunto você pode criar os seus.</p>`;
+  const porMat = {}; b.forEach(x => { (porMat[x.mid] = porMat[x.mid] || []).push(x); });
+  h += S.materias.map(m => { const l = porMat[m.id] || [];
+    const porT = {}; l.forEach(x => { (porT[x.tid] = porT[x.tid] || []).push(x); });
+    const linhas = m.topicos.map(t => ({t, l: porT[t.id] || []})).filter(r => r.l.length || FC.verLista === m.id);
+    return `<details class="mat" ${abertas.has('fc'+m.id)?'open':''} ontoggle="this.open?abertas.add('fc${m.id}'):abertas.delete('fc${m.id}')"><summary><b style="flex:1;min-width:160px">${esc(m.nome)}</b>
+      <span class="mut">${l.length} cards · ${l.filter(fcDevido).length} para revisar · ${l.filter(fcDominado).length} dominados</span>
+      <button class="g" onclick="event.preventDefault();FC.mid='${m.id}';FC.tid='';fcIniciar({mid:'${m.id}',tid:''})">▶ Estudar</button></summary><div class="body">
+      ${linhas.length ? linhas.map(r => `<div class="item"><div style="min-width:0;flex:1"><b>${esc(curto(r.t.nome, 110))}</b><div class="mut">${r.l.filter(x=>x.tipo==='lei').length} de lei · ${r.l.filter(x=>x.tipo==='meu').length} meus · ${r.l.filter(fcDevido).length} para revisar</div></div>
+        <div class="inl" style="margin:0">${r.l.length?`<button class="g" onclick="fcIniciar({mid:'${m.id}',tid:'${r.t.id}'})">▶ Estudar</button>`:''}<button class="g" onclick="FC.criar={mid:'${m.id}',tid:'${r.t.id}'};render();setTimeout(()=>{const e=document.getElementById('fc_f');if(e){e.scrollIntoView({block:'center'});e.focus()}},30)">+ Card</button></div></div>`).join('')
+        : '<div class="empty">Nenhum card ainda nesta matéria.</div>'}
+      ${(porT[''] || []).length ? `<div class="item"><div><b>Leis da matéria sem assunto específico</b><div class="mut">${porT[''].length} cards</div></div><button class="g" onclick="fcIniciar({mid:'${m.id}',tid:''})">▶ Estudar</button></div>` : ''}
+      <div class="inl"><button class="lk" onclick="FC.verLista=FC.verLista==='${m.id}'?'':'${m.id}';abertas.add('fc${m.id}');render()">${FC.verLista===m.id?'Mostrar só assuntos com cards':'Mostrar todos os assuntos (para criar cards)'}</button></div></div></details>`; }).join('');
+  if(porMat['']) h += `<div class="item"><div><b>Leis sem matéria ligada</b><div class="mut">${porMat[''].length} cards (leis adicionadas por você ou PDF sem matéria)</div></div><button class="g" onclick="fcIniciar({mid:'',tid:''})">▶ Estudar</button></div>`;
+  h += `</div>`;
+  // criar
+  const cm = (FC.criar && FC.criar.mid) || FC.mid || S.materias[0].id, ct = (FC.criar && FC.criar.tid) || '';
+  const ed = FC.criar && FC.criar.id ? S.flash.cards.find(c => c.id === FC.criar.id) : null;
+  const meus = S.flash.cards.filter(c => (!cm || c.mid === cm) && (!ct || c.tid === ct));
+  h += `<div class="card" style="margin-top:16px"><h2>${ed ? 'Editar card' : 'Criar meus cards'}</h2>
+    <div class="row"><div><label for="fc_m">Matéria</label><select id="fc_m" onchange="FC.criar={mid:this.value,tid:''};render()">${S.materias.map(m => `<option value="${m.id}" ${cm===m.id?'selected':''}>${esc(m.nome)}</option>`).join('')}</select></div>
+      <div><label for="fc_t">Assunto</label><select id="fc_t" onchange="FC.criar={mid:document.getElementById('fc_m').value,tid:this.value};render()">${fcOptsAssunto(cm, ct)}</select></div></div>
+    <div class="row"><div><label for="fc_f">Frente (pergunta)</label><textarea id="fc_f" style="min-height:90px;font-family:inherit;font-size:15px" placeholder="Ex.: Quais são os atributos do ato administrativo?">${ed?esc(ed.f):''}</textarea></div>
+      <div><label for="fc_v">Verso (resposta)</label><textarea id="fc_v" style="min-height:90px;font-family:inherit;font-size:15px" placeholder="Presunção de legitimidade, imperatividade, autoexecutoriedade e tipicidade.">${ed?esc(ed.v):''}</textarea></div></div>
+    <div class="inl"><button class="b" onclick="fcSalvarCard()">${ed ? 'Salvar alterações' : 'Salvar card'}</button>${ed?`<button class="g" onclick="FC.criar={mid:'${cm}',tid:'${ct}'};render()">Cancelar</button>`:''}</div>
+    <details style="margin-top:12px"><summary style="cursor:pointer"><b>Criar vários de uma vez</b></summary>
+      <p class="mut">Uma linha por card: <code>frente | verso</code> (também vale ponto e vírgula ou tabulação, como no Anki). Entram na matéria e no assunto escolhidos acima.</p>
+      <textarea id="fc_lote" style="min-height:120px" placeholder="Prazo da contestação no CPC | 15 dias úteis
+Princípios da administração (art. 37 CF) | Legalidade, impessoalidade, moralidade, publicidade e eficiência">${esc(FC.lote||'')}</textarea>
+      <div class="inl"><button class="g" onclick="fcImportarLote()">Criar os cards</button></div></details>
+    ${meus.length ? `<h3>Seus cards ${ct ? 'neste assunto' : 'nesta matéria'} (${meus.length})</h3>${meus.slice(0, 80).map(c => { const t = topico(mat(c.mid), c.tid), s = st['C|'+c.id];
+      return `<div class="item"><div style="min-width:0;flex:1"><b>${esc(curto(c.f, 120))}</b><div class="mut">${esc(curto(c.v, 140))}${!ct && t ? ' · '+esc(curto(t.nome,50)) : ''}${s ? ' · volta '+(s.d<=hoje()?'hoje':br(s.d).slice(0,5)) : ' · novo'}</div></div>
+        <div class="inl" style="margin:0"><button class="g" onclick="FC.criar={id:'${c.id}',mid:'${c.mid}',tid:'${c.tid}'};render();setTimeout(()=>{const e=document.getElementById('fc_f');if(e)e.scrollIntoView({block:'center'})},30)">Editar</button><button class="x" title="Apagar" onclick="fcApagar('${c.id}')">✕</button></div></div>`; }).join('')}` : ''}</div>`;
+  return h;
+}
+
 /* ============ Atualizações ============ */
 function verificarAtualizacao(){ const i=document.getElementById('infoVersao'); if(i) i.textContent='Procurando atualizações...'; DESK.verificar(); }
 window.__atualizacao = function(v, notas, erro){
@@ -3504,7 +3701,7 @@ async function lsPreparar(forcar){
     LS.pronto = true;
   }catch(e){ LS.erro = 'Não foi possível carregar as leis ('+e.message+'). Confira a internet e abra a aba de novo.'; }
   LS.preparando = false;
-  if(aba === 'leiseca' || aba === 'desempenho') render();
+  if(aba === 'leiseca' || aba === 'desempenho' || aba === 'flash') render();
 }
 function lsInvalidar(){ LS.pronto = false; LS.alvos = []; LS.sessao = null; }
 // dispositivos que podem cair: [{key, lei, k, di, w, alvo}]
