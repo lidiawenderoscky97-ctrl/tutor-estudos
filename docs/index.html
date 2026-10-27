@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="48">
+<meta name="versao" content="49">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -1035,19 +1035,26 @@ async function terminouAssunto(id){
   avisoHoje = `Assunto concluído: ${t.nome}.`;
   maisTempo = null; save(); render();
 }
+// acha a meta em qualquer dia (a de hoje primeiro; depois as atrasadas dos dias anteriores)
+function acharMeta(id){
+  for(const dia of [hoje(), ...Object.keys(S.metas).filter(k => k !== hoje()).sort().reverse()]){
+    const l = S.metas[dia] || [], meta = l.find(x => x.id === id); if(meta) return {dia, meta}; }
+  return {dia:null, meta:null};
+}
 function concluirMeta(id){
-  const meta = (S.metas[hoje()]||[]).find(x=>x.id===id); if(!meta) return;
+  const {dia: diaMeta, meta} = acharMeta(id); if(!meta) return avisar('Não encontrei esta meta. Recarregue a página e tente de novo.');
+  const diaReg = diaMeta < hoje() ? diaMeta : hoje(); // meta de um dia anterior: o estudo conta naquele dia
   const cq = document.getElementById('cq'), ca = document.getElementById('ca');
   const q = cq ? (+cq.value||0) : 0, a = ca ? (+ca.value||0) : 0, min = +document.getElementById('cm').value||meta.min;
   if(meta.tipo==='fixa'){ if(meta.feita) return;
-    const s = {id:uid(), ts:Date.now(), data:hoje(), materiaId:meta.materiaId||null, topicoId:null, tipo:'fixa', fonte:'Atividade fixa', min, q:0, a:0, obs:meta.nome};
+    const s = {id:uid(), ts:Date.now(), data:diaReg, materiaId:meta.materiaId||null, topicoId:null, tipo:'fixa', fonte:'Atividade fixa', min, q:0, a:0, obs:meta.nome};
     S.sessoes.push(s); Object.assign(meta, {feita:true, minReal:min, desfazer:{sessaoId:s.id}});
     if(S.timer && S.timer.metaId===id) S.timer = null; caixaAberta = null; save(); render(); return; }
   if(a > q) return avisar('Acertos não podem ser maiores que o número de questões.');
   const m = mat(meta.materiaId), t = topico(m, meta.topicoId); if(!t) return;
   if(meta.feita) return;
-  if(Object.isFrozen(meta)){ const i = S.metas[hoje()].indexOf(meta); S.metas[hoje()] = S.metas[hoje()].slice(); S.metas[hoje()][i] = Object.assign({}, meta); return concluirMeta(id); }
-  const s = {id:uid(), ts:Date.now(), data:hoje(), materiaId:m.id, topicoId:t.id, tipo:(meta.tipo==='extra' && meta.origem!=='conteudo') ? meta.origem : meta.tipo, fonte:(meta.tipo==='conteudo' && meta.fase!=='questoes')?'Estratégia (PDF)':'TEC Concursos', min, q, a,
+  if(Object.isFrozen(meta)){ const i = S.metas[diaMeta].indexOf(meta); S.metas[diaMeta] = S.metas[diaMeta].slice(); S.metas[diaMeta][i] = Object.assign({}, meta); return concluirMeta(id); }
+  const s = {id:uid(), ts:Date.now(), data:diaReg, materiaId:m.id, topicoId:t.id, tipo:(meta.tipo==='extra' && meta.origem!=='conteudo') ? meta.origem : meta.tipo, fonte:(meta.tipo==='conteudo' && meta.fase!=='questoes')?'Estratégia (PDF)':'TEC Concursos', min, q, a,
              obs: meta.tipo==='extra' ? 'Tempo extra' : meta.tipo==='conteudo' ? `${meta.fase==='questoes'?'Questões':'Teoria'} ${meta.parte}/${meta.n}` : meta.tipo==='revisao' ? `Revisão etapa ${meta.etapa+1}` : 'Reforço'};
   S.sessoes.push(s);
   const desfazer = {sessaoId:s.id, statusAntes:t.status};
@@ -1064,11 +1071,14 @@ function concluirMeta(id){
   }
   Object.assign(meta, {feita:true, q, a, minReal:min, desfazer});
   if(S.timer && S.timer.metaId===id) S.timer = null;
+  if(diaMeta < hoje()){ aviso = `Meta de ${br(diaMeta).slice(0,5)} concluída e registrada naquele dia. ` + aviso;
+    // conteúdo concluído agora não precisa mais aparecer pendente nas metas de hoje
+    if(meta.tipo==='conteudo') S.metas[hoje()] = (S.metas[hoje()]||[]).filter(x => x.feita || x.atrasada !== diaMeta || x.origemId !== meta.id); }
   if(aviso) avisoHoje = aviso;
   caixaAberta = null; save(); render();
 }
 async function desfazerMeta(id){
-  const meta = (S.metas[hoje()]||[]).find(x=>x.id===id); if(!meta || !meta.feita) return;
+  const {meta} = acharMeta(id); if(!meta || !meta.feita) return;
   if(!(await confirmar('Desfazer a conclusão desta meta?'))) return;
   const d = meta.desfazer||{}, m = mat(meta.materiaId), t = topico(m, meta.topicoId);
   S.sessoes = S.sessoes.filter(s=>s.id!==d.sessaoId);
@@ -1145,9 +1155,12 @@ const ICON = {
   config:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
 };
 const ABAS = [['painel','Painel'],['hoje','Metas de hoje'],['semana','Cronograma'],['plano','Meu plano'],['edital','Edital'],['revisoes','Revisões'],['desempenho','Desempenho'],['questoes','Lançar questões'],['leiseca','Lei seca'],['flash','Flashcards'],['simulados','Simulados'],['cadernos','Cadernos'],['registrar','Registro avulso'],['config','Configurações']];
-let aba = 'painel';
+let aba = 'painel', verAtrasadas = false, diaRender = null;
 function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHoje=''; } if(a!=='config') avisoCfg=''; if(a!=='plano'){ avisoPlano=''; simData=null; } if(a!=='simulados') simForm=false; render(); window.scrollTo(0,0); }
+// passou da meia-noite com a página aberta: refaz a tela para mostrar as metas do novo dia
+setInterval(() => { if(diaRender && diaRender !== hoje() && aba === 'hoje' && S && S.materias && !document.querySelector('.caixa input:focus')){ render(); avisar('Começou um novo dia: as metas foram atualizadas. As de ontem que ficaram pendentes aparecem como atrasadas.'); } }, 60000);
 function render(){
+  diaRender = hoje();
   const lvl = nivel(xpTotal());
   document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Estudo Guiado</div>` +
     ABAS.map(([k,n]) => `<button class="${k===aba?'on':''}" onclick="ir('${k}')" title="${n}">${ICON[k]}<span>${n}</span></button>`).join('') +
@@ -1238,9 +1251,13 @@ function vHoje(){
       <button class="g" onclick="confirmar('Refazer as metas pendentes de hoje? As concluídas ficam.').then(ok=>{if(ok){gerarMetas(true);render();}})">Refazer pendentes</button></span></div>
       <div class="bar"><i style="width:${p*100}%"></i></div>${avisoHoje?`<div class="alert info" style="margin-top:12px">${esc(avisoHoje)}</div>`:''}`;
   const atr = metasAtrasadas();
+  // "Concluir" clicado numa meta de dia anterior que não está na lista de hoje (tela aberta desde ontem, cronômetro de ontem…)
+  if(caixaAberta && !metas.some(x => x.id === caixaAberta) && !atr.some(a => a.meta.id === caixaAberta)){ const f = acharMeta(caixaAberta);
+    if(f.meta && f.dia < hoje() && !f.meta.feita) h += `<p class="mut" style="margin:12px 0 0"><b>Meta do dia ${br(f.dia).slice(0,5)}:</b> conclua abaixo; o estudo fica registrado naquele dia.</p>` + cardMeta(f.meta, 0, f.dia); }
   if(atr.length){ const dias = [...new Set(atr.map(a=>a.dia))].sort();
     h += `<div class="alert warn" style="margin-top:10px"><b>${atr.length} meta${atr.length>1?'s':''} atrasada${atr.length>1?'s':''}</b> de ${dias.map(d=>br(d).slice(0,5)).join(', ')}: ${atr.slice(0,4).map(a=>{ const m=mat(a.meta.materiaId), t=topico(m,a.meta.topicoId); return esc(rotuloMeta(a.meta)+' · '+curto(t.nome,40)); }).join(' · ')}${atr.length>4?' …':''}
-      <div class="inl" style="margin-top:8px"><button class="b" onclick="replanejarAtrasados()">Replanejar para hoje</button><button class="g" onclick="descartarAtrasados()">Descartar</button></div></div>`; }
+      <div class="inl" style="margin-top:8px"><button class="b" onclick="replanejarAtrasados()">Replanejar para hoje</button><button class="g" onclick="descartarAtrasados()">Descartar</button><button class="g" onclick="verAtrasadas=!verAtrasadas;render()">${verAtrasadas?'Esconder':'Já fiz alguma: concluir'}</button></div></div>`;
+    if(verAtrasadas || atr.some(a => a.meta.id === caixaAberta)) h += `<p class="mut" style="margin:10px 0 0">Conclua aqui as metas que você fez no dia certo: o estudo fica registrado naquele dia.</p>` + atr.map((a,i) => cardMeta(a.meta, i, a.dia)).join(''); }
   h += `</div>`;
   if(!metas.length){ const pz = pausaDe(hoje());
     h += `<div class="empty card" style="margin-top:10px">Sem metas para hoje: ${pz ? `plano pausado até ${br(pz.ate)}${pz.motivo?' ('+esc(pz.motivo)+')':''}. As metas voltam sozinhas depois da pausa; as revisões vencidas entram primeiro.` : capacidade(hoje())? 'todo o conteúdo do ciclo está concluído.' : 'dia sem horas de estudo em Meu plano.'}</div>`; }
@@ -1269,10 +1286,10 @@ function detalheMeta(x,m,t){
 }
 // "cai X% nas provas": mostrado nas metas do pós-edital
 const incTxt = (m,t) => !posEdital() || !t ? '' : t.estatP != null ? ` · cai ${String(t.estatP).replace('.',',')}% nas provas (Estratégia)` : t.tecQ != null ? ` · ${t.tecQ} questões no TEC` : '';
-function cardFixa(x,i){
+function cardFixa(x,i,dia){
   const ativa = S.timer && S.timer.metaId===x.id, m = mat(x.materiaId);
   let h = `<div class="meta fixa ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
-    <div style="min-width:0"><div class="dia-m">Meta ${i+1} do dia ${br(hoje()).slice(0,5)}${x.feita?' · concluída ✓':''}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tipo fixa">Atividade fixa</span> <span class="pill">⏱ ${x.min} minutos de atividade</span> <span class="mut">${focos(x.min)}</span></div>
+    <div style="min-width:0"><div class="dia-m">Meta ${i+1} do dia ${br(dia||hoje()).slice(0,5)}${x.feita?' · concluída ✓':''}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tipo fixa">Atividade fixa</span> <span class="pill">⏱ ${x.min} minutos de atividade</span> <span class="mut">${focos(x.min)}</span></div>
       <div class="tit" style="margin-top:4px">${esc(x.nome)}${m?` <span class="mut">· ${esc(m.nome)}</span>`:''}</div>
       <div class="mut">Atividade que se repete no seu plano (ajuste em Meu plano → Atividades fixas).</div></div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${hm(x.minReal)}</b><div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div></div>`;
@@ -1284,14 +1301,14 @@ function cardFixa(x,i){
       <button class="b" onclick="concluirMeta('${x.id}')">Salvar</button><button class="g" onclick="caixaAberta=null;render()">Cancelar</button></div></div>`; }
   return h + `</div>`;
 }
-function cardMeta(x,i){
-  if(x.tipo==='fixa') return cardFixa(x,i);
+function cardMeta(x,i,dia){
+  if(x.tipo==='fixa') return cardFixa(x,i,dia);
   const m = mat(x.materiaId), t = topico(m, x.topicoId);
   if(!m || !t) return '';
   const ix = indice(t.id), [cl, cc] = classe(ix.p);
   const ativa = S.timer && S.timer.metaId===x.id;
   let h = `<div class="meta ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
-    <div style="min-width:0"><div class="dia-m">Meta ${i+1} do dia ${br(hoje()).slice(0,5)}${x.feita?' · concluída ✓':''}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <span class="pill">⏱ ${x.min} minutos de atividade</span> <span class="mut">${focos(x.min)}</span>${x.atrasada?` <span class="tag warn">atrasada de ${br(x.atrasada).slice(0,5)}</span>`:''}${x.adiantada?` <span class="tag rev">adiantada de ${br(x.adiantada).slice(0,5)}</span>`:''}</div>
+    <div style="min-width:0"><div class="dia-m">Meta ${i+1} do dia ${br(dia||hoje()).slice(0,5)}${dia && dia < hoje() ? ' · atrasada' : ''}${x.feita?' · concluída ✓':''}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <span class="pill">⏱ ${x.min} minutos de atividade</span> <span class="mut">${focos(x.min)}</span>${x.atrasada?` <span class="tag warn">atrasada de ${br(x.atrasada).slice(0,5)}</span>`:''}${x.adiantada?` <span class="tag rev">adiantada de ${br(x.adiantada).slice(0,5)}</span>`:''}</div>
       <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
       ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
