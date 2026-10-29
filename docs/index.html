@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="65">
+<meta name="versao" content="66">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -668,9 +668,37 @@ function dataTermino(minutos, horasFn){
 }
 const conteudoRestante = () => S.materias.reduce((s,m)=>s+tempoMateriaRestante(m),0);
 const TIPOS_CONTEUDO = ['conteudo','teoria','questoes','ambos','extra'];
-function ciclo(extra){
+/* ---------- Ciclo A/B ----------
+   S.config.cicloAB = {ativo, modo:'dia'|'semana', grupos:{materiaId:'A'|'B'|'AB'}, ref:dia inicial}.
+   Em dias (ou semanas) alternados, o conteúdo novo vem só das matérias do ciclo do dia (e das marcadas "Ambos").
+   Revisões, reforço e atividades fixas continuam todos os dias. */
+const abCfg = () => S.config.cicloAB || {};
+const abAtivo = () => !!abCfg().ativo;
+function cicloDoDia(dia){
+  const c = abCfg(), ref = c.ref || dia;
+  if(c.modo === 'semana') return Math.floor(Math.abs(diff(segunda(ref), segunda(dia))) / 7) % 2 ? 'B' : 'A';
+  // conta só os dias com estudo (pula pausas e dias sem horas)
+  let n = 0; for(let d = ref; d < dia; d = addDias(d, 1)){ if(capacidade(d) > 0) n++; if(n > 4000) break; }
+  return dia < ref ? 'A' : (n % 2 ? 'B' : 'A');
+}
+const grupoAB = m => { const g = (abCfg().grupos || {})[m.id]; if(g) return g;
+  // matéria adicionada depois: entra no ciclo com menos tempo de conteúdo
+  const gs = abCfg().grupos || {}; let a = 0, b = 0; S.materias.forEach(x => { if(gs[x.id] === 'A') a += tempoMateriaRestante(x); if(gs[x.id] === 'B') b += tempoMateriaRestante(x); });
+  return a <= b ? 'A' : 'B'; };
+function montarCiclosAB(){
+  const ms = S.materias.filter(m => m.topicos.some(t => t.status !== 'concluido'));
+  const peso = m => (+m.peso||1) * (6 - (+m.nivel||3)) * (m.estat && m.estat.disc != null ? 1 + m.estat.disc/20 : 1);
+  const ord = ms.slice().sort((a,b) => peso(b) - peso(a)), g = {};
+  // as mais importantes (e fáceis de esquecer) ficam nos dois ciclos: 2 com 10+ matérias, 1 com menos
+  const nAmbos = ms.length >= 10 ? 2 : ms.length >= 6 ? 1 : 0;
+  ord.slice(0, nAmbos).forEach(m => g[m.id] = 'AB');
+  let a = 0, b = 0; ord.slice(nAmbos).forEach(m => { const w = peso(m); if(a <= b){ g[m.id] = 'A'; a += w; } else { g[m.id] = 'B'; b += w; } });
+  return g;
+}
+function ciclo(extra, dia){
   extra = extra || {};
   let ativos = S.materias.filter(m => m.topicos.some(t => t.status!=='concluido'));
+  if(dia && abAtivo()){ const cd = cicloDoDia(dia), doDia = ativos.filter(m => grupoAB(m) === cd || grupoAB(m) === 'AB'); if(doDia.length) ativos = doDia; }
   const porVez = +S.config.materiasPorVez||0; if(porVez > 0) ativos = ativos.slice(0, porVez); // ciclo com N matérias por vez, na ordem do Meu plano
   const relev = m => { if(!posEdital()) return +m.peso||1; const cd = S.materias.filter(x => x.estat && x.estat.disc != null);
     if(!(m.estat && m.estat.disc != null) || !cd.length) return +m.peso||1;
@@ -762,6 +790,7 @@ function montarMetas(dia, base){
   const prontas = [];
   S.materias.forEach(m => m.topicos.forEach(t => {
     if(t.status==='concluido' || !teoriaConcluida(m,t) || plan[t.id]) return;
+    if(abAtivo() && ![cicloDoDia(dia), 'AB'].includes(grupoAB(m))) return; // ciclo A/B: questões da matéria entram no dia do ciclo dela
     const b = blocosTopico(m,t)[t.feitos]; if(b && b.fase==='questoes') prontas.push({m,t,b});
   }));
   for(const p of prontas.slice(0,2)){
@@ -770,7 +799,7 @@ function montarMetas(dia, base){
     plan[p.t.id] = 1; extra[p.m.id] = (extra[p.m.id]||0)+min; cont[p.m.id] = (cont[p.m.id]||0)+1; ultima = p.m.id; usado += min;
   }
   while(usado + (+S.config.blocoMin||30) <= cap && guarda++ < 20){
-    const c = ciclo(extra).filter(x => x.alvo>0 && proxBloco(x.m, plan)).sort((a,b)=>a.r-b.r || b.w-a.w);
+    const c = ciclo(extra, dia).filter(x => x.alvo>0 && proxBloco(x.m, plan)).sort((a,b)=>a.r-b.r || b.w-a.w);
     const e = c.find(x => x.m.id!==ultima && (cont[x.m.id]||0)<2) || c.find(x => (cont[x.m.id]||0)<2);
     if(!e) break;
     const b = proxBloco(e.m, plan);
@@ -1151,6 +1180,7 @@ function alertas(){
   const out = [], L = lim();
   const atr = S.revisoes.filter(r => !r.feita && r.due < hoje());
   if(atr.length >= 3) out.push({t:`${atr.length} revisões atrasadas. Elas entram primeiro nas metas: a curva do esquecimento cai rápido.`, c:'bad'});
+  { const np = S.materias.filter(m => m.topicos.some(t => t.status !== 'concluido')).length; if(np > 10 && !abAtivo() && !S.config.abDispensado) out.push({t:`Seu edital tem ${np} matérias. Experimente o ciclo A/B em Meu plano → Tipo de ciclo: cada dia você estuda menos matérias e avança mais em cada uma.`, c:'info'}); }
   S.materias.forEach(m => {
     const st = stats(s => s.materiaId === m.id);
     if(st.q >= 20 && st.p < .6) out.push({t:`${m.nome}: ${pct(st.p)} em ${st.q} questões. Volte à teoria dos assuntos críticos antes de mais questões.`, c:'bad'});
@@ -1276,7 +1306,7 @@ function vHoje(){
   const estudado = stats(s=>s.data===hoje()).min||0, p = plan ? Math.min(1, feitoMin/plan) : 0, nFeitas = metas.filter(x=>x.feita).length;
   let h = `<div class="hoje"><div class="hk">
       <div><span class="ic">📅</span><span><small>Você está no dia</small><b>${br(hoje())}</b><small>${dsem[0].toUpperCase()+dsem.slice(1)}</small></span></div>
-      <div><span class="ic">📚</span><span><small>Matérias hoje</small><b>${nMat} ${nMat===1?'matéria':'matérias'}</b><small>${metas.length} ${metas.length===1?'meta':'metas'} no dia</small></span></div>
+      <div><span class="ic">📚</span><span><small>Matérias hoje${abAtivo()?' · Ciclo '+cicloDoDia(hoje()):''}</small><b>${nMat} ${nMat===1?'matéria':'matérias'}</b><small>${metas.length} ${metas.length===1?'meta':'metas'} no dia</small></span></div>
       <div><span class="ic">🎯</span><span><small>Metas do dia</small><b>${hm(plan)}</b><small>${nFeitas} de ${metas.length} concluídas</small></span></div>
       <div><span class="ic">⏱️</span><span><small>Estudo de hoje</small><b>${hm(estudado)}</b><small>tempo registrado</small></span></div></div>`
     + cardPomodoro() + `<div class="prog"><div class="cab"><h2>Progresso diário</h2><span style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="mut">${hm(feitoMin)} de ${hm(plan)}</span><span class="pc">${Math.round(p*100)}%</span>
@@ -3215,6 +3245,18 @@ function moverMat(id, dir){
   [S.materias[i], S.materias[j]] = [S.materias[j], S.materias[i]];
   refazerPendentes(+S.config.materiasPorVez ? 'Ordem do ciclo alterada. As metas pendentes de hoje seguem a nova ordem.' : 'Ordem das matérias alterada.');
 }
+function setAB(on){
+  const c = S.config.cicloAB = S.config.cicloAB || {};
+  c.ativo = !!on; if(on){ if(!c.grupos || !Object.keys(c.grupos).length) c.grupos = montarCiclosAB(); if(!c.ref) c.ref = hoje(); if(!c.modo) c.modo = 'dia'; }
+  refazerPendentes(on ? `Ciclo A/B ativado. Hoje é dia do Ciclo ${cicloDoDia(hoje())}: as metas novas vêm dessas matérias.` : 'Ciclo único: todas as matérias se revezam no mesmo ciclo.');
+}
+function setABModo(v){ S.config.cicloAB.modo = v; S.config.cicloAB.ref = hoje(); refazerPendentes(v === 'semana' ? 'O ciclo agora troca a cada semana. Esta semana é o Ciclo A.' : 'O ciclo agora troca a cada dia de estudo. Hoje é o Ciclo A.'); }
+function setGrupoAB(id, v){ const c = S.config.cicloAB; c.grupos = c.grupos || {}; c.grupos[id] = v; refazerPendentes('Matéria movida de ciclo.'); }
+function trocarCicloHoje(){ const c = S.config.cicloAB, atual = cicloDoDia(hoje());
+  // desloca a referência para inverter o ciclo de hoje
+  c.ref = c.modo === 'semana' ? addDias(segunda(hoje()), -7) : (() => { let d = addDias(hoje(), -1); while(!capacidade(d) && diff(d, hoje()) < 14) d = addDias(d, -1); return d; })();
+  if(cicloDoDia(hoje()) === atual) c.ref = hoje();
+  refazerPendentes(`Hoje agora é dia do Ciclo ${cicloDoDia(hoje())}.`); }
 function setPorVez(v){ S.config.materiasPorVez = +v||0; refazerPendentes(+v ? `Ciclo com ${v} matéria${v>1?'s':''} por vez. Quando uma acaba, a próxima da lista entra no lugar.` : 'Ciclo com todas as matérias ao mesmo tempo.'); }
 function marcarEstudados(){
   const ids = [...document.querySelectorAll('input[data-est]:checked')].map(x=>x.dataset.est), rev = document.getElementById('me_rev').checked;
@@ -3277,6 +3319,19 @@ function vPlano(){
   // ciclo
   const pend = S.materias.filter(m => m.topicos.some(t=>t.status!=='concluido')), pv = +c.materiasPorVez||0;
   const noCiclo = new Set((pv ? pend.slice(0,pv) : pend).map(m=>m.id));
+  const ab = abCfg(), cdHoje = abAtivo() ? cicloDoDia(hoje()) : '';
+  h += `<div class="card"><h2>Tipo de ciclo</h2>
+    <p class="mut" style="margin-top:-4px">No <b>ciclo único</b>, todas as matérias se revezam no mesmo ciclo. No <b>ciclo A/B</b>, as matérias são divididas em dois grupos que se alternam (A, B, A, B…): cada dia você estuda menos matérias e avança mais em cada uma. Bom para editais grandes. Revisões, reforço e atividades fixas continuam todos os dias.</p>
+    ${!abAtivo() && pend.length > 10 ? `<div class="alert info">Seu edital tem ${pend.length} matérias: o ciclo A/B pode deixar o estudo menos espalhado.</div>` : ''}
+    <div class="inl" style="margin:6px 0 10px"><button class="${abAtivo()?'g':'b'}" onclick="setAB(false)">Ciclo único</button><button class="${abAtivo()?'b':'g'}" onclick="setAB(true)">Ciclo A/B</button></div>
+    ${abAtivo() ? `<div class="alert info" style="font-size:16px">Hoje é dia do <b>Ciclo ${cdHoje}</b>.</div>
+      <div class="row"><div><label for="ab_modo">Alternar</label><select id="ab_modo" onchange="setABModo(this.value)"><option value="dia" ${ab.modo!=='semana'?'selected':''}>A cada dia de estudo (A, B, A, B…)</option><option value="semana" ${ab.modo==='semana'?'selected':''}>A cada semana</option></select></div>
+        <div><label>&nbsp;</label><button class="g" onclick="trocarCicloHoje()">Começar hoje pelo Ciclo ${cdHoje==='A'?'B':'A'}</button></div></div>
+      <h3>Matérias de cada ciclo</h3>
+      ${(g => ['A','B','AB'].map(k => { const l = S.materias.filter(m => (g[m.id]||'A') === k); const min = l.reduce((t,m) => t + tempoMateriaRestante(m), 0);
+        return `<div style="margin-top:8px"><b>${k==='AB'?'Nos dois ciclos':'Ciclo '+k}</b> <span class="mut">· ${l.length} matéria${l.length===1?'':'s'} · ${hm(min)} de conteúdo</span>
+          ${l.map(m => `<div class="item" style="padding:5px 0"><span>${esc(curto(m.nome,50))}</span><select style="width:auto" onchange="setGrupoAB('${m.id}',this.value)">${[['A','Ciclo A'],['B','Ciclo B'],['AB','Os dois']].map(([v,n]) => `<option value="${v}" ${(g[m.id]||'A')===v?'selected':''}>${n}</option>`).join('')}</select></div>`).join('') || '<div class="mut">—</div>'}</div>`; }).join(''))(ab.grupos||{})}
+      <div class="inl"><button class="g" onclick="S.config.cicloAB.grupos=montarCiclosAB();refazerPendentes('Ciclos A e B montados de novo, equilibrando o tempo entre eles.')">Montar automaticamente de novo</button></div>` : ''}</div>`;
   h += `<div class="card"><h2>Ciclo de matérias</h2><p class="mut" style="margin-top:-4px">Quantas matérias entram nas metas ao mesmo tempo. Com um limite, o ciclo segue a ordem abaixo; quando uma matéria termina, a próxima entra no lugar.</p>
     <label for="pv">Matérias por vez</label><select id="pv" onchange="setPorVez(this.value)"><option value="0" ${!pv?'selected':''}>Todas ao mesmo tempo (${pend.length})</option>${Array.from({length:Math.max(0,S.materias.length-1)},(_,i)=>i+1).map(n=>`<option value="${n}" ${pv===n?'selected':''}>${n} por vez</option>`).join('')}</select>
     <div style="margin-top:10px">${S.materias.map((m,i)=>{ const fe = !m.topicos.some(t=>t.status!=='concluido');
