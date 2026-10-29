@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="52">
+<meta name="versao" content="53">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -368,7 +368,9 @@ function avisar(msg){
 const uid = () => Math.random().toString(36).slice(2, 10);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-const hoje = () => iso(new Date());
+// "dia de estudo": vira às 6h, não à meia-noite (quem estuda até de madrugada continua no mesmo dia até 5h59)
+const VIRADA_DIA = 6;
+const hoje = () => { const d = new Date(); if(d.getHours() < VIRADA_DIA) d.setDate(d.getDate() - 1); return iso(d); };
 function parse(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
 function addDias(s,n){const d=parse(s);d.setDate(d.getDate()+n);return iso(d)}
 function diff(a,b){return Math.round((parse(b)-parse(a))/864e5)}
