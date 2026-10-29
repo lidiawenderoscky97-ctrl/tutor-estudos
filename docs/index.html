@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="58">
+<meta name="versao" content="59">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -416,6 +416,7 @@ function migrar(){
   S.config = Object.assign(padrao().config, S.config);
   if(daV1){ S.config.blocoMin = 30; S.config.blocoMax = 120; }
   (S.materias||[]).forEach(m => { if(m.estat && (m.estat.itens||[]).some(Array.isArray)) m.estat.itens = anItens(m); });
+  if(!S.config.semTecQ){ (S.materias||[]).forEach(m => m.topicos.forEach(t => { delete t.tecQ; })); S.config.semTecQ = true; } // índice de incidência do TEC retirado
   if(!S.metas) S.metas = {};
   if(!S.cadernos || typeof S.cadernos!=='object') S.cadernos = {};
   if(!Array.isArray(S.simulados)) S.simulados = [];
@@ -1335,7 +1336,7 @@ function cardMeta(x,i,dia){
       <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
       ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
-      ${linkTec(m,t) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div><a class="aula" style="text-decoration:none" href="${esc(linkTec(m,t))}" target="_blank" rel="noopener"><b style="color:var(--ok)">Abrir caderno no TEC</b>${t.tecLink?' · deste assunto':''} ↗</a></div>` : ''}
+      ${linkTec(m,t) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${(linksTecTop(t).length ? linksTecTop(t) : [linkTec(m,t)]).map((lk,i,arr) => `<a class="aula" style="text-decoration:none" href="${esc(lk)}" target="_blank" rel="noopener"><b style="color:var(--ok)">${arr.length>1?'Caderno '+(i+1)+' no TEC':'Abrir caderno no TEC'}</b>${linksTecTop(t).length && arr.length===1?' · deste assunto':''} ↗</a>`).join('')}</div>` : ''}
       <div><button class="aula" style="border:0;cursor:pointer;font:inherit;font-size:14.5px" onclick="abrirCaderno('${m.id}')"><b style="color:var(--rev)">Anotações</b> · caderno de ${esc(curto(m.nome,40))}${(S.cadernos[m.id]||'').length?'':' (vazio)'}</button></div></div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`+
     (maisTempo!==x.id ? `<button class="g" onclick="maisTempo='${x.id}';render()">+ Adicionar tempo</button>` : '');
@@ -1451,7 +1452,7 @@ function exportarEditalTexto(){
     L.push('', `${limpa(m.nome)} | ${m.peso} | ${m.nivel} | ${limpa(m.curso)}`);
     if(m.estCurso) L.push(`@estrategia: ${m.estCurso} ` + Object.entries(m.estAulas||{}).map(([a,b]) => a+'='+b).join(','));
     if(m.tecLink) L.push(`@tec: ${m.tecLink}`);
-    m.topicos.forEach(t => { L.push(`- ${limpa(t.nome).replace(/%/g,' por cento')} *${t.incid||2}${t.paginas?' #'+t.paginas:''}${t.aula?' ['+limpa(t.aula)+']':''}${t.tecQ!=null?' %'+t.tecQ:''}`); if(t.tecLink) L.push(`@tecassunto: ${t.tecLink}`); });
+    m.topicos.forEach(t => { L.push(`- ${limpa(t.nome).replace(/%/g,' por cento')} *${t.incid||2}${t.paginas?' #'+t.paginas:''}${t.aula?' ['+limpa(t.aula)+']':''}${t.tecQ!=null?' %'+t.tecQ:''}`); linksTecTop(t).forEach(lk => L.push(`@tecassunto: ${lk}`)); });
   });
   return L.join('\n');
 }
@@ -2197,7 +2198,9 @@ async function tecProcessar(tipo){
     save(); render();
   }catch(e){ avisar('Não foi possível ler: '+e.message); }
 }
-const linkTec = (m, t) => (t && t.tecLink) || (m && m.tecLink) || S.config.tecLinkGeral || '';
+// cadernos do TEC do assunto (pode ter vários); o primeiro é o principal
+const linksTecTop = t => !t ? [] : Array.isArray(t.tecLinks) && t.tecLinks.length ? t.tecLinks : (t.tecLink ? [t.tecLink] : []);
+const linkTec = (m, t) => linksTecTop(t)[0] || (m && m.tecLink) || S.config.tecLinkGeral || '';
 function tecTotais(){      // {topicoId: questões}
   const tot = {}; if(!tecEstado) return tot;
   tecEstado.itens.forEach(x => { if(x.alvo) tot[x.alvo] = (tot[x.alvo]||0) + x.q; });
@@ -2621,7 +2624,7 @@ const abertas = new Set();
 function vEdital(){
   if(edAba === 'estat') return edAbas() + vAnalise();
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
-  let h = edAbas() + cardBusca() + cardPdf() + cardEstrategia() + cardTec() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
+  let h = edAbas() + cardBusca() + cardPdf() + cardEstrategia() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
     <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca.</p>`;
   h += S.materias.map(m => {
     const mc = m.topicos.filter(t=>t.status==='concluido').length, st = stats(s=>s.materiaId===m.id);
@@ -2639,7 +2642,8 @@ function vEdital(){
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
       ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp"><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
         <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.estatP!=null?'Estratégia: '+String(t.estatP).replace('.',',')+'% de cobrança':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>
-          <span class="tptec"><input value="${esc(t.tecLink||'')}" placeholder="Link do caderno no TEC deste assunto" title="Link do caderno do TEC Concursos para este assunto" onchange="setTopTec('${m.id}','${t.id}',this.value)">${t.tecLink?`<a href="${esc(t.tecLink)}" target="_blank" rel="noopener">Abrir no TEC ↗</a>`:''}</span></span>
+          ${(lks => lks.map((lk,i) => `<span class="tptec"><input value="${esc(lk)}" title="Caderno ${i+1} do TEC deste assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${i})"><a href="${esc(lk)}" target="_blank" rel="noopener">${lks.length>1?'Caderno '+(i+1):'Abrir no TEC'} ↗</a><button class="x" title="Tirar este caderno" onclick="setTopTec('${m.id}','${t.id}','',${i})">✕</button></span>`).join('')
+            + `<span class="tptec"><input value="" placeholder="${lks.length?'+ Adicionar outro caderno do TEC':'Link do caderno no TEC deste assunto'}" title="Link de um caderno do TEC Concursos para este assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${lks.length})"></span>`)(linksTecTop(t))}</span>
         <input type="number" min="0" value="${t.paginas||''}" placeholder="?" onchange="setTop('${m.id}','${t.id}','paginas',+this.value||0)">
         <select class="hide" onchange="setTop('${m.id}','${t.id}','incid',+this.value)">${[1,2,3].map(k=>`<option value="${k}" ${k==t.incid?'selected':''}>${INCID[k]}</option>`).join('')}</select>
         <span class="hide mut">${hm(tempoTopico(m,t).total)}</span>
@@ -2670,7 +2674,12 @@ function setMatEstLink(id, v){
   save(); render();
 }
 function setMatCurso(id,v){ mat(id).curso = v.trim(); save(); render(); }
-function setTopTec(mid,tid,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; } const t = topico(mat(mid), tid); if(!t) return; if(v) t.tecLink = v; else delete t.tecLink; save(); render(); }
+// i = posição do caderno (i = lista.length adiciona um novo); link vazio remove
+function setTopTec(mid,tid,v,i){ v = String(v||'').trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; }
+  const t = topico(mat(mid), tid); if(!t) return; const l = linksTecTop(t).slice(); i = i == null ? 0 : +i;
+  if(v){ if(l.includes(v) && l.indexOf(v) !== i) return avisar('Este caderno já está neste assunto.'); l[i] = v; } else l.splice(i, 1);
+  const ok = l.filter(Boolean); if(ok.length){ t.tecLinks = ok; t.tecLink = ok[0]; } else { delete t.tecLinks; delete t.tecLink; }
+  save(); render(); }
 function setMatLink(id,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; } mat(id).tecLink = v; save(); render(); }
 function setMat(id,k,v){const m=mat(id); if(k!=='nome') v=Math.min(5,Math.max(1,v||1)); m[k]=v; save(); render();}
 function setTop(mid,tid,k,v){const t=topico(mat(mid),tid); t[k]=v; if(k==='status'&&v==='nao') t.feitos=0; save(); render();}
@@ -2714,7 +2723,7 @@ function importar(texto, silencioso){
     if(l.startsWith('@')){ const [k,...v] = l.slice(1).split(':'); const val = v.join(':').trim();
       if(k.trim()==='concurso') S.config.concurso = val; if(k.trim()==='banca') S.config.banca = val;
       if(k.trim()==='tec' && atual && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) atual.tecLink = val;
-      if(k.trim()==='tecassunto' && atual && atual.topicos.length && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) (ultTop || atual.topicos[atual.topicos.length-1]).tecLink = val;
+      if(k.trim()==='tecassunto' && atual && atual.topicos.length && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) { const tt = ultTop || atual.topicos[atual.topicos.length-1], l = linksTecTop(tt).slice(); if(!l.includes(val)) l.push(val); tt.tecLinks = l; tt.tecLink = l[0]; }
       if(k.trim()==='tecgeral' && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(val)) S.config.tecLinkGeral = val;
       if(k.trim()==='estrategia' && atual){ const e = parseEstrategia(val); if(e.id){ atual.estCurso = e.id; atual.estAulas = e.aulas; } }
       return; }
