@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="55">
+<meta name="versao" content="56">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -76,6 +76,13 @@ main{padding:18px 28px 60px;max-width:1180px}
 .pkpis .kpi svg.ring{width:48px;height:48px}
 .pkpis .kpi .big{font-size:20px!important;line-height:1.15}
 .pkpis .kpi .mut{font-size:13px!important}
+/* mesmo fundo do quadro da sequência */
+.pkpis .kpi{background:var(--sb);border:0;color:#fff;box-shadow:inset 4px 0 0 var(--acc)}
+.pkpis .kpi .mut,.pkpis .kpi .mut span{color:rgba(255,255,255,.8)!important}
+.pkpis .kpi .big{color:#fff}
+.pkpis .kpi .lk{color:#fff}
+.pkpis svg.ring text{fill:#fff}
+.pkpis svg.ring circle:first-of-type{stroke:rgba(255,255,255,.16)}
 @media (max-width:1000px){.ptopo{grid-template-columns:1fr}}
 .hero h2{color:#fff;font-size:20px;margin:0 0 4px}
 .xp{flex:1;min-width:220px}
