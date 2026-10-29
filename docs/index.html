@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="62">
+<meta name="versao" content="63">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -90,11 +90,13 @@ main{padding:18px 28px 60px;max-width:1180px}
 .ptopo>.hero>div{flex:none!important;min-width:0!important}
 .ptopo>.hero .xp{border-top:1px solid rgba(255,255,255,.14);padding-top:14px;margin-top:auto}
 /* indicadores: dividem por igual a altura do quadro de boas-vindas (mesma linha em cima e embaixo) */
-.pkpis{display:grid;grid-auto-rows:1fr;gap:10px;min-height:0}
+.pkpis{display:grid;grid-auto-rows:1fr;gap:8px;min-height:0}
 .pkpis .kpis{display:contents}
-.pkpis .kpi{padding:8px 16px!important;gap:12px;min-height:0}
-.pkpis .kpi svg.ring{width:48px;height:48px}
-.pkpis .kpi .big{font-size:20px!important;line-height:1.15}
+.pkpis .kpi{padding:5px 16px!important;gap:12px;min-height:0}
+.pkpis .kpi>span{font-size:24px!important;width:42px!important}
+.pkpis .kpi .mut{line-height:1.25}
+.pkpis .kpi svg.ring{width:42px;height:42px}
+.pkpis .kpi .big{font-size:18px!important;line-height:1.1}
 .pkpis .kpi .mut{font-size:13px!important}
 /* mesmo fundo do quadro da sequência */
 .pkpis .kpi{background:var(--sb);border:0;color:#fff;box-shadow:inset 4px 0 0 var(--acc)}
@@ -266,6 +268,7 @@ main .tp{font-size:15px;padding:8px 0}
 main .tp.hd{font-size:13px}
 main .tp select,main .tp input[type=number]{font-size:14px;padding:5px 7px}
 main .tp .nm small{font-size:13px}
+.leidesc{display:block;color:var(--rev)!important;margin-top:2px}.leidesc.falta{color:var(--warn)!important}
 .inl>div>input{width:100%}
 .tptec{display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap}
 .tptec input{flex:1;min-width:180px;max-width:520px;font-size:13px!important;padding:5px 8px!important}
@@ -418,6 +421,7 @@ function migrar(){
   S.config = Object.assign(padrao().config, S.config);
   if(daV1){ S.config.blocoMin = 30; S.config.blocoMax = 120; }
   (S.materias||[]).forEach(m => { if(m.estat && (m.estat.itens||[]).some(Array.isArray)) m.estat.itens = anItens(m); });
+  try{ if((S.materias||[]).some(m => m.topicos.some(t => dividirArtigos(t.nome).length > 1))) dividirTopicosArtigos(); }catch(e){}
   if(!S.config.semTecQ){ (S.materias||[]).forEach(m => m.topicos.forEach(t => { delete t.tecQ; })); S.config.semTecQ = true; } // índice de incidência do TEC retirado
   if(!S.metas) S.metas = {};
   if(!S.cadernos || typeof S.cadernos!=='object') S.cadernos = {};
@@ -1074,13 +1078,13 @@ function concluirMeta(id){
   const q = cq ? (+cq.value||0) : 0, a = ca ? (+ca.value||0) : 0, min = +document.getElementById('cm').value||meta.min;
   if(meta.tipo==='fixa'){ if(meta.feita) return;
     const s = {id:uid(), ts:Date.now(), data:diaReg, materiaId:meta.materiaId||null, topicoId:null, tipo:'fixa', fonte:'Atividade fixa', min, q:0, a:0, obs:meta.nome};
-    S.sessoes.push(s); Object.assign(meta, {feita:true, minReal:min, desfazer:{sessaoId:s.id}});
+    s.meta = true; S.sessoes.push(s); Object.assign(meta, {feita:true, minReal:min, desfazer:{sessaoId:s.id}});
     if(S.timer && S.timer.metaId===id) S.timer = null; caixaAberta = null; save(); render(); return; }
   if(a > q) return avisar('Acertos não podem ser maiores que o número de questões.');
   const m = mat(meta.materiaId), t = topico(m, meta.topicoId); if(!t) return;
   if(meta.feita) return;
   if(Object.isFrozen(meta)){ const i = S.metas[diaMeta].indexOf(meta); S.metas[diaMeta] = S.metas[diaMeta].slice(); S.metas[diaMeta][i] = Object.assign({}, meta); return concluirMeta(id); }
-  const s = {id:uid(), ts:Date.now(), data:diaReg, materiaId:m.id, topicoId:t.id, tipo:(meta.tipo==='extra' && meta.origem!=='conteudo') ? meta.origem : meta.tipo, fonte:(meta.tipo==='conteudo' && meta.fase!=='questoes')?'Estratégia (PDF)':'TEC Concursos', min, q, a,
+  const s = {id:uid(), meta:true, ts:Date.now(), data:diaReg, materiaId:m.id, topicoId:t.id, tipo:(meta.tipo==='extra' && meta.origem!=='conteudo') ? meta.origem : meta.tipo, fonte:(meta.tipo==='conteudo' && meta.fase!=='questoes')?'Estratégia (PDF)':'TEC Concursos', min, q, a,
              obs: meta.tipo==='extra' ? 'Tempo extra' : meta.tipo==='conteudo' ? `${meta.fase==='questoes'?'Questões':'Teoria'} ${meta.parte}/${meta.n}` : meta.tipo==='revisao' ? `Revisão etapa ${meta.etapa+1}` : 'Reforço'};
   S.sessoes.push(s);
   const desfazer = {sessaoId:s.id, statusAntes:t.status};
@@ -1237,7 +1241,8 @@ function vPainel(){
     <div class="kpi">${anel(meta?sem.min/meta:0,'var(--rev)')}<div><div class="mut">Semana</div><div class="big">${hm(sem.min)}</div><div class="mut">de ${hm(meta)} planejadas</div></div></div>
     <div class="kpi">${anel(sem.p||0,'var(--ok)',64,sem.q?pct(sem.p):'—')}<div><div class="mut">Acerto na semana</div><div class="big">${sem.q}</div><div class="mut">questões resolvidas</div></div></div>
     <div class="kpi">${anel(cob,'var(--gold)')}<div><div class="mut">Cobertura do edital</div><div class="big">${pct(cob)}</div><div class="mut">do conteúdo estudado</div></div></div></div>
-    ${(alvoQ => alvoQ ? `<div class="kpi">${anel(Math.min(1, sem.q/alvoQ),'var(--ok)',64,sem.q>=alvoQ?'✓':Math.round(sem.q/alvoQ*100)+'%')}<div><div class="mut">Meta semanal de questões</div><div class="big">${sem.q}<span class="mut" style="font-size:15.5px"> / ${alvoQ}</span></div><div class="mut">${sem.q>=alvoQ?'meta batida!':'faltam '+(alvoQ-sem.q)} · <button class="lk" onclick="ir('plano')">alterar</button></div></div></div>` : '')(+S.config.metaQSemana||0)}</div></div>`;
+    ${(alvoQ => alvoQ ? `<div class="kpi">${anel(Math.min(1, sem.q/alvoQ),'var(--ok)',64,sem.q>=alvoQ?'✓':Math.round(sem.q/alvoQ*100)+'%')}<div><div class="mut">Meta semanal de questões</div><div class="big">${sem.q}<span class="mut" style="font-size:15.5px"> / ${alvoQ}</span></div><div class="mut">${sem.q>=alvoQ?'meta batida!':'faltam '+(alvoQ-sem.q)} · <button class="lk" onclick="ir('plano')">alterar</button></div></div></div>` : '')(+S.config.metaQSemana||0)}
+    ${(ht => `<div class="kpi"><span style="font-size:30px;width:48px;text-align:center;flex:none">⏱️</span><div><div class="mut">Horas totais de estudo</div><div class="big">${hm(ht.meta)}</div><div class="mut">em metas concluídas${ht.tudo > ht.meta ? ` · ${hm(ht.tudo)} contando estudo avulso` : ''}</div></div></div>`)(horasTotais())}</div></div>`;
   h += cardPomodoro() + (!S.timer ? `<div class="card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>Pomodoro livre</b><div class="mut">Para estudar fora das metas. Ao terminar, o tempo de foco vai para o Registro avulso.</div></div><button class="b" onclick="iniciarLivre()">▶ Iniciar pomodoro</button></div>` : '');
   const pend = metas.filter(x=>!x.feita).slice(0,4);
   h += `<div class="g2"><div class="col"><div class="card"><h2>Próximas metas de hoje <button class="g" onclick="ir('hoje')">Ver todas</button></h2>
@@ -1262,6 +1267,7 @@ function vPainel(){
 
 /* ---------- Metas de hoje ---------- */
 function vHoje(){
+  if(S.materias.some(m => m.topicos.some(temArtigos)) && !LS.pronto && !LS.preparando) lsPreparar();
   if(!S.materias.length) return vazio();
   if(!S.metas[hoje()]) gerarMetas(false); else atualizarMetasAntigas();
   const metas = S.metas[hoje()] || [];
@@ -1335,7 +1341,7 @@ function cardMeta(x,i,dia){
   const ativa = S.timer && S.timer.metaId===x.id;
   let h = `<div class="meta ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
     <div style="min-width:0"><div class="dia-m">Meta ${i+1} do dia ${br(dia||hoje()).slice(0,5)}${dia && dia < hoje() ? ' · atrasada' : ''}${x.feita?' · concluída ✓':''}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <span class="pill">⏱ ${x.min} minutos de atividade</span> <span class="mut">${focos(x.min)}</span>${x.atrasada?` <span class="tag warn">atrasada de ${br(x.atrasada).slice(0,5)}</span>`:''}${x.adiantada?` <span class="tag rev">adiantada de ${br(x.adiantada).slice(0,5)}</span>`:''}</div>
-      <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>
+      <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>${temArtigos(t) ? descLeiHtml(t) : ''}
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
       ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
       ${linkTec(m,t) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${(linksTecTop(t).length ? linksTecTop(t) : [linkTec(m,t)]).map((lk,i,arr) => `<a class="aula" style="text-decoration:none" href="${esc(lk)}" target="_blank" rel="noopener"><b style="color:var(--ok)">${arr.length>1?'Caderno '+(i+1)+' no TEC':'Abrir caderno no TEC'}</b>${linksTecTop(t).length && arr.length===1?' · deste assunto':''} ↗</a>`).join('')}</div>` : ''}
@@ -1420,7 +1426,7 @@ function cardRev(r){
 function revisaoAvulsa(id){
   const r = S.revisoes.find(x=>x.id===id); if(!r) return;
   const q = +rq.value||0, a = Math.min(+ra.value||0, q), min = +rm.value||0;
-  S.sessoes.push({id:uid(), ts:Date.now(), data:hoje(), materiaId:r.materiaId, topicoId:r.topicoId, tipo:'revisao', fonte:'TEC Concursos', min, q, a, obs:'Revisão etapa '+(r.etapa+1)});
+  S.sessoes.push({id:uid(), avulso:true, ts:Date.now(), data:hoje(), materiaId:r.materiaId, topicoId:r.topicoId, tipo:'revisao', fonte:'TEC Concursos', min, q, a, obs:'Revisão etapa '+(r.etapa+1)});
   r.feita = hoje(); r.p = q ? a/q : null; agendarProxima(r, q ? a/q : null);
   const meta = (S.metas[hoje()]||[]).find(x=>x.revisaoId===id); if(meta) Object.assign(meta,{feita:true,q,a,minReal:min});
   revAberta = null; save(); render();
@@ -2624,6 +2630,7 @@ function edAbas(){
 /* ---------- Edital ---------- */
 const abertas = new Set();
 function vEdital(){
+  if(S.materias.some(m => m.topicos.some(temArtigos))){ if(LS.pronto && LS.sig !== lsAssinatura()) lsInvalidar(); if(!LS.pronto && !LS.preparando) lsPreparar(); }
   if(edAba === 'estat') return edAbas() + vAnalise();
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
   let h = edAbas() + cardPdf() + cardEstrategia() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
@@ -2643,7 +2650,7 @@ function vEdital(){
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
       ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp"><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
-        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.estatP!=null?'Estratégia: '+String(t.estatP).replace('.',',')+'% de cobrança':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>
+        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.estatP!=null?'Estratégia: '+String(t.estatP).replace('.',',')+'% de cobrança':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>${descLeiHtml(t)}
           ${(lks => lks.map((lk,i) => `<span class="tptec"><input value="${esc(lk)}" title="Caderno ${i+1} do TEC deste assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${i})"><a href="${esc(lk)}" target="_blank" rel="noopener">${lks.length>1?'Caderno '+(i+1):'Abrir no TEC'} ↗</a><button class="x" title="Tirar este caderno" onclick="setTopTec('${m.id}','${t.id}','',${i})">✕</button></span>`).join('')
             + `<span class="tptec"><input value="" placeholder="${lks.length?'+ Adicionar outro caderno do TEC':'Link do caderno no TEC deste assunto'}" title="Link de um caderno do TEC Concursos para este assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${lks.length})"></span>`)(linksTecTop(t))}</span>
         <input type="number" min="0" value="${t.paginas||''}" placeholder="?" onchange="setTop('${m.id}','${t.id}','paginas',+this.value||0)">
@@ -2686,6 +2693,60 @@ function setMatLink(id,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcurs
 function setMat(id,k,v){const m=mat(id); if(k!=='nome') v=Math.min(5,Math.max(1,v||1)); m[k]=v; save(); render();}
 function setTop(mid,tid,k,v){const t=topico(mat(mid),tid); t[k]=v; if(k==='status'&&v==='nao') t.feitos=0; save(); render();}
 // lê matérias no formato do edital: "Matéria - 1. assunto. 2. assunto." (várias matérias em sequência)
+// "Código Penal - artigos 293 a 305; 307; 311-A" vira um assunto por trecho de artigos (o ";" separa os assuntos)
+function dividirArtigos(item){
+  const t = String(item).trim();
+  if(!/;/.test(t) || !/\b(arts?\.?|artigos?)\s*\d/i.test(t)) return [t];
+  // "Lei n.º 9.099/95 (artigos 60 a 83; 88 e 89)": a lista entre parênteses também é dividida
+  const pr = t.match(/^(.*?)\s*\(\s*(?:artigos?|arts?\.?)\s*([^()]*;[^()]*)\)\s*[.;]?$/i);
+  if(pr && !/;/.test(pr[1])) return dividirArtigos(pr[1].trim() + ' - artigos ' + pr[2]);
+  const partes = []; let cur = '', prof = 0;
+  for(const ch of t){ if(ch === '(') prof++; else if(ch === ')') prof = Math.max(0, prof-1); if(ch === ';' && !prof){ partes.push(cur); cur = ''; } else cur += ch; }
+  partes.push(cur);
+  const m = partes[0].match(/^(.*?)\b(artigos?|arts?\.?)\s*(?=\d)/i); if(!m) return [t];
+  const lei = m[1].replace(/[\s,:–—-]+$/,'').trim();
+  const comLei = trecho => { trecho = trecho.trim().replace(/[.;,\s]+$/,''); if(!trecho) return null;
+    if(/^\d/.test(trecho)) return (lei ? lei + ' – ' : '') + (/\b(a|e|até)\b|,/.test(trecho) ? 'arts. ' : 'art. ') + trecho;
+    return trecho; };
+  const out = [];
+  partes.forEach((p, i) => { p = p.trim(); if(i === 0) p = p.slice(m[0].length);
+    // "574 a 667 e Lei n.º 9.099 (artigos 60 a 83; 88 e 89)": a outra lei vira um assunto à parte
+    const outra = p.match(/^(.*?)\s+e\s+((?:a\s+)?(?:lei|decreto|lc|resolu[çc][ãa]o|provimento|s[úu]mula|constitui[çc][ãa]o)\b.*)$/i);
+    if(outra){ const a = comLei(outra[1]); if(a) out.push(a); out.push(...dividirArtigos(outra[2].trim().replace(/[.;\s]+$/,''))); }
+    else { const a = comLei(p); if(a) out.push(a); } });
+  return out.length > 1 ? out : [t];
+}
+// assuntos já cadastrados com vários artigos separados por ";" viram um assunto por trecho (o 1º mantém o histórico)
+function dividirTopicosArtigos(){
+  let n = 0;
+  (S.materias||[]).forEach(m => { const novos = [];
+    m.topicos.forEach(t => { const pd = dividirArtigos(t.nome); if(pd.length < 2){ novos.push(t); return; } n++;
+      pd.forEach((nome, i) => { if(i === 0){ t.nome = nome; novos.push(t); return; }
+        const c = {id:uid(), nome, status: t.status === 'concluido' ? 'concluido' : 'nao', incid: t.incid||2, paginas:0, feitos:0, aula: t.aula||''};
+        if(t.tecLinks) c.tecLinks = t.tecLinks.slice(); if(t.tecLink) c.tecLink = t.tecLink;
+        novos.push(c); if(c.status === 'concluido') c.feitos = blocosTopico(m, c).length; }); });
+    m.topicos = novos; });
+  return n;
+}
+// o que os artigos do assunto tratam, pela lei do sistema (catálogo ou PDF enviado): rubricas dos artigos ou títulos/capítulos
+const temArtigos = t => /\b(artigos?|arts?\.?)\s*\d/i.test(t.nome);
+function descLeiTopico(t){
+  if(!temArtigos(t)) return null;
+  if(!LS.pronto) return {carregando:true};
+  const al = (LS.alvos||[]).filter(a => a.topicoId === t.id && a.faixas.length && LS.leis[a.lei]);
+  if(!al.length) return {falta:true};
+  const frase = x => { x = String(x||'').replace(/\s+/g,' ').trim().replace(/\s+(vig[êe]ncia|vide\b.*|produ[çc][ãa]o de efeito.*)$/i,'').trim(); return x && x === x.toUpperCase() ? x.charAt(0) + x.slice(1).toLowerCase() : x; };
+  return {partes: al.map(a => { const lei = LS.leis[a.lei], arts = lei.arts.filter(x => leiNaFaixa(x.k, a.faixas));
+    let nomes = [...new Set(arts.map(x => frase(x.tit)).filter(Boolean))];
+    if(!nomes.length) nomes = [...new Set(arts.map(x => frase((x.h||'').split(' › ').pop())).filter(Boolean))];
+    if(!nomes.length) nomes = arts.slice(0, 3).map(x => x.rot.replace(/^Art\./,'art.').replace(/\.$/,'') + ': ' + curto(((x.d.find(d => d.r === 'caput')||x.d[0]||{}).t||''), 70)).filter(x => !/: $/.test(x));
+    return {sigla: lei.sigla, nomes, n: arts.length}; }).filter(p => p.n)};
+}
+function descLeiHtml(t){
+  const d = descLeiTopico(t); if(!d || d.carregando) return '';
+  if(d.falta || !d.partes.length) return `<small class="leidesc falta">📖 Lei destes artigos não está no sistema: envie o PDF em <button class="lk" onclick="ir('leiseca')">Lei seca → Adicionar lei em PDF</button> para ver o assunto.</small>`;
+  return d.partes.map(p => `<small class="leidesc">📖 <b>${esc(p.sigla)}</b>: ${esc(p.nomes.slice(0,6).join(' · '))}${p.nomes.length>6?` <span class="mut">+${p.nomes.length-6}</span>`:''}</small>`).join('');
+}
 function matsDoTextoEdital(texto){
   const linhas = String(texto).replace(/\r/g,'').split('\n').map(l => l.trim()).filter(Boolean);
   const cab = /^(?!\d)(.{2,100}?)(?:\s+[-–—]\s*|\s*:\s*)(\S.*)$/;
@@ -2699,7 +2760,7 @@ function matsDoTextoEdital(texto){
       mats.push(atual);
     } else atual.txt += ' ' + l;
   });
-  return mats.map(m => ({nome: edMaius(m.nome) ? tituloMat(m.nome) : m.nome, tops: m.txt.trim() ? edItens(m.txt) : []})).filter(m => m.nome);
+  return mats.map(m => ({nome: edMaius(m.nome) ? tituloMat(m.nome) : m.nome, tops: m.txt.trim() ? edItens(m.txt).flatMap(dividirArtigos) : []})).filter(m => m.nome);
 }
 function addMat(){
   const el = document.getElementById('nm'), txt = el ? el.value.trim() : ''; if(!txt) return;
@@ -2958,7 +3019,7 @@ function lancarQuestoes(){
   if(!q) return avisar('Informe quantas questões você fez.');
   if(a > q) return avisar('Acertos não podem ser maiores que o número de questões.');
   if(data > hoje()) return avisar('A data não pode ser no futuro.');
-  S.sessoes.push({id:uid(), ts:Date.now(), data, materiaId:lqMat, topicoId:tid||null, tipo:'questoes', fonte:'TEC Concursos', min, q, a, obs:'Lançamento de questões'});
+  S.sessoes.push({id:uid(), avulso:true, ts:Date.now(), data, materiaId:lqMat, topicoId:tid||null, tipo:'questoes', fonte:'TEC Concursos', min, q, a, obs:'Lançamento de questões'});
   lqTop = tid; lqFoco = true; save(); render(); avisar(`Lançado: ${a}/${q} (${pct(a/q)}).`);
 }
 
@@ -2994,7 +3055,7 @@ function salvarSessao(){
   prefRegistro = null;
   const q = +fq.value||0, a = +fa.value||0;
   if(a > q) return avisar('Acertos não podem ser maiores que o número de questões.');
-  S.sessoes.push({id:uid(), ts:Date.now(), data:fd.value||hoje(), materiaId:fm.value, topicoId:fp.value||null, tipo:ft.value, fonte:ff.value, min:+fmin.value||0, q, a, obs:fo.value});
+  S.sessoes.push({id:uid(), avulso:true, ts:Date.now(), data:fd.value||hoje(), materiaId:fm.value, topicoId:fp.value||null, tipo:ft.value, fonte:ff.value, min:+fmin.value||0, q, a, obs:fo.value});
   save(); render();
 }
 async function delSessao(id){ if(!(await confirmar('Excluir este registro?'))) return; S.sessoes = S.sessoes.filter(s => s.id!==id); save(); render(); }
@@ -3359,6 +3420,9 @@ function alternarNoite(){ const tm = temaAtual(), escuro = tm==='escuro' || (tm=
 /* ---------- Ofensiva (como no Duolingo) ----------
    Conta os dias seguidos em que a pessoa bateu a meta do dia (todas as metas concluídas, ou o tempo planejado cumprido).
    Dias de pausa e dias sem horas de estudo não quebram a sequência. Fica em S.config.ofensiva = {d:{dia:1}, rec}. */
+// estudo vindo de metas concluídas (as antigas sem marca são reconhecidas pelo tipo/anotação)
+const sessaoDeMeta = s => !s.avulso && (s.meta || ['conteudo','reforco','extra','fixa'].includes(s.tipo) || (s.tipo === 'revisao' && /^Revis[ãa]o etapa/.test(s.obs||'')));
+function horasTotais(){ let meta = 0, tudo = 0; (S.sessoes||[]).forEach(s => { const mn = +s.min||0; tudo += mn; if(sessaoDeMeta(s)) meta += mn; }); return {meta, tudo}; }
 function diaBatido(dia){
   const l = (S.metas[dia]||[]).filter(x => x.tipo !== 'extra' && !x.adiantada); if(!l.length) return false;
   const plan = l.reduce((s,x)=>s+(+x.min||0),0), feito = l.filter(x=>x.feita).reduce((s,x)=>s+(+(x.minReal||x.min)||0),0);
@@ -4001,7 +4065,7 @@ async function lsPreparar(forcar){
     LS.pronto = true;
   }catch(e){ LS.erro = 'Não foi possível carregar as leis ('+e.message+'). Confira a internet e abra a aba de novo.'; }
   LS.preparando = false;
-  if(aba === 'leiseca' || aba === 'desempenho' || aba === 'flash') render();
+  if(aba === 'leiseca' || aba === 'desempenho' || aba === 'flash' || aba === 'edital' || aba === 'hoje') render();
 }
 function lsInvalidar(){ LS.pronto = false; LS.alvos = []; LS.sessao = null; }
 // dispositivos que podem cair: [{key, lei, k, di, w, alvo}]
