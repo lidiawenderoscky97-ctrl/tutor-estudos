@@ -1,4 +1,1 @@
-{
-  "versao": 66,
-  "notas": "Meu plano → Tipo de ciclo: ciclo único ou ciclo A/B (matérias divididas em dois grupos que se alternam por dia ou por semana)"
-}
+{"versao": 67, "notas": "Tipo de ciclo (único ou A/B) agora fica no topo de Meu plano, com atalho em Metas de hoje"}

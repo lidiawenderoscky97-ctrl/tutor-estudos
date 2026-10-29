@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="66">
+<meta name="versao" content="67">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -654,6 +654,7 @@ const TIPOS_CONTEUDO = ['conteudo','teoria','questoes','ambos','extra'];
    S.config.cicloAB = {ativo, modo:'dia'|'semana', grupos:{materiaId:'A'|'B'|'AB'}, ref:dia inicial}.
    Em dias (ou semanas) alternados, o conteúdo novo vem só das matérias do ciclo do dia (e das marcadas "Ambos").
    Revisões, reforço e atividades fixas continuam todos os dias. */
+function irCiclo(){ ir('plano'); setTimeout(()=>{ const e=document.getElementById('cardCiclo'); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); },60); }
 const abCfg = () => S.config.cicloAB || {};
 const abAtivo = () => !!abCfg().ativo;
 function cicloDoDia(dia){
@@ -1162,7 +1163,7 @@ function alertas(){
   const out = [], L = lim();
   const atr = S.revisoes.filter(r => !r.feita && r.due < hoje());
   if(atr.length >= 3) out.push({t:`${atr.length} revisões atrasadas. Elas entram primeiro nas metas: a curva do esquecimento cai rápido.`, c:'bad'});
-  { const np = S.materias.filter(m => m.topicos.some(t => t.status !== 'concluido')).length; if(np > 10 && !abAtivo() && !S.config.abDispensado) out.push({t:`Seu edital tem ${np} matérias. Experimente o ciclo A/B em Meu plano → Tipo de ciclo: cada dia você estuda menos matérias e avança mais em cada uma.`, c:'info'}); }
+  { const np = S.materias.filter(m => m.topicos.some(t => t.status !== 'concluido')).length; if(np > 10 && !abAtivo() && !S.config.abDispensado) out.push({t:`Seu edital tem ${np} matérias. Experimente o ciclo A/B em Meu plano → Tipo de ciclo (logo no topo): cada dia você estuda menos matérias e avança mais em cada uma.`, c:'info'}); }
   S.materias.forEach(m => {
     const st = stats(s => s.materiaId === m.id);
     if(st.q >= 20 && st.p < .6) out.push({t:`${m.nome}: ${pct(st.p)} em ${st.q} questões. Volte à teoria dos assuntos críticos antes de mais questões.`, c:'bad'});
@@ -1288,7 +1289,7 @@ function vHoje(){
   const estudado = stats(s=>s.data===hoje()).min||0, p = plan ? Math.min(1, feitoMin/plan) : 0, nFeitas = metas.filter(x=>x.feita).length;
   let h = `<div class="hoje"><div class="hk">
       <div><span class="ic">📅</span><span><small>Você está no dia</small><b>${br(hoje())}</b><small>${dsem[0].toUpperCase()+dsem.slice(1)}</small></span></div>
-      <div><span class="ic">📚</span><span><small>Matérias hoje${abAtivo()?' · Ciclo '+cicloDoDia(hoje()):''}</small><b>${nMat} ${nMat===1?'matéria':'matérias'}</b><small>${metas.length} ${metas.length===1?'meta':'metas'} no dia</small></span></div>
+      <div><span class="ic">📚</span><span><small>Matérias hoje${abAtivo()?' · Ciclo '+cicloDoDia(hoje()):''}</small><b>${nMat} ${nMat===1?'matéria':'matérias'}</b><small>${metas.length} ${metas.length===1?'meta':'metas'} no dia · <button class="lk" style="font-size:inherit" onclick="irCiclo()">tipo de ciclo</button></small></span></div>
       <div><span class="ic">🎯</span><span><small>Metas do dia</small><b>${hm(plan)}</b><small>${nFeitas} de ${metas.length} concluídas</small></span></div>
       <div><span class="ic">⏱️</span><span><small>Estudo de hoje</small><b>${hm(estudado)}</b><small>tempo registrado</small></span></div></div>`
     + cardPomodoro() + `<div class="prog"><div class="cab"><h2>Progresso diário</h2><span style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="mut">${hm(feitoMin)} de ${hm(plan)}</span><span class="pc">${Math.round(p*100)}%</span>
@@ -3274,6 +3275,22 @@ function vPlano(){
     <div class="kpi"><div><div class="mut">Seu planejamento acaba em</div><div class="big">${rest ? (fim?br(fim):'—') : 'concluído'}</div><div class="mut">${rest?hm(rest)+' de conteúdo restante':'todo o conteúdo estudado'}</div></div></div>
     <div class="kpi"><div><div class="mut">Horas líquidas por semana</div><div class="big">${hm(minSemana())}</div><div class="mut">${porDia?'horários por dia':'dia útil + fim de semana'}</div></div></div>
     ${c.dataProva?`<div class="kpi"><div><div class="mut">Prova</div><div class="big">${br(c.dataProva)}</div><div class="mut">${fim && fim>c.dataProva?'<span class="tag bad">o plano passa da prova</span>':fim?'<span class="tag ok">o plano termina antes</span>':''}</div></div></div>`:''}</div>`;
+  // tipo de ciclo (no topo, para ficar fácil de achar)
+  const pend = S.materias.filter(m => m.topicos.some(t=>t.status!=='concluido')), pv = +c.materiasPorVez||0;
+  const noCiclo = new Set((pv ? pend.slice(0,pv) : pend).map(m=>m.id));
+  const ab = abCfg(), cdHoje = abAtivo() ? cicloDoDia(hoje()) : '';
+  h += `<div class="card" id="cardCiclo" style="margin-bottom:16px;border:2px solid var(--gold)"><h2>🔁 Tipo de ciclo</h2>
+    <p class="mut" style="margin-top:-4px">No <b>ciclo único</b>, todas as matérias se revezam no mesmo ciclo. No <b>ciclo A/B</b>, as matérias são divididas em dois grupos que se alternam (A, B, A, B…): cada dia você estuda menos matérias e avança mais em cada uma. Bom para editais grandes. Revisões, reforço e atividades fixas continuam todos os dias.</p>
+    ${!abAtivo() && pend.length > 10 ? `<div class="alert info">Seu edital tem ${pend.length} matérias: o ciclo A/B pode deixar o estudo menos espalhado.</div>` : ''}
+    <div class="inl" style="margin:6px 0 10px"><button class="${abAtivo()?'g':'b'}" onclick="setAB(false)">Ciclo único</button><button class="${abAtivo()?'b':'g'}" onclick="setAB(true)">Ciclo A/B</button></div>
+    ${abAtivo() ? `<div class="alert info" style="font-size:16px">Hoje é dia do <b>Ciclo ${cdHoje}</b>.</div>
+      <div class="row"><div><label for="ab_modo">Alternar</label><select id="ab_modo" onchange="setABModo(this.value)"><option value="dia" ${ab.modo!=='semana'?'selected':''}>A cada dia de estudo (A, B, A, B…)</option><option value="semana" ${ab.modo==='semana'?'selected':''}>A cada semana</option></select></div>
+        <div><label>&nbsp;</label><button class="g" onclick="trocarCicloHoje()">Começar hoje pelo Ciclo ${cdHoje==='A'?'B':'A'}</button></div></div>
+      <h3>Matérias de cada ciclo</h3>
+      ${(g => ['A','B','AB'].map(k => { const l = S.materias.filter(m => (g[m.id]||'A') === k); const min = l.reduce((t,m) => t + tempoMateriaRestante(m), 0);
+        return `<div style="margin-top:8px"><b>${k==='AB'?'Nos dois ciclos':'Ciclo '+k}</b> <span class="mut">· ${l.length} matéria${l.length===1?'':'s'} · ${hm(min)} de conteúdo</span>
+          ${l.map(m => `<div class="item" style="padding:5px 0"><span>${esc(curto(m.nome,50))}</span><select style="width:auto" onchange="setGrupoAB('${m.id}',this.value)">${[['A','Ciclo A'],['B','Ciclo B'],['AB','Os dois']].map(([v,n]) => `<option value="${v}" ${(g[m.id]||'A')===v?'selected':''}>${n}</option>`).join('')}</select></div>`).join('') || '<div class="mut">—</div>'}</div>`; }).join(''))(ab.grupos||{})}
+      <div class="inl"><button class="g" onclick="S.config.cicloAB.grupos=montarCiclosAB();refazerPendentes('Ciclos A e B montados de novo, equilibrando o tempo entre eles.')">Montar automaticamente de novo</button></div>` : ''}</div>`;
   // horários
   h += `<div class="grid"><div class="card"><h2>Horários por dia</h2><p class="mut" style="margin-top:-4px">Horas líquidas de estudo em cada dia da semana. Use 0 no dia de descanso. O ciclo, as metas e o cronograma seguem esses horários.</p>
     <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px">${[1,2,3,4,5,6,0].map(d=>`<div><label for="hd_${d}" style="text-transform:capitalize;text-align:center">${DIAS3[d]}</label><input id="hd_${d}" type="number" min="0" max="16" step=".5" value="${horasDoDia(d)}" onchange="setHoraDia(${d},this.value)" style="text-align:center;padding:6px 2px"></div>`).join('')}</div>
@@ -3299,21 +3316,6 @@ function vPlano(){
     <div class="inl"><button class="b" onclick="addPausa()">Pausar nesses dias</button></div>
     ${passadas.length?`<h3>Histórico de pausas</h3>${passadas.map(p=>`<div class="mut">${br(p.de)} a ${br(p.ate)}${p.motivo?' · '+esc(p.motivo):''}</div>`).join('')}`:''}</div>`;
   // ciclo
-  const pend = S.materias.filter(m => m.topicos.some(t=>t.status!=='concluido')), pv = +c.materiasPorVez||0;
-  const noCiclo = new Set((pv ? pend.slice(0,pv) : pend).map(m=>m.id));
-  const ab = abCfg(), cdHoje = abAtivo() ? cicloDoDia(hoje()) : '';
-  h += `<div class="card"><h2>Tipo de ciclo</h2>
-    <p class="mut" style="margin-top:-4px">No <b>ciclo único</b>, todas as matérias se revezam no mesmo ciclo. No <b>ciclo A/B</b>, as matérias são divididas em dois grupos que se alternam (A, B, A, B…): cada dia você estuda menos matérias e avança mais em cada uma. Bom para editais grandes. Revisões, reforço e atividades fixas continuam todos os dias.</p>
-    ${!abAtivo() && pend.length > 10 ? `<div class="alert info">Seu edital tem ${pend.length} matérias: o ciclo A/B pode deixar o estudo menos espalhado.</div>` : ''}
-    <div class="inl" style="margin:6px 0 10px"><button class="${abAtivo()?'g':'b'}" onclick="setAB(false)">Ciclo único</button><button class="${abAtivo()?'b':'g'}" onclick="setAB(true)">Ciclo A/B</button></div>
-    ${abAtivo() ? `<div class="alert info" style="font-size:16px">Hoje é dia do <b>Ciclo ${cdHoje}</b>.</div>
-      <div class="row"><div><label for="ab_modo">Alternar</label><select id="ab_modo" onchange="setABModo(this.value)"><option value="dia" ${ab.modo!=='semana'?'selected':''}>A cada dia de estudo (A, B, A, B…)</option><option value="semana" ${ab.modo==='semana'?'selected':''}>A cada semana</option></select></div>
-        <div><label>&nbsp;</label><button class="g" onclick="trocarCicloHoje()">Começar hoje pelo Ciclo ${cdHoje==='A'?'B':'A'}</button></div></div>
-      <h3>Matérias de cada ciclo</h3>
-      ${(g => ['A','B','AB'].map(k => { const l = S.materias.filter(m => (g[m.id]||'A') === k); const min = l.reduce((t,m) => t + tempoMateriaRestante(m), 0);
-        return `<div style="margin-top:8px"><b>${k==='AB'?'Nos dois ciclos':'Ciclo '+k}</b> <span class="mut">· ${l.length} matéria${l.length===1?'':'s'} · ${hm(min)} de conteúdo</span>
-          ${l.map(m => `<div class="item" style="padding:5px 0"><span>${esc(curto(m.nome,50))}</span><select style="width:auto" onchange="setGrupoAB('${m.id}',this.value)">${[['A','Ciclo A'],['B','Ciclo B'],['AB','Os dois']].map(([v,n]) => `<option value="${v}" ${(g[m.id]||'A')===v?'selected':''}>${n}</option>`).join('')}</select></div>`).join('') || '<div class="mut">—</div>'}</div>`; }).join(''))(ab.grupos||{})}
-      <div class="inl"><button class="g" onclick="S.config.cicloAB.grupos=montarCiclosAB();refazerPendentes('Ciclos A e B montados de novo, equilibrando o tempo entre eles.')">Montar automaticamente de novo</button></div>` : ''}</div>`;
   h += `<div class="card"><h2>Ciclo de matérias</h2><p class="mut" style="margin-top:-4px">Quantas matérias entram nas metas ao mesmo tempo. Com um limite, o ciclo segue a ordem abaixo; quando uma matéria termina, a próxima entra no lugar.</p>
     <label for="pv">Matérias por vez</label><select id="pv" onchange="setPorVez(this.value)"><option value="0" ${!pv?'selected':''}>Todas ao mesmo tempo (${pend.length})</option>${Array.from({length:Math.max(0,S.materias.length-1)},(_,i)=>i+1).map(n=>`<option value="${n}" ${pv===n?'selected':''}>${n} por vez</option>`).join('')}</select>
     <div style="margin-top:10px">${S.materias.map((m,i)=>{ const fe = !m.topicos.some(t=>t.status!=='concluido');
