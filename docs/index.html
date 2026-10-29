@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="61">
+<meta name="versao" content="62">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -1225,7 +1225,7 @@ function vPainel(){
   let h = avisoRelatorioPainel() + `<div class="ptopo"><div class="card hero">
     <div style="flex:1;min-width:240px"><h2><span style="display:inline-flex;align-items:center;gap:10px">Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! ${aparenciaAtual().badge || aparenciaAtual().emoji || '👋'}</span></h2>${aparenciaAtual().msg?`<div style="margin:-2px 0 6px;font-weight:600;color:#fff">${esc(aparenciaAtual().msg)}</div>`:''}<div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
-      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span><button onclick="alternarNoite()" title="${escuro?'Usar o modo dia':'Usar o modo noite'}" aria-label="${escuro?'Modo dia':'Modo noite'}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer">${escuro?'☀️ Modo dia':'🌙 Modo noite'}</button></div>
+      <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span></div>
       ${semanaChecks()}
       <div class="mut" style="margin-top:10px">${(()=>{ const r = conteudoRestante(), f = r && minSemana() ? dataTermino(r) : null, pz = pausaDe(hoje());
         return (pz ? `<b>Plano pausado até ${br(pz.ate)}.</b> ` : '') + (r ? `Progresso do plano: <b>${pct(cob)}</b> · seu planejamento acaba em <b>${f?br(f):'—'}</b>${S.config.dataProva && f && f > S.config.dataProva ? ' (depois da prova: <button class="lk" style="color:#fff" onclick="ir(\'plano\')">ajustar</button>)' : ''}` : 'Todo o conteúdo do edital foi estudado. Agora é revisão e questões.'); })()}</div></div>

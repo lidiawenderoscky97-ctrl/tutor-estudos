@@ -1,4 +1,4 @@
 {
-  "versao": 61,
-  "notas": "Desempenho → Relatórios: relatório de qualquer período (com impressão/PDF) e relatório semanal automático no dia escolhido, com aviso no Painel"
+  "versao": 62,
+  "notas": "Painel: saiu o botão de modo dia/noite (ele continua na barra lateral, em Tema)"
 }
