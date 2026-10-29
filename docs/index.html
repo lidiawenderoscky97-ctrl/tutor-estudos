@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="57">
+<meta name="versao" content="58">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -1185,7 +1185,7 @@ setInterval(() => { if(diaRender && diaRender !== hoje() && aba === 'hoje' && S 
 function render(){
   diaRender = hoje(); try{ aplicarAparencia(); }catch(e){}
   const lvl = nivel(xpTotal());
-  document.getElementById('menu').innerHTML = `<div class="logo"><i>${(()=>{ try{ return aparenciaAtual().emoji || '✓'; }catch(e){ return '✓'; } })()}</i>Estudo Guiado</div>` +
+  document.getElementById('menu').innerHTML = `<div class="logo">${(()=>{ try{ const a = aparenciaAtual(); return a.badge ? a.badge : '<i>'+(a.emoji || '✓')+'</i>'; }catch(e){ return '<i>✓</i>'; } })()}Estudo Guiado</div>` +
     ABAS.map(([k,n]) => `<button class="${k===aba?'on':''}" onclick="ir('${k}')" title="${n}">${ICON[k]}<span>${n}</span></button>`).join('') +
     `<div class="sep"></div><button onclick="trocarTema()" title="Alternar tema claro/escuro"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Tema: ${({auto:'automático',claro:'claro',escuro:'escuro'})[temaAtual()]}</span></button><div class="mini">${ONLINE && ONLINE.usuario ? esc(curto(ONLINE.usuario.nome||ONLINE.usuario.email,24))+'<br>' : ''}Nível ${lvl.n} · versão ${VERSAO}</div>`;
   document.getElementById('titulo').textContent = (ABAS.find(x=>x[0]===aba)||['',''])[1];
@@ -1220,7 +1220,7 @@ function vPainel(){
   const d = parse(hoje()).getDay();
   const tm = temaAtual(), escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
   let h = `<div class="ptopo"><div class="card hero">
-    <div style="flex:1;min-width:240px"><h2>Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! ${(aparenciaAtual().emoji)||'👋'}</h2>${aparenciaAtual().msg?`<div style="margin:-2px 0 6px;font-weight:600;color:#fff">${esc(aparenciaAtual().msg)}</div>`:''}<div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
+    <div style="flex:1;min-width:240px"><h2><span style="display:inline-flex;align-items:center;gap:10px">Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! ${aparenciaAtual().badge || aparenciaAtual().emoji || '👋'}</span></h2>${aparenciaAtual().msg?`<div style="margin:-2px 0 6px;font-weight:600;color:#fff">${esc(aparenciaAtual().msg)}</div>`:''}<div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
       <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span><button onclick="alternarNoite()" title="${escuro?'Usar o modo dia':'Usar o modo noite'}" aria-label="${escuro?'Modo dia':'Modo noite'}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer">${escuro?'☀️ Modo dia':'🌙 Modo noite'}</button></div>
       ${semanaChecks()}
@@ -3170,7 +3170,10 @@ function temaDoTime(i){
   const t = TIMES[i]; if(!t) return null; const [nome, , c1, c2] = t;
   const acc = c1 === '#111111' ? (c2 !== '#ffffff' ? c2 : '#2b2b2b') : c1;          // time preto e branco: destaque em grafite
   const escura = !claro(c1) && (c1 === '#111111' || c2 === '#ffffff' || claro(c2)) ? c1 : (!claro(c2) ? c2 : c1);
-  return {nome, emoji:'⚽', acc: claro(acc) ? corMistura(acc, '#000000', .25) : acc, sb: corMistura(escura, '#000000', claro(escura) ? .7 : .35), bg: corMistura(acc, '#ffffff', .93), msg:`Bora estudar, torcida do ${nome}! ⚽`};
+  const sigla = nome.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
+  const fundo = c1 === '#111111' && c2 === '#ffffff' ? '#111111' : c1, borda = c2;
+  const badge = `<span title="${esc(nome)}" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:99px;background:linear-gradient(135deg, ${fundo} 0 55%, ${c2} 55% 100%);border:2px solid ${borda};color:${claro(fundo)?'#111':'#fff'};font:800 10px/1 system-ui,sans-serif;letter-spacing:.02em;text-shadow:0 1px 1px rgba(0,0,0,.35);vertical-align:middle">${sigla}</span>`;
+  return {nome, emoji:'⚽', badge, acc: claro(acc) ? corMistura(acc, '#000000', .25) : acc, sb: corMistura(escura, '#000000', claro(escura) ? .7 : .35), bg: corMistura(acc, '#ffffff', .93), msg:`Bora estudar, torcida do ${nome}! ⚽`};
 }
 // Domingo de Páscoa (algoritmo de Meeus)
 function pascoa(a){ const b=a%19, c=Math.floor(a/100), d=a%100, e=Math.floor(c/4), f=c%4, g=Math.floor((c+8)/25), h=Math.floor((c-g+1)/3), i=(19*b+c-e-h+15)%30, k=Math.floor(d/4), l=d%4,
@@ -3197,7 +3200,9 @@ function aparenciaAtual(){
   const ap = (S && S.config && S.config.aparencia) || {};
   const cal = ap.auto ? temaDoCalendario(hoje()) : null;
   if(cal) return {...cal, cal:true};
-  if(String(ap.preset||'').startsWith('time:')){ const tt = temaDoTime(+ap.preset.slice(5)); if(tt) return tt; }
+  const suave = t => { const base = t.acc === '#2b2b2b' ? '#4a5568' : t.acc; return {...t, sb: corMistura(base, '#1b1d2a', .42)}; };
+  if(String(ap.preset||'').startsWith('time:')){ const tt = temaDoTime(+ap.preset.slice(5)); if(tt) return suave(tt); }
+  if(ap.preset && ap.preset !== 'pers' && TEMAS_COR[ap.preset] && ap.preset !== 'padrao') return suave(TEMAS_COR[ap.preset]);
   if(ap.preset === 'pers') return {acc: ap.acc || TEMAS_COR.padrao.acc, sb: ap.sb || TEMAS_COR.padrao.sb, bg: ap.bg || TEMAS_COR.padrao.bg};
   return TEMAS_COR[ap.preset] || TEMAS_COR.padrao;
 }
@@ -3211,14 +3216,14 @@ function setAparencia(k, v){ const ap = S.config.aparencia = S.config.aparencia 
 function cardAparencia(){
   const ap = S.config.aparencia || {}, t = aparenciaAtual(), cal = temaDoCalendario(hoje());
   const amostra = (k, c) => `<button title="${esc(c.nome)}" onclick="setAparencia('preset','${k}')" style="border:2px solid ${(ap.preset||'padrao')===k?'var(--ink)':'var(--line)'};border-radius:12px;padding:6px;background:${c.bg};cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:84px">
-    <span style="display:flex;gap:3px"><i style="width:18px;height:18px;border-radius:5px;background:${c.sb};display:block"></i><i style="width:18px;height:18px;border-radius:5px;background:${c.acc};display:block"></i></span><span style="font-size:12px;color:#222">${esc(c.nome)}</span></button>`;
+    <span style="display:flex;gap:3px"><i style="width:18px;height:18px;border-radius:5px;background:${k==='padrao'?c.sb:corMistura(c.acc==='#3f4a5a'?'#4a5568':c.acc,'#1b1d2a',.42)};display:block"></i><i style="width:18px;height:18px;border-radius:5px;background:${c.acc};display:block"></i></span><span style="font-size:12px;color:#222">${esc(c.nome)}</span></button>`;
   return `<div class="card"><h2>Aparência</h2>
     <p class="mut" style="margin-top:-4px">Escolha as cores do programa. O modo dia/noite continua no botão da barra lateral.</p>
     <div style="display:flex;flex-wrap:wrap;gap:8px">${Object.entries(TEMAS_COR).map(([k,c]) => amostra(k,c)).join('')}</div>
     <h3>Times brasileiros</h3>
     <label for="ap_time">Cores do seu time (clubes das Séries A, B e C)</label>
     <select id="ap_time" onchange="if(this.value!=='')setAparencia('preset','time:'+this.value)"><option value="">Escolha o seu time…</option>${TIMES.map((t,i) => [t,i]).sort((a,b) => a[0][0].localeCompare(b[0][0],'pt')).map(([t,i]) => `<option value="${i}" ${ap.preset==='time:'+i?'selected':''}>${esc(t[0])} (${t[1]})</option>`).join('')}</select>
-    ${String(ap.preset||'').startsWith('time:') ? (()=>{ const tt = temaDoTime(+ap.preset.slice(5)); return `<div style="display:flex;gap:6px;align-items:center;margin-top:8px"><i style="width:22px;height:22px;border-radius:6px;background:${tt.sb};display:block"></i><i style="width:22px;height:22px;border-radius:6px;background:${tt.acc};display:block"></i><span class="mut">${esc(tt.nome)} ativo</span></div>`; })() : ''}
+    ${String(ap.preset||'').startsWith('time:') ? (()=>{ const tt = aparenciaAtual(); return `<div style="display:flex;gap:8px;align-items:center;margin-top:8px">${tt.badge||''}<i style="width:22px;height:22px;border-radius:6px;background:${tt.sb};display:block"></i><i style="width:22px;height:22px;border-radius:6px;background:${tt.acc};display:block"></i><span class="mut">${esc(tt.nome||'')} ativo</span></div>`; })() : ''}
     <h3>Cores do seu jeito</h3>
     <div class="row"><div><label>Cor principal</label><input type="color" value="${ap.acc||t.acc}" onchange="setAparencia('acc',this.value)" style="height:42px;padding:3px"></div>
       <div><label>Barra lateral</label><input type="color" value="${ap.sb||t.sb}" onchange="setAparencia('sb',this.value)" style="height:42px;padding:3px"></div>
