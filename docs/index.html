@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="49">
+<meta name="versao" content="50">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -82,6 +82,16 @@ main{padding:18px 28px 60px;max-width:1180px}
 .ring{flex:none}
 .hero{background:var(--sb);color:#fff;border:0;display:flex;gap:20px;align-items:center;flex-wrap:wrap;box-shadow:inset 4px 0 0 var(--acc)}
 .hero .mut{color:rgba(255,255,255,.8)}
+/* Painel: boas-vindas na metade esquerda; indicadores um embaixo do outro à direita */
+.ptopo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch;margin-bottom:16px}
+.ptopo>.hero{margin:0;flex-direction:column;align-items:stretch;justify-content:space-between}
+.ptopo>.hero>div{flex:none!important;min-width:0!important}
+.ptopo>.hero .xp{border-top:1px solid rgba(255,255,255,.14);padding-top:14px}
+.pkpis{display:flex;flex-direction:column;gap:12px}
+.pkpis .kpis{display:flex;flex-direction:column;gap:12px;margin:0}
+.pkpis .kpi{padding:12px 18px!important}
+.pkpis .kpi .big{font-size:22px!important}
+@media (max-width:1000px){.ptopo{grid-template-columns:1fr}}
 .hero h2{color:#fff;font-size:20px;margin:0 0 4px}
 .xp{flex:1;min-width:220px}
 .xp .bar{background:rgba(255,255,255,.14)}
@@ -1196,7 +1206,7 @@ function vPainel(){
   const tp = tempoPorTipo(addDias(hoje(),-6)), tpt = tp.conteudo+tp.questoes+tp.revisao;
   const d = parse(hoje()).getDay();
   const tm = temaAtual(), escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-  let h = `<div class="card hero">
+  let h = `<div class="ptopo"><div class="card hero">
     <div style="flex:1;min-width:240px"><h2>Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! 👋</h2><div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
       <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span><button onclick="alternarNoite()" title="${escuro?'Usar o modo dia':'Usar o modo noite'}" aria-label="${escuro?'Modo dia':'Modo noite'}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer">${escuro?'☀️ Modo dia':'🌙 Modo noite'}</button></div>
@@ -1206,12 +1216,12 @@ function vPainel(){
     <div class="xp"><div class="mut" style="display:flex;justify-content:space-between"><span>${xp} XP</span><span>próximo nível: ${lv.fim} XP</span></div>
       <div class="bar" style="height:10px;margin-top:6px"><i style="width:${lv.p*100}%"></i></div>
       <div class="mut" style="margin-top:6px;font-size:13.5px">XP = minutos estudados + 2 por acerto + 20 por meta concluída</div></div></div>`;
-  h += `<div class="kpis" style="margin-top:16px">
+  h += `<div class="pkpis"><div class="kpis">
     <div class="kpi">${anel(plan?feitoMin/plan:0)}<div><div class="mut">Meta de hoje</div><div class="big">${hm(feitoMin)}</div><div class="mut">de ${hm(plan)} · ${metas.filter(x=>x.feita).length}/${metas.length} metas</div></div></div>
     <div class="kpi">${anel(meta?sem.min/meta:0,'var(--rev)')}<div><div class="mut">Semana</div><div class="big">${hm(sem.min)}</div><div class="mut">de ${hm(meta)} planejadas</div></div></div>
     <div class="kpi">${anel(sem.p||0,'var(--ok)',64,sem.q?pct(sem.p):'—')}<div><div class="mut">Acerto na semana</div><div class="big">${sem.q}</div><div class="mut">questões resolvidas</div></div></div>
     <div class="kpi">${anel(cob,'var(--gold)')}<div><div class="mut">Cobertura do edital</div><div class="big">${pct(cob)}</div><div class="mut">do conteúdo estudado</div></div></div></div>
-    ${(alvoQ => alvoQ ? `<div class="kpi">${anel(Math.min(1, sem.q/alvoQ),'var(--ok)',64,sem.q>=alvoQ?'✓':Math.round(sem.q/alvoQ*100)+'%')}<div><div class="mut">Meta semanal de questões</div><div class="big">${sem.q}<span class="mut" style="font-size:15.5px"> / ${alvoQ}</span></div><div class="mut">${sem.q>=alvoQ?'meta batida!':'faltam '+(alvoQ-sem.q)} · <button class="lk" onclick="ir('plano')">alterar</button></div></div></div>` : '')(+S.config.metaQSemana||0)}`;
+    ${(alvoQ => alvoQ ? `<div class="kpi">${anel(Math.min(1, sem.q/alvoQ),'var(--ok)',64,sem.q>=alvoQ?'✓':Math.round(sem.q/alvoQ*100)+'%')}<div><div class="mut">Meta semanal de questões</div><div class="big">${sem.q}<span class="mut" style="font-size:15.5px"> / ${alvoQ}</span></div><div class="mut">${sem.q>=alvoQ?'meta batida!':'faltam '+(alvoQ-sem.q)} · <button class="lk" onclick="ir('plano')">alterar</button></div></div></div>` : '')(+S.config.metaQSemana||0)}</div></div>`;
   h += cardPomodoro() + (!S.timer ? `<div class="card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>Pomodoro livre</b><div class="mut">Para estudar fora das metas. Ao terminar, o tempo de foco vai para o Registro avulso.</div></div><button class="b" onclick="iniciarLivre()">▶ Iniciar pomodoro</button></div>` : '');
   const pend = metas.filter(x=>!x.feita).slice(0,4);
   h += `<div class="g2"><div class="col"><div class="card"><h2>Próximas metas de hoje <button class="g" onclick="ir('hoje')">Ver todas</button></h2>

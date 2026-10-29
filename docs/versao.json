@@ -1,4 +1,4 @@
 {
-  "versao": 49,
-  "notas": "Metas: dá para concluir metas do dia anterior (ficam registradas naquele dia) e a tela se atualiza sozinha quando o dia muda"
+  "versao": 50,
+  "notas": "Painel: quadro de boas-vindas na metade esquerda e os indicadores (meta de hoje, semana, acerto, cobertura) um embaixo do outro à direita"
 }
