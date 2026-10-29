@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="56">
+<meta name="versao" content="57">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -3130,6 +3130,30 @@ const TEMAS_COR = {
   grafite: {nome:'Grafite',        acc:'#3f4a5a', sb:'#16191e', bg:'#f3f4f6'},
   vinho:   {nome:'Vinho',          acc:'#a3263f', sb:'#2a1015', bg:'#faf3f4'}
 };
+// Times brasileiros (clubes das Séries A, B e C): [nome, UF, cor principal, cor secundária] — só as cores, sem escudos
+const TIMES = [
+  ['ABC','RN','#111111','#ffffff'],['América-MG','MG','#00843d','#111111'],['Amazonas','AM','#f2c200','#111111'],['Athletic','MG','#111111','#ffffff'],
+  ['Athletico-PR','PR','#c8102e','#111111'],['Atlético-GO','GO','#d0021b','#111111'],['Atlético-MG','MG','#111111','#ffffff'],['Avaí','SC','#0b5aa2','#ffffff'],
+  ['Bahia','BA','#0a3d91','#d0021b'],['Botafogo','RJ','#111111','#ffffff'],['Botafogo-SP','SP','#c8102e','#111111'],['Bragantino','SP','#d0021b','#111111'],
+  ['Brusque','SC','#d0021b','#ffd200'],['Caxias','RS','#7a1e2b','#ffffff'],['Ceará','CE','#111111','#ffffff'],['Chapecoense','SC','#00843d','#ffffff'],
+  ['Corinthians','SP','#111111','#ffffff'],['Coritiba','PR','#00544e','#ffffff'],['CRB','AL','#d0021b','#ffffff'],['Criciúma','SC','#f2c200','#111111'],
+  ['Cruzeiro','MG','#003da5','#ffffff'],['CSA','AL','#0d3d8c','#ffffff'],['Cuiabá','MT','#00843d','#f2c200'],['Ferroviária','SP','#7a1e2b','#ffffff'],
+  ['Figueirense','SC','#111111','#ffffff'],['Flamengo','RJ','#c8102e','#111111'],['Fluminense','RJ','#7a1e3a','#00613c'],['Fortaleza','CE','#0f3c8e','#d0021b'],
+  ['Goiás','GO','#006b3f','#ffffff'],['Grêmio','RS','#0d80bf','#111111'],['Guarani','SP','#00843d','#ffffff'],['Internacional','RS','#e30613','#ffffff'],
+  ['Ituano','SP','#d0021b','#111111'],['Juventude','RS','#00843d','#ffffff'],['Londrina','PR','#1d6fc4','#ffffff'],['Mirassol','SP','#f2c200','#00843d'],
+  ['Náutico','PE','#d0021b','#ffffff'],['Novorizontino','SP','#f2c200','#111111'],['Operário-PR','PR','#111111','#ffffff'],['Palmeiras','SP','#006437','#ffffff'],
+  ['Paysandu','PA','#1c63b7','#ffffff'],['Ponte Preta','SP','#111111','#ffffff'],['Remo','PA','#0b2a5b','#ffffff'],['Sampaio Corrêa','MA','#d0021b','#00843d'],
+  ['Santos','SP','#111111','#ffffff'],['São Bernardo','SP','#f2c200','#111111'],['São Paulo','SP','#e30613','#111111'],['Sport','PE','#d0021b','#111111'],
+  ['Tombense','MG','#d0021b','#ffffff'],['Vasco','RJ','#111111','#d0021b'],['Vila Nova','GO','#d0021b','#ffffff'],['Vitória','BA','#d0021b','#111111'],
+  ['Volta Redonda','RJ','#f2c200','#111111'],['Ypiranga-RS','RS','#f2c200','#00843d']
+];
+const claro = hex => { const c = hex.replace('#',''); const [r,g,b] = [0,2,4].map(i => parseInt(c.substr(i,2),16)); return .299*r + .587*g + .114*b > 150; };
+function temaDoTime(i){
+  const t = TIMES[i]; if(!t) return null; const [nome, , c1, c2] = t;
+  const acc = c1 === '#111111' ? (c2 !== '#ffffff' ? c2 : '#2b2b2b') : c1;          // time preto e branco: destaque em grafite
+  const escura = !claro(c1) && (c1 === '#111111' || c2 === '#ffffff' || claro(c2)) ? c1 : (!claro(c2) ? c2 : c1);
+  return {nome, emoji:'⚽', acc: claro(acc) ? corMistura(acc, '#000000', .25) : acc, sb: corMistura(escura, '#000000', claro(escura) ? .7 : .35), bg: corMistura(acc, '#ffffff', .93), msg:`Bora estudar, torcida do ${nome}! ⚽`};
+}
 // Domingo de Páscoa (algoritmo de Meeus)
 function pascoa(a){ const b=a%19, c=Math.floor(a/100), d=a%100, e=Math.floor(c/4), f=c%4, g=Math.floor((c+8)/25), h=Math.floor((c-g+1)/3), i=(19*b+c-e-h+15)%30, k=Math.floor(d/4), l=d%4,
   m=(32+2*f+2*k-i-l)%7, n=Math.floor((b+11*i+22*m)/451), mes=Math.floor((i+m-7*n+114)/31), dia=((i+m-7*n+114)%31)+1; return iso(new Date(a, mes-1, dia)); }
@@ -3155,6 +3179,7 @@ function aparenciaAtual(){
   const ap = (S && S.config && S.config.aparencia) || {};
   const cal = ap.auto ? temaDoCalendario(hoje()) : null;
   if(cal) return {...cal, cal:true};
+  if(String(ap.preset||'').startsWith('time:')){ const tt = temaDoTime(+ap.preset.slice(5)); if(tt) return tt; }
   if(ap.preset === 'pers') return {acc: ap.acc || TEMAS_COR.padrao.acc, sb: ap.sb || TEMAS_COR.padrao.sb, bg: ap.bg || TEMAS_COR.padrao.bg};
   return TEMAS_COR[ap.preset] || TEMAS_COR.padrao;
 }
@@ -3172,6 +3197,10 @@ function cardAparencia(){
   return `<div class="card"><h2>Aparência</h2>
     <p class="mut" style="margin-top:-4px">Escolha as cores do programa. O modo dia/noite continua no botão da barra lateral.</p>
     <div style="display:flex;flex-wrap:wrap;gap:8px">${Object.entries(TEMAS_COR).map(([k,c]) => amostra(k,c)).join('')}</div>
+    <h3>Times brasileiros</h3>
+    <label for="ap_time">Cores do seu time (clubes das Séries A, B e C)</label>
+    <select id="ap_time" onchange="if(this.value!=='')setAparencia('preset','time:'+this.value)"><option value="">Escolha o seu time…</option>${TIMES.map((t,i) => [t,i]).sort((a,b) => a[0][0].localeCompare(b[0][0],'pt')).map(([t,i]) => `<option value="${i}" ${ap.preset==='time:'+i?'selected':''}>${esc(t[0])} (${t[1]})</option>`).join('')}</select>
+    ${String(ap.preset||'').startsWith('time:') ? (()=>{ const tt = temaDoTime(+ap.preset.slice(5)); return `<div style="display:flex;gap:6px;align-items:center;margin-top:8px"><i style="width:22px;height:22px;border-radius:6px;background:${tt.sb};display:block"></i><i style="width:22px;height:22px;border-radius:6px;background:${tt.acc};display:block"></i><span class="mut">${esc(tt.nome)} ativo</span></div>`; })() : ''}
     <h3>Cores do seu jeito</h3>
     <div class="row"><div><label>Cor principal</label><input type="color" value="${ap.acc||t.acc}" onchange="setAparencia('acc',this.value)" style="height:42px;padding:3px"></div>
       <div><label>Barra lateral</label><input type="color" value="${ap.sb||t.sb}" onchange="setAparencia('sb',this.value)" style="height:42px;padding:3px"></div>
