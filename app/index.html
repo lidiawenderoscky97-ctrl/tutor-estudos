@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="63">
+<meta name="versao" content="64">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -434,7 +434,7 @@ async function completarEstrategia(){
     const lista = JSON.parse(await lerCatalogo('indice.json'));
     const c = lista.find(x => x.nome === S.config.concurso); if(!c) return;
     const info = lerEstrategia(await lerCatalogo(c.arquivo)); let n = 0;
-    S.materias.forEach(m => { const e = info[m.nome.toLowerCase()]; if(e && !m.estCurso && (!e.curso || e.curso === m.curso)){ m.estCurso = e.id; m.estAulas = e.aulas; n++; } });
+    S.materias.forEach(m => { const e = info[m.nome.toLowerCase()]; if(e && !m.estCurso && !m.estUrl && (!e.curso || e.curso === m.curso)){ m.estCurso = e.id; m.estAulas = e.aulas; n++; } });
     if(n){ save(); render(); }
   }catch(e){}
 }
@@ -2289,59 +2289,93 @@ function tecEscolher(i, v){ const x = tecEstado.itens[i], [mid, tid] = v ? v.spl
    cada curso (nome e endereço) e entrega um texto para colar aqui. O tutor liga cada matéria ao curso certo e cada
    assunto à aula que trata dele: os links abrem a aula e a ordem de estudo segue o curso. */
 async function estColetor(){
-  if(!/estrategiaconcursos\.com\.br$/.test(location.hostname)){ alert('Abra o site do Estratégia Concursos (logado na sua conta) e clique neste favorito lá.'); return; }
+  if(!/(^|\.)estrategia(concursos)?\.com(\.br)?$/i.test(location.hostname)){ alert('Abra o site do Estratégia (logado na sua conta) e clique neste favorito lá.'); return; }
   const velho = document.getElementById('eg-coletor'); if(velho) velho.remove();
   const box = document.createElement('div'); box.id = 'eg-coletor';
-  box.style.cssText = 'position:fixed;z-index:2147483647;top:16px;right:16px;width:400px;max-width:92vw;background:#fff;color:#111;border:2px solid #4f46e5;border-radius:12px;padding:14px;font:14px/1.4 sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.25)';
-  box.innerHTML = '<b style="color:#4f46e5">Estudo Guiado</b><div id="eg-msg" style="margin:8px 0">Lendo seus cursos…</div>';
+  box.style.cssText = 'position:fixed;z-index:2147483647;top:16px;right:16px;width:420px;max-width:92vw;background:#fff;color:#111;border:2px solid #4f46e5;border-radius:12px;padding:14px;font:14px/1.4 sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.25)';
+  box.innerHTML = '<b style="color:#4f46e5">Estudo Guiado</b><div id="eg-msg" style="margin:8px 0"></div>';
   document.body.appendChild(box);
   const msg = t => { box.querySelector('#eg-msg').textContent = t + (document.hidden ? ' — deixe esta aba aberta na frente para terminar.' : ''); };
-  const ler = (url, re) => new Promise(ok => {
+  const botao = (txt, cor) => { const b = document.createElement('button'); b.textContent = txt; b.style.cssText = 'margin:4px 6px 0 0;padding:7px 14px;background:' + (cor || '#4f46e5') + ';color:' + (cor ? '#111' : '#fff') + ';border:0;border-radius:8px;font-weight:600;cursor:pointer'; return b; };
+  const limpa = s => String(s || '').replace(/\s+/g, ' ').trim();
+  const faseDe = t => /p[óo]s[\s-]*edital/i.test(t) ? 'pos' : /pr[ée][\s-]*edital/i.test(t) ? 'pre' : '';
+  // 1) pré ou pós-edital
+  box.querySelector('#eg-msg').innerHTML = 'Quais cursos você quer ler?';
+  const fase = await new Promise(ok => { [['pre','Pré-edital'],['pos','Pós-edital'],['','Todos']].forEach(([v,n]) => { const b = botao(n, v ? '' : '#eee'); b.onclick = () => ok(v); box.appendChild(b); }); });
+  box.querySelectorAll('button').forEach(b => b.remove());
+  msg('Lendo seus cursos…');
+  // carrega uma página do próprio site num quadro escondido e espera o conteúdo parar de mudar
+  const abrir = (url, pronto) => new Promise(ok => {
     const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;left:-10000px;top:0;width:1280px;height:900px'; f.src = url; document.body.appendChild(f);
     let ult = -1, desde = Date.now(); const ini = Date.now();
-    const iv = setInterval(() => { let as = [];
-      try{ as = [...f.contentDocument.querySelectorAll('a')].filter(a => re.test(a.pathname)); }catch(e){}
-      if(as.length !== ult){ ult = as.length; desde = Date.now(); }
-      if((as.length && Date.now() - desde >= 3000 && Date.now() - ini >= 5000) || Date.now() - ini > 40000){ clearInterval(iv); const r = as.map(a => [a.pathname, (a.innerText || a.textContent || '').replace(/\s+/g, ' ').trim()]); f.remove(); ok(r); } }, 250); });
-  const lista = await ler('/app/dashboard/cursos', /^\/app\/dashboard\/cursos\/\d+\/aulas\/?$/);
-  const vistos = new Set(), todos = [];
-  lista.forEach(([p, t]) => { const id = p.match(/cursos\/(\d+)/)[1]; if(vistos.has(id)) return; vistos.add(id);
-    todos.push({id, titulo: t.replace(/Dispon[íi]vel entre.*$/i, '').trim(), aulas: []}); });
-  if(!todos.length){ msg('Não encontrei cursos em "Minhas Matrículas". Confira se você está logado e tente de novo.'); return; }
-  // agrupa as matrículas por concurso ("TJ-SP (Escrevente Judiciário) Língua Portuguesa" → "TJ-SP (Escrevente Judiciário)")
+    const iv = setInterval(() => { let n = 0; try{ n = pronto(f.contentDocument); }catch(e){}
+      if(n !== ult){ ult = n; desde = Date.now(); }
+      if((n && Date.now() - desde >= 3000 && Date.now() - ini >= 5000) || Date.now() - ini > 45000){ clearInterval(iv); let d = null; try{ d = f.contentDocument; }catch(e){} ok({doc: d, fim: () => f.remove()}); } }, 300); });
+  // aulas de uma página: "Aula 00 - Título" em links, botões ou blocos de texto
+  const aulasDe = (doc, base) => { const out = [], ja = new Set();
+    [...doc.querySelectorAll('a, button, [role=button], li, h2, h3, h4, span, div, p')].forEach(el => {
+      const t = limpa(el.innerText || el.textContent); const m = t.match(/^Aula\s*(\d{1,3})\b\s*[-–:.]?\s*(.{0,220})$/i); if(!m) return;
+      if([...el.children].some(c => /^Aula\s*\d/i.test(limpa(c.innerText || c.textContent)))) return; // usa o elemento mais interno
+      const num = m[1].padStart(2, '0'); if(ja.has(num)) return; ja.add(num);
+      const a = el.closest('a') || el.querySelector('a'); let link = a && a.href ? a.href : base;
+      const id = (link.match(/aulas?\/(\d+)/) || [])[1];
+      out.push([num, /\/app\/dashboard\/cursos\/\d+\/aulas\/\d+/.test(link) && id ? id : link, limpa(m[2].replace(/^\(?\s*somente em pdf\s*\)?\s*[-–]?\s*/i, ''))]); });
+    return out.sort((a, b) => +a[0] - +b[0]); };
+  // 2) lista de cursos: site antigo (Minhas Matrículas) ou o site novo (links de curso na página aberta)
+  let todos = [];
+  const antigo = /estrategiaconcursos\.com\.br$/i.test(location.hostname) && /^\/app\//.test(location.pathname);
+  if(antigo){
+    const {doc, fim} = await abrir('/app/dashboard/cursos', d => d.querySelectorAll('a[href*="/aulas"]').length);
+    const vistos = new Set();
+    [...(doc ? doc.querySelectorAll('a') : [])].filter(a => /^\/app\/dashboard\/cursos\/\d+\/aulas\/?$/.test(a.pathname)).forEach(a => {
+      const id = a.pathname.match(/cursos\/(\d+)/)[1]; if(vistos.has(id)) return; vistos.add(id);
+      const titulo = limpa(a.innerText || a.textContent).replace(/Dispon[íi]vel entre.*$/i, '').trim();
+      todos.push({id, url: location.origin + '/app/dashboard/cursos/' + id + '/aulas', titulo, fase: faseDe(titulo), aulas: []}); });
+    fim();
+  } else {
+    const aqui = aulasDe(document, location.href);
+    if(aqui.length >= 3) todos.push({id: location.pathname, url: location.href, titulo: limpa((document.querySelector('h1') || {}).innerText || document.title), fase: faseDe(document.body.innerText.slice(0, 3000)), aulas: aqui, lido: true});
+    else { const vistos = new Set();
+      [...document.querySelectorAll('a[href]')].forEach(a => { const t = limpa(a.innerText || a.textContent); if(t.length < 8 || t.length > 220) return;
+        if(!/curso|trilha|produto|pacote|turma|disciplina|materia|aula/i.test(a.pathname)) return; if(/blog|login|carrinho|checkout|ajuda|suporte/i.test(a.href)) return;
+        const u = a.href.split('#')[0]; if(vistos.has(u)) return; vistos.add(u);
+        // fase: no título do curso ou no bloco/aba em que ele está ("Pré-edital", "Pós-edital")
+        let f = faseDe(t), el = a; for(let i = 0; i < 8 && !f && el; i++){ el = el.parentElement; if(el){ const h = el.querySelector('h1,h2,h3,h4,[role=tab][aria-selected=true]'); if(h) f = faseDe(h.innerText || ''); } }
+        if(!f){ const tab = document.querySelector('[role=tab][aria-selected=true], .active, .selected'); if(tab) f = faseDe(tab.innerText || ''); }
+        todos.push({id: new URL(u).pathname, url: u, titulo: t.replace(/Dispon[íi]vel entre.*$/i, '').trim(), fase: f, aulas: []}); }); }
+  }
+  if(fase) todos = todos.filter(c => !c.fase || c.fase === fase);
+  if(!todos.length){ msg('Não encontrei cursos nesta página. Abra a página "Meus cursos" (ou a página de um curso) com sua conta e clique no favorito de novo.'); box.appendChild(Object.assign(botao('Fechar', '#eee'), {onclick: () => box.remove()})); return; }
+  // 3) escolha do concurso (agrupa os cursos pelo nome do concurso)
   const grupoDe = t => { const s = t.replace(/^(Pr[ée]|P[óo]s)-?\s*Edital\s*/i, '').replace(/^(Simulados?|Sprint[^-–:]*|Reta Final|Bizu[^-–:]*|Curso Regular( para)?)\s*[-–:]?\s*/i, '').trim();
     const sig = s.match(/^([A-ZÀ-Þ0-9]{2,}(?:-[A-Z0-9]{1,4})?)(?=[\s(:–-]|$)/); if(sig) return sig[1];
     return s.split(/\s[-–:]\s|\s\(/)[0].trim() || s; };
-  const grupos = {}; todos.forEach(c => { const g = grupoDe(c.titulo); (grupos[g] = grupos[g] || []).push(c); });
-  const nomes = Object.keys(grupos).sort((a, b) => grupos[b].length - grupos[a].length);
-  box.querySelector('#eg-msg').innerHTML = 'Marque o concurso que você está estudando (' + todos.length + ' matrículas):';
-  const lst = document.createElement('div'); lst.style.cssText = 'max-height:260px;overflow:auto;border:1px solid #ddd;border-radius:8px;padding:6px;margin:6px 0';
-  nomes.forEach((g, i) => { const l = document.createElement('label'); l.style.cssText = 'display:block;padding:3px 0;cursor:pointer';
-    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.value = g; cb.style.marginRight = '6px'; l.appendChild(cb);
-    l.appendChild(document.createTextNode(g + ' (' + grupos[g].length + ' curso' + (grupos[g].length > 1 ? 's' : '') + ')')); lst.appendChild(l); });
-  box.appendChild(lst);
-  const ir = document.createElement('button'); ir.textContent = 'Ler as aulas'; ir.style.cssText = 'padding:7px 16px;background:#4f46e5;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer';
-  box.appendChild(ir);
-  const marcados = await new Promise(ok => { ir.onclick = () => { const v = [...lst.querySelectorAll('input:checked')].map(x => x.value); if(v.length) ok(v); }; });
-  lst.remove(); ir.remove();
-  const cursos = marcados.flatMap(g => grupos[g]);
-  let feitos = 0; msg('Lendo as aulas de ' + cursos.length + ' cursos… (0/' + cursos.length + ')');
-  const fila = cursos.slice();
+  let cursos = todos;
+  if(todos.length > 1){
+    const grupos = {}; todos.forEach(c => { const g = grupoDe(c.titulo); (grupos[g] = grupos[g] || []).push(c); });
+    const nomes = Object.keys(grupos).sort((a, b) => grupos[b].length - grupos[a].length);
+    box.querySelector('#eg-msg').innerHTML = 'Marque o concurso que você está estudando (' + todos.length + ' cursos' + (fase ? ', ' + (fase === 'pre' ? 'pré' : 'pós') + '-edital' : '') + '):';
+    const lst = document.createElement('div'); lst.style.cssText = 'max-height:260px;overflow:auto;border:1px solid #ddd;border-radius:8px;padding:6px;margin:6px 0';
+    nomes.forEach(g => { const l = document.createElement('label'); l.style.cssText = 'display:block;padding:3px 0;cursor:pointer';
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.value = g; cb.style.marginRight = '6px'; l.appendChild(cb);
+      l.appendChild(document.createTextNode(g + ' (' + grupos[g].length + ' curso' + (grupos[g].length > 1 ? 's' : '') + ')')); lst.appendChild(l); });
+    box.appendChild(lst); const ir = botao('Ler as aulas'); box.appendChild(ir);
+    const marcados = await new Promise(ok => { ir.onclick = () => { const v = [...lst.querySelectorAll('input:checked')].map(x => x.value); if(v.length) ok(v); }; });
+    lst.remove(); ir.remove(); cursos = marcados.flatMap(g => grupos[g]);
+  }
+  // 4) aulas de cada curso
+  let feitos = 0; const pend = cursos.filter(c => !c.lido); msg('Lendo as aulas de ' + pend.length + ' cursos… (0/' + pend.length + ')');
+  const fila = pend.slice();
   const trabalhar = async () => { while(fila.length){ const c = fila.shift();
-    const re = new RegExp('^/app/dashboard/cursos/' + c.id + '/aulas/\\d+/?$');
-    let as = await ler('/app/dashboard/cursos/' + c.id + '/aulas', re);
-    if(!as.length) as = await ler('/app/dashboard/cursos/' + c.id + '/aulas', re); // tenta de novo se a página demorou
-    const ja = new Set();
-    as.forEach(([p, t]) => { const aid = p.match(/aulas\/(\d+)/)[1]; if(ja.has(aid)) return; ja.add(aid);
-      const m = t.match(/Aula\s*(\d+)/i); c.aulas.push([m ? m[1].padStart(2, '0') : '', aid, t.replace(/^Aula\s*\d+\s*(-\s*Somente em PDF)?\s*/i, '').trim()]); });
-    feitos++; msg('Lendo as aulas de ' + cursos.length + ' cursos… (' + feitos + '/' + cursos.length + ')'); } };
+    for(let tent = 0; tent < 2 && !c.aulas.length; tent++){ const {doc, fim} = await abrir(c.url, d => aulasDe(d, c.url).length); if(doc){ c.aulas = aulasDe(doc, c.url); if(!c.fase) c.fase = faseDe((doc.body && doc.body.innerText || '').slice(0, 3000)); } fim(); }
+    feitos++; msg('Lendo as aulas de ' + pend.length + ' cursos… (' + feitos + '/' + pend.length + ')'); } };
   await Promise.all([trabalhar(), trabalhar(), trabalhar()]);
-  const txt = 'ESTUDO-GUIADO-ESTRATEGIA ' + JSON.stringify({v: 1, cursos});
-  box.querySelector('#eg-msg').innerHTML = 'Pronto: ' + cursos.length + ' cursos lidos. Clique em <b>Copiar</b> e cole no Estudo Guiado (Edital → Cursos do Estratégia).';
+  cursos = cursos.filter(c => c.aulas.length);
+  const txt = 'ESTUDO-GUIADO-ESTRATEGIA ' + JSON.stringify({v: 2, fase, cursos: cursos.map(c => ({id: c.id, url: c.url, titulo: c.titulo, fase: c.fase, aulas: c.aulas}))});
+  box.querySelector('#eg-msg').innerHTML = cursos.length ? 'Pronto: ' + cursos.length + ' cursos lidos. Clique em <b>Copiar</b> e cole no Estudo Guiado (Edital → Cursos do Estratégia).' : 'Não consegui ler as aulas destes cursos. Abra um curso e clique no favorito dentro da página dele.';
   const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'width:100%;height:70px;font-size:11px'; box.appendChild(ta);
-  const bt = document.createElement('button'); bt.textContent = 'Copiar'; bt.style.cssText = 'margin-top:8px;padding:7px 16px;background:#4f46e5;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer';
-  bt.onclick = async () => { try{ await navigator.clipboard.writeText(txt); }catch(e){ ta.select(); document.execCommand('copy'); } bt.textContent = 'Copiado ✓'; };
-  const fe = document.createElement('button'); fe.textContent = 'Fechar'; fe.style.cssText = 'margin:8px 0 0 8px;padding:7px 12px;background:#eee;border:0;border-radius:8px;cursor:pointer'; fe.onclick = () => box.remove();
+  const bt = botao('Copiar'); bt.onclick = async () => { try{ await navigator.clipboard.writeText(txt); }catch(e){ ta.select(); document.execCommand('copy'); } bt.textContent = 'Copiado ✓'; };
+  const fe = botao('Fechar', '#eee'); fe.onclick = () => box.remove();
   box.appendChild(bt); box.appendChild(fe);
 }
 const linkColetor = () => 'javascript:' + encodeURIComponent('(' + estColetor.toString() + ')()');
@@ -2353,7 +2387,8 @@ function estPontuarCurso(m, c){
   const C = tecTokens(estNormTitulo(S.config.concurso || '')); const conc = C.length ? C.filter(w => B.some(b => tecParecidas(w, b))).length / C.length : 0;
   let cob = 0; if(c.aulas.length && m.topicos.length) cob = m.topicos.filter(t => estMelhorAula(t, c).p >= .5).length / m.topicos.length;
   const extra = /reta final|bizu|resumo|simulado|revis[aã]o|quest[oõ]es comentadas|discursiv|mapas? mentais|curso regular/i.test(c.titulo) ? -.3 : 0;
-  return nome + .6 * conc + .8 * cob + extra;
+  const fase = estEstado && estEstado.fase ? (c.fase === estEstado.fase ? .4 : c.fase ? -.6 : 0) : 0;
+  return nome + .6 * conc + .8 * cob + extra + fase;
 }
 function estMelhorAula(t, c){
   let best = null, bp = 0;
@@ -2368,46 +2403,61 @@ function estProcessar(){
   const cursos = (dados.cursos || []).filter(c => c.aulas && c.aulas.length);
   if(!cursos.length) return avisar('Nenhum curso com aulas foi encontrado.');
   const escolha = {}, aulas = {};
+  // fase dos cursos: a que veio da leitura; se vieram as duas, a fase do plano (Configurações → Fase do concurso)
+  const fases = [...new Set(cursos.map(c => c.fase).filter(Boolean))];
+  estEstado = {cursos, escolha, aulas, fase: dados.fase || (fases.length > 1 ? (S.config.fase === 'pos' ? 'pos' : 'pre') : (fases[0] || ''))};
   S.materias.forEach(m => {
     let best = null, bp = 0; cursos.forEach(c => { const p = estPontuarCurso(m, c); if(p > bp){ bp = p; best = c; } });
     escolha[m.id] = best && bp >= .9 ? best.id : '';
   });
-  estEstado = {cursos, escolha, aulas}; estAulasAuto(); render();
+  estAulasAuto();
+  // aplica na hora: o edital verticalizado já fica com as aulas (dá para ajustar logo abaixo e aplicar de novo)
+  estAplicar(true);
 }
+function estTrocarFase(f){ estEstado.fase = f; S.materias.forEach(m => { let best = null, bp = 0; estEstado.cursos.forEach(c => { const p = estPontuarCurso(m, c); if(p > bp){ bp = p; best = c; } }); estEstado.escolha[m.id] = best && bp >= .9 ? best.id : ''; }); estAulasAuto(); render(); }
 function estAulasAuto(){
   S.materias.forEach(m => { const c = estEstado.cursos.find(c => c.id === estEstado.escolha[m.id]);
     m.topicos.forEach(t => { const r = c ? estMelhorAula(t, c) : {p:0}; estEstado.aulas[t.id] = r.a && r.p >= .4 ? r.a[0] : ''; }); });
 }
-function estAplicar(){
+function estAplicar(manterRevisao){
   let nm = 0, nt = 0;
   S.materias.forEach(m => { const c = estEstado.cursos.find(c => c.id === estEstado.escolha[m.id]); if(!c) return;
-    m.estCurso = c.id; m.estAulas = {}; c.aulas.forEach(a => { if(a[0]) m.estAulas[a[0]] = a[1]; }); m.curso = c.titulo; nm++;
-    m.topicos.forEach(t => { const n = estEstado.aulas[t.id]; if(n){ t.aula = 'Aula ' + n; nt++; } }); });
-  estEstado = null; delete S.metas[hoje()]; gerarMetas(false); save(); render();
-  avisar(`${nm} matérias ligadas aos cursos do Estratégia e ${nt} assuntos às suas aulas. O plano segue a ordem das aulas.`);
+    const antigo = /^\d+$/.test(c.id);
+    if(antigo){ m.estCurso = c.id; delete m.estUrl; } else { delete m.estCurso; m.estUrl = c.url; }
+    m.estAulas = {}; c.aulas.forEach(a => { if(a[0]) m.estAulas[a[0]] = a[1]; }); m.curso = c.titulo; m.estFase = c.fase || estEstado.fase || ''; nm++;
+    m.topicos.forEach(t => { const n = estEstado.aulas[t.id]; if(n){ const a = c.aulas.find(x => x[0] === n); t.aula = 'Aula ' + n + (a && a[2] ? ' – ' + curto(a[2], 90) : ''); nt++; } });
+    // edital verticalizado na ordem das aulas do curso (assuntos sem aula ficam no fim, na ordem do edital)
+    const pos = new Map(m.topicos.map((t,i) => [t.id, i]));
+    m.topicos.sort((a,b) => { const na = numAula(a), nb = numAula(b); return (na ?? 999) - (nb ?? 999) || pos.get(a.id) - pos.get(b.id); }); });
+  if(!manterRevisao) estEstado = null;
+  delete S.metas[hoje()]; gerarMetas(false); save(); render();
+  avisar(`${nm} matérias ligadas aos cursos do Estratégia${estEstado && estEstado.fase ? ' (' + (estEstado.fase === 'pos' ? 'pós' : 'pré') + '-edital)' : ''} e ${nt} assuntos às suas aulas. O edital verticalizado e o plano agora seguem a ordem das aulas.`);
 }
 function cardEstrategia(){
   if(!S.materias.length) return '';
-  const semCurso = S.materias.filter(m => !m.estCurso).length;
+  const semCurso = S.materias.filter(m => !m.estCurso && !m.estUrl).length;
   let h = `<div class="card" style="margin-top:16px"><h2>Cursos do Estratégia</h2>
     <p class="mut">Liga cada matéria ao seu curso no Estratégia e cada assunto à aula que trata dele, para qualquer concurso. Os links das metas abrem a aula certa e o estudo segue a ordem do curso. ${semCurso ? `<b>${semCurso} matéria(s) ainda sem curso.</b>` : 'Todas as matérias já têm curso.'}</p>
     <details><summary style="cursor:pointer"><b>Como fazer (uma vez por concurso, no computador)</b></summary><ol class="pl mut" style="padding-left:18px;margin:6px 0">
       <li>Arraste este botão para a barra de favoritos do navegador: <a class="b" style="text-decoration:none;padding:5px 12px;border-radius:9px;background:var(--acc);color:var(--accink);font-weight:600" href="${esc(linkColetor())}" onclick="event.preventDefault();avisar('Arraste o botão para a barra de favoritos e clique nele no site do Estratégia.')">Estudo Guiado ← Estratégia</a>
         <span>(se a barra não aparecer: Ctrl+Shift+B). Ou <button class="lk" onclick="copiarColetor()">copie o código</button> e crie um favorito com ele no lugar do endereço.</span></li>
-      <li>Entre no site do Estratégia com sua conta e clique no favorito. Marque o concurso na lista das suas matrículas e clique em <b>Ler as aulas</b> (leva cerca de 1 minuto; deixe a aba aberta na frente).</li>
-      <li>Clique em <b>Copiar</b> na janelinha e cole abaixo.</li></ol></details>
+      <li>Entre no site do Estratégia com sua conta (o site antigo ou o novo) e abra a página dos seus cursos. Clique no favorito, escolha <b>Pré-edital</b>, <b>Pós-edital</b> ou <b>Todos</b>, marque o concurso e clique em <b>Ler as aulas</b> (leva cerca de 1 minuto; deixe a aba aberta na frente). Se a lista não aparecer, abra a página de um curso e clique no favorito lá.</li>
+      <li>Clique em <b>Copiar</b> na janelinha e cole abaixo. O edital verticalizado é atualizado com as aulas na hora (por isso, monte o edital antes).</li></ol></details>
     <label for="estTxt">Texto copiado do Estratégia</label><textarea id="estTxt" style="min-height:70px" placeholder="Cole aqui (Ctrl+V)"></textarea>
     <div class="inl"><button class="b" onclick="estProcessar()">Ligar matérias e aulas</button></div>`;
   if(estEstado){
-    const optC = sel => `<option value="">sem curso</option>` + estEstado.cursos.map(c => `<option value="${c.id}" ${c.id===sel?'selected':''}>${esc(curto(c.titulo, 90))}</option>`).join('');
-    h += `<h3>Confira antes de aplicar</h3><div style="overflow-x:auto"><table><tr><th>Matéria</th><th>Curso no Estratégia</th><th class="n">Assuntos com aula</th></tr>
+    const optC = sel => `<option value="">sem curso</option>` + estEstado.cursos.map(c => `<option value="${esc(c.id)}" ${c.id===sel?'selected':''}>${c.fase ? (c.fase==='pos'?'[Pós] ':'[Pré] ') : ''}${esc(curto(c.titulo, 90))}</option>`).join('');
+    const temFases = new Set(estEstado.cursos.map(c => c.fase).filter(Boolean)).size > 1;
+    h += `<div class="alert info" style="margin-top:12px">Pronto! As aulas já foram aplicadas no edital verticalizado. Se algum curso ou aula ficou errado, ajuste abaixo e clique em <b>Aplicar ajustes</b>.</div>
+      ${temFases ? `<div class="inl" style="margin:6px 0"><span class="mut">Cursos de:</span>${[['pre','Pré-edital'],['pos','Pós-edital']].map(([v,n]) => `<button class="${estEstado.fase===v?'b':'g'}" onclick="estTrocarFase('${v}')">${n}</button>`).join('')}</div>` : ''}
+      <h3>Matérias e cursos</h3><div style="overflow-x:auto"><table><tr><th>Matéria</th><th>Curso no Estratégia</th><th class="n">Assuntos com aula</th></tr>
       ${S.materias.map(m => { const n = m.topicos.filter(t => estEstado.aulas[t.id]).length;
         return `<tr><td>${esc(m.nome)}</td><td><select style="max-width:420px" onchange="estEstado.escolha['${m.id}']=this.value;estAulasAuto();render()">${optC(estEstado.escolha[m.id])}</select></td><td class="n">${n}/${m.topicos.length}</td></tr>`; }).join('')}</table></div>
       <details style="margin-top:10px"><summary style="cursor:pointer"><b>Aula de cada assunto</b></summary>
       ${S.materias.filter(m => estEstado.escolha[m.id]).map(m => { const c = estEstado.cursos.find(c => c.id === estEstado.escolha[m.id]);
         const optA = sel => `<option value="">—</option>` + c.aulas.filter(a => a[0]).map(a => `<option value="${a[0]}" ${a[0]===sel?'selected':''}>Aula ${a[0]} · ${esc(curto(a[2], 70))}</option>`).join('');
         return `<h3 style="margin-top:12px">${esc(m.nome)}</h3><div style="overflow-x:auto"><table>${m.topicos.map(t => `<tr><td>${esc(t.nome)}</td><td><select style="max-width:380px" onchange="estEstado.aulas['${t.id}']=this.value">${optA(estEstado.aulas[t.id])}</select></td></tr>`).join('')}</table></div>`; }).join('')}</details>
-      <div class="inl"><button class="b" onclick="estAplicar()">Aplicar e refazer o plano</button><button class="g" onclick="estEstado=null;render()">Descartar</button></div>`;
+      <div class="inl"><button class="b" onclick="estAplicar()">Aplicar ajustes</button><button class="g" onclick="estEstado=null;render()">Fechar</button></div>`;
   }
   return h + `</div>`;
 }
@@ -2626,8 +2676,8 @@ function vEdital(){
         <div><label>Peso (1–5)</label><input type="number" min="1" max="5" value="${m.peso}" onchange="setMat('${m.id}','peso',+this.value)"></div>
         <div><label>Meu nível (1–5)</label><input type="number" min="1" max="5" value="${m.nivel}" onchange="setMat('${m.id}','nivel',+this.value)"></div></div>
       <div class="inl" style="margin:0 0 8px"><div style="flex:1;min-width:220px"><label>Curso no Estratégia</label><input value="${esc(m.curso||'')}" placeholder="${esc('Curso de '+m.nome+(S.config.concurso?' para '+S.config.concurso:''))}" onchange="setMatCurso('${m.id}',this.value)"></div>
-        <div style="flex:1;min-width:220px"><label>Link do curso no Estratégia</label><input value="${m.estCurso?esc(EST_BASE+'/'+m.estCurso+'/aulas'):''}" placeholder="https://www.estrategiaconcursos.com.br/app/dashboard/cursos/…/aulas" onchange="setMatEstLink('${m.id}',this.value)"></div>
-        <a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(linkEstrategia(m))}" target="_blank" rel="noopener">${m.estCurso?'Abrir curso':'Minhas matrículas'}</a></div>
+        <div style="flex:1;min-width:220px"><label>Link do curso no Estratégia</label><input value="${m.estUrl?esc(m.estUrl):m.estCurso?esc(EST_BASE+'/'+m.estCurso+'/aulas'):''}" placeholder="https://www.estrategiaconcursos.com.br/app/dashboard/cursos/…/aulas" onchange="setMatEstLink('${m.id}',this.value)"></div>
+        <a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(linkEstrategia(m))}" target="_blank" rel="noopener">${(m.estCurso||m.estUrl)?'Abrir curso':'Minhas matrículas'}</a></div>
       <div class="inl" style="margin:0 0 8px"><div style="flex:1;min-width:220px"><label>Link do caderno no TEC</label><input value="${esc(m.tecLink||'')}" placeholder="https://www.tecconcursos.com.br/..." onchange="setMatLink('${m.id}',this.value)"></div>
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
       <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
@@ -2652,8 +2702,10 @@ Noções de Direito Constitucional - 1. Constituição Federal de 1988. Princíp
 // Link direto na área do aluno do Estratégia: a aula do assunto, o curso da matéria ou, sem curso definido, "Minhas Matrículas"
 const EST_BASE = 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos';
 function linkEstrategia(m, t){
-  if(!m || !m.estCurso) return EST_BASE;
+  if(!m || (!m.estCurso && !m.estUrl)) return EST_BASE;
   const n = t && (String(t.aula||'').match(/\d+/) || [])[0], aula = n != null && m.estAulas ? m.estAulas[String(+n).padStart(2,'0')] : null;
+  if(aula && /^https?:/i.test(aula)) return aula;
+  if(m.estUrl) return m.estUrl;
   return `${EST_BASE}/${m.estCurso}/aulas` + (aula ? '/' + aula : '');
 }
 function setMatEstLink(id, v){
