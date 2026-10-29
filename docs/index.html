@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="50">
+<meta name="versao" content="51">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -546,6 +546,7 @@ document.addEventListener('visibilitychange', async () => {
 });
 function save(){
   if(projetando) return;
+  try{ marcarOfensiva(); }catch(e){}
   try{ salvarEditalAtual(); }catch(e){}
   if(ONLINE){ if(!ONLINE.somenteLeitura){ sujo = true; statusSync('Salvando…'); clearTimeout(filaSalvar); filaSalvar = setTimeout(gravarOnline, 700); } return; }
   const json = JSON.stringify(S);
@@ -3132,11 +3133,41 @@ function nomeUsuario(){
 }
 function alternarNoite(){ const tm = temaAtual(), escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
   const t = escuro ? 'claro' : 'escuro'; try{ localStorage.setItem('eg-tema', t); }catch(e){} aplicarTema(t); render(); }
+/* ---------- Ofensiva (como no Duolingo) ----------
+   Conta os dias seguidos em que a pessoa bateu a meta do dia (todas as metas concluídas, ou o tempo planejado cumprido).
+   Dias de pausa e dias sem horas de estudo não quebram a sequência. Fica em S.config.ofensiva = {d:{dia:1}, rec}. */
+function diaBatido(dia){
+  const l = (S.metas[dia]||[]).filter(x => x.tipo !== 'extra' && !x.adiantada); if(!l.length) return false;
+  const plan = l.reduce((s,x)=>s+(+x.min||0),0), feito = l.filter(x=>x.feita).reduce((s,x)=>s+(+(x.minReal||x.min)||0),0);
+  return l.every(x => x.feita) || (plan > 0 && feito >= plan);
+}
+function marcarOfensiva(){
+  const o = S.config.ofensiva = S.config.ofensiva || {d:{}, rec:0};
+  Object.keys(S.metas||{}).forEach(k => { if(k > hoje()) return; if(diaBatido(k)) o.d[k] = 1; else delete o.d[k]; });
+  Object.keys(o.d).forEach(k => { if(diff(k, hoje()) > 400) delete o.d[k]; });
+  o.rec = Math.max(o.rec||0, ofensiva().n);
+}
+const diaNeutro = d => !!pausaDe(d) || !capacidade(d); // pausa ou dia sem horas: não conta nem quebra
+function ofensiva(){
+  const o = (S.config.ofensiva||{d:{}}).d || {}; let n = 0, d = hoje();
+  const hojeOk = !!o[d];
+  if(!hojeOk) d = addDias(d, -1); // hoje ainda dá tempo: a ofensiva continua viva até o fim do dia
+  for(let i = 0; i < 800; i++){ if(o[d]){ n++; } else if(!diaNeutro(d)) break; d = addDias(d, -1); }
+  return {n, hojeOk, rec: Math.max(n, (S.config.ofensiva||{}).rec||0)};
+}
+function cardOfensiva(){
+  const of = ofensiva(), emRisco = !of.hojeOk && !diaNeutro(hoje());
+  const cor = of.n ? '#ff9f1c' : 'rgba(255,255,255,.45)';
+  return `<div style="display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.08)">
+    <span style="font-size:30px;line-height:1;${of.n?'':'filter:grayscale(1);opacity:.5'}">🔥</span>
+    <div style="min-width:0"><div style="font-size:20px;font-weight:800;color:${cor}">${of.n} ${of.n===1?'dia':'dias'} de ofensiva</div>
+      <div class="mut" style="font-size:13.5px">${of.hojeOk ? 'Meta de hoje batida ✓ Volte amanhã para continuar.' : emRisco ? (of.n ? 'Bata a meta de hoje para não perder a sequência!' : 'Bata a meta de hoje para começar uma sequência.') : 'Hoje é dia de pausa: a sequência fica guardada.'}${of.rec > of.n ? ` · recorde: ${of.rec} dias` : ''}</div></div></div>`;
+}
 function diasEstudados(){ return new Set(S.sessoes.filter(s=>(+s.min||0)>0 || (+s.q||0)>0).map(s=>s.data)).size; }
 function semanaChecks(){
   const ini = addDias(hoje(), -parse(hoje()).getDay()), dias = new Set(S.sessoes.map(s=>s.data));
   return `<div style="display:flex;gap:6px;margin-top:10px">${[0,1,2,3,4,5,6].map(i=>{ const d = addDias(ini,i), ok = dias.has(d), fut = d > hoje(), pz = pausaDe(d);
-    return `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,.75)"><div title="${br(d)}${pz?' · pausa':''}" style="width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14.5px;${ok?'background:var(--gold);color:#1b1d2a':fut?'border:2px dashed rgba(255,255,255,.3)':pz?'background:rgba(255,255,255,.12)':'border:2px solid rgba(255,255,255,.3)'};${d===hoje()?'outline:2px solid #fff;outline-offset:2px':''}">${ok?'✓':pz?'–':''}</div>${'DSTQQSS'[i]}</div>`; }).join('')}</div>`;
+    return `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,.75)"><div title="${br(d)}${pz?' · pausa':''}" style="width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14.5px;${(S.config.ofensiva||{d:{}}).d[d]?'background:#ff9f1c;color:#1b1d2a':ok?'background:var(--gold);color:#1b1d2a':fut?'border:2px dashed rgba(255,255,255,.3)':pz?'background:rgba(255,255,255,.12)':'border:2px solid rgba(255,255,255,.3)'};${d===hoje()?'outline:2px solid #fff;outline-offset:2px':''}">${(S.config.ofensiva||{d:{}}).d[d]?'🔥':ok?'✓':pz?'–':''}</div>${'DSTQQSS'[i]}</div>`; }).join('')}</div>` + cardOfensiva();
 }
 
 /* ---------- Configurações ---------- */
