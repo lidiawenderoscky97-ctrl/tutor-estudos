@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="59">
+<meta name="versao" content="60">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -1182,7 +1182,7 @@ function render(){
   if(aba==='questoes' && lqFoco){ const el = document.getElementById('lq_q'); if(el) el.focus(); lqFoco = false; }
   if(caixaAberta){ const el = document.getElementById('cq'); if(el) el.focus(); }
 }
-const vazio = () => cardBusca() + `<div class="card" style="margin-top:16px"><h2>Ou monte o edital você mesmo</h2><p class="mut">Cole cada matéria do jeito que vem no edital (ex.: <code>Direito Administrativo - 1. Princípios. 2. Atos administrativos.</code>) e o tutor separa os assuntos. O tutor calcula o tempo, monta os blocos, as metas diárias e o cronograma.</p><button class="b" onclick="ir('edital')">Ir para o Edital</button></div>`;
+const vazio = () => `<div class="card"><h2>Monte o seu edital</h2><p class="mut">Cole cada matéria do jeito que vem no edital (ex.: <code>Direito Administrativo - 1. Princípios. 2. Atos administrativos.</code>) e o tutor separa os assuntos. O tutor calcula o tempo, monta os blocos, as metas diárias e o cronograma.</p><button class="b" onclick="ir('edital')">Ir para o Edital</button></div>`;
 function anel(p, cor, tam, txt){
   tam = tam||64; const r = tam/2-6, c = 2*Math.PI*r, v = Math.max(0,Math.min(1,p||0));
   return `<svg class="ring" width="${tam}" height="${tam}" viewBox="0 0 ${tam} ${tam}"><circle cx="${tam/2}" cy="${tam/2}" r="${r}" stroke="var(--soft)" stroke-width="7" fill="none"/>
@@ -1891,7 +1891,7 @@ async function importarPdf(substituir){
   if(substituir || !S.config.origemEdital) S.config.origemEdital = 'pdf';
   const msg = importar(txt, true);
   salvarEditalAtual();
-  pdfEstado = {msg:'Edital importado e salvo na sua lista (aparece em “Buscar concurso”): '+msg+' O cronograma e as metas já seguem este edital. Ajuste o nível (1–5) de cada matéria e, se quiser, a incidência dos assuntos.', texto:'', resumo:'', arquivo:''};
+  pdfEstado = {msg:'Edital importado: '+msg+' O cronograma e as metas já seguem este edital. Ajuste o nível (1–5) de cada matéria e, se quiser, a incidência dos assuntos.', texto:'', resumo:'', arquivo:''};
   delete S.metas[hoje()]; save(); render();
 }
 function cardPdf(){
@@ -2606,7 +2606,7 @@ const abertas = new Set();
 function vEdital(){
   if(edAba === 'estat') return edAbas() + vAnalise();
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
-  let h = edAbas() + cardBusca() + cardPdf() + cardEstrategia() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
+  let h = edAbas() + cardPdf() + cardEstrategia() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
     <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca.</p>`;
   h += S.materias.map(m => {
     const mc = m.topicos.filter(t=>t.status==='concluido').length, st = stats(s=>s.materiaId===m.id);
