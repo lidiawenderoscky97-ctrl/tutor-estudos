@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="54">
+<meta name="versao" content="55">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -1176,9 +1176,9 @@ function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHo
 // passou da meia-noite com a página aberta: refaz a tela para mostrar as metas do novo dia
 setInterval(() => { if(diaRender && diaRender !== hoje() && aba === 'hoje' && S && S.materias && !document.querySelector('.caixa input:focus')){ render(); avisar('Começou um novo dia: as metas foram atualizadas. As de ontem que ficaram pendentes aparecem como atrasadas.'); } }, 60000);
 function render(){
-  diaRender = hoje();
+  diaRender = hoje(); try{ aplicarAparencia(); }catch(e){}
   const lvl = nivel(xpTotal());
-  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Estudo Guiado</div>` +
+  document.getElementById('menu').innerHTML = `<div class="logo"><i>${(()=>{ try{ return aparenciaAtual().emoji || '✓'; }catch(e){ return '✓'; } })()}</i>Estudo Guiado</div>` +
     ABAS.map(([k,n]) => `<button class="${k===aba?'on':''}" onclick="ir('${k}')" title="${n}">${ICON[k]}<span>${n}</span></button>`).join('') +
     `<div class="sep"></div><button onclick="trocarTema()" title="Alternar tema claro/escuro"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Tema: ${({auto:'automático',claro:'claro',escuro:'escuro'})[temaAtual()]}</span></button><div class="mini">${ONLINE && ONLINE.usuario ? esc(curto(ONLINE.usuario.nome||ONLINE.usuario.email,24))+'<br>' : ''}Nível ${lvl.n} · versão ${VERSAO}</div>`;
   document.getElementById('titulo').textContent = (ABAS.find(x=>x[0]===aba)||['',''])[1];
@@ -1213,7 +1213,7 @@ function vPainel(){
   const d = parse(hoje()).getDay();
   const tm = temaAtual(), escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
   let h = `<div class="ptopo"><div class="card hero">
-    <div style="flex:1;min-width:240px"><h2>Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! 👋</h2><div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
+    <div style="flex:1;min-width:240px"><h2>Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! ${(aparenciaAtual().emoji)||'👋'}</h2>${aparenciaAtual().msg?`<div style="margin:-2px 0 6px;font-weight:600;color:#fff">${esc(aparenciaAtual().msg)}</div>`:''}<div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
       <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span><button onclick="alternarNoite()" title="${escuro?'Usar o modo dia':'Usar o modo noite'}" aria-label="${escuro?'Modo dia':'Modo noite'}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer">${escuro?'☀️ Modo dia':'🌙 Modo noite'}</button></div>
       ${semanaChecks()}
@@ -3129,6 +3129,70 @@ function aplicarTema(t){ if(t==='claro'||t==='escuro') document.documentElement.
 function temaAtual(){ try{ return localStorage.getItem('eg-tema') || 'auto'; }catch(e){ return 'auto'; } }
 function trocarTema(){ const ord = ['auto','claro','escuro'], t = ord[(ord.indexOf(temaAtual())+1)%3]; try{ localStorage.setItem('eg-tema', t); }catch(e){} aplicarTema(t); window.__tema = t; render(); }
 aplicarTema(temaAtual());
+/* ---------- Aparência: cores do programa e temas do calendário ----------
+   S.config.aparencia = {preset, acc, sb, bg, auto}. "auto" troca sozinho as cores nas datas comemorativas. */
+const TEMAS_COR = {
+  padrao:  {nome:'Padrão (roxo)',  acc:'#4c4ad8', sb:'#191a2e', bg:'#f4f5fa'},
+  oceano:  {nome:'Oceano',         acc:'#1677c9', sb:'#0f2a43', bg:'#f1f6fb'},
+  floresta:{nome:'Floresta',       acc:'#1f8a5b', sb:'#12291f', bg:'#f2f7f3'},
+  rosa:    {nome:'Rosa',           acc:'#d0457f', sb:'#2e1626', bg:'#fbf3f7'},
+  sol:     {nome:'Pôr do sol',     acc:'#e0661c', sb:'#2b1a12', bg:'#fdf6f0'},
+  lavanda: {nome:'Lavanda',        acc:'#7c4fd6', sb:'#221a35', bg:'#f6f3fc'},
+  grafite: {nome:'Grafite',        acc:'#3f4a5a', sb:'#16191e', bg:'#f3f4f6'},
+  vinho:   {nome:'Vinho',          acc:'#a3263f', sb:'#2a1015', bg:'#faf3f4'}
+};
+// Domingo de Páscoa (algoritmo de Meeus)
+function pascoa(a){ const b=a%19, c=Math.floor(a/100), d=a%100, e=Math.floor(c/4), f=c%4, g=Math.floor((c+8)/25), h=Math.floor((c-g+1)/3), i=(19*b+c-e-h+15)%30, k=Math.floor(d/4), l=d%4,
+  m=(32+2*f+2*k-i-l)%7, n=Math.floor((b+11*i+22*m)/451), mes=Math.floor((i+m-7*n+114)/31), dia=((i+m-7*n+114)%31)+1; return iso(new Date(a, mes-1, dia)); }
+// tema do calendário para o dia (ou null)
+function temaDoCalendario(dia){
+  const a = +dia.slice(0,4), md = dia.slice(5), p = pascoa(a), carn = addDias(p, -47);
+  const entre = (x, y) => md >= x && md <= y;
+  if(dia >= addDias(carn,-4) && dia <= addDias(carn,1)) return {nome:'Carnaval', emoji:'🎭', acc:'#c2268a', sb:'#2a1240', bg:'#fdf4fb', msg:'Bom Carnaval! Um bloco de estudo também conta 🎉'};
+  if(dia >= addDias(p,-7) && dia <= p) return {nome:'Páscoa', emoji:'🐣', acc:'#8a5cc7', sb:'#2b2140', bg:'#f8f4fc', msg:'Feliz Páscoa! 🐰'};
+  if(entre('12-18','12-26')) return {nome:'Natal', emoji:'🎄', acc:'#c62f2f', sb:'#0f3b25', bg:'#f7f5ef', msg:'Feliz Natal! 🎅 Que o próximo ano traga a sua aprovação.'};
+  if(md >= '12-27' || md <= '01-02') return {nome:'Ano Novo', emoji:'🎆', acc:'#b8860b', sb:'#141a33', bg:'#faf8f1', msg:'Feliz Ano Novo! ✨ Ano de aprovação.'};
+  if(entre('06-01','06-30')) return {nome:'Festa Junina', emoji:'🌽', acc:'#d9641e', sb:'#3a2416', bg:'#fdf5ec', msg:'Arraiá do estudo! 🎉'};
+  if(entre('09-01','09-07')) return {nome:'Independência', emoji:'🇧🇷', acc:'#1d8a3a', sb:'#0f2e5a', bg:'#f4f8f2', msg:'Semana da Pátria 🇧🇷'};
+  if(entre('10-01','10-24')) return {nome:'Outubro Rosa', emoji:'🎀', acc:'#d6428a', sb:'#2e1626', bg:'#fcf3f8', msg:'Outubro Rosa: cuide da sua saúde também 🎀'};
+  if(entre('10-25','10-31')) return {nome:'Halloween', emoji:'🎃', acc:'#e0661c', sb:'#24152e', bg:'#fbf5ef', msg:'Semana do Halloween 🎃 Nada de medo da prova!'};
+  if(entre('11-01','11-30')) return {nome:'Novembro Azul', emoji:'💙', acc:'#1f6fd1', sb:'#0f2340', bg:'#f2f6fc', msg:'Novembro Azul 💙'};
+  if(entre('03-08','03-08')) return {nome:'Dia da Mulher', emoji:'🌷', acc:'#b0368f', sb:'#2a1430', bg:'#fbf3f9', msg:'Feliz Dia da Mulher! 🌷'};
+  return null;
+}
+function corMistura(hex, alvo, t){ const h = x => parseInt(x,16), c = hex.replace('#',''), a = alvo.replace('#','');
+  const v = [0,2,4].map(i => Math.round(h(c.substr(i,2))*(1-t) + h(a.substr(i,2))*t)); return '#' + v.map(x => x.toString(16).padStart(2,'0')).join(''); }
+function aparenciaAtual(){
+  const ap = (S && S.config && S.config.aparencia) || {};
+  const cal = ap.auto ? temaDoCalendario(hoje()) : null;
+  if(cal) return {...cal, cal:true};
+  if(ap.preset === 'pers') return {acc: ap.acc || TEMAS_COR.padrao.acc, sb: ap.sb || TEMAS_COR.padrao.sb, bg: ap.bg || TEMAS_COR.padrao.bg};
+  return TEMAS_COR[ap.preset] || TEMAS_COR.padrao;
+}
+function aplicarAparencia(){
+  const r = document.documentElement.style, t = aparenciaAtual(), tm = temaAtual();
+  const escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  if(escuro){ r.setProperty('--acc', corMistura(t.acc, '#ffffff', .25)); r.setProperty('--acc2', corMistura(t.acc, '#111219', .78)); r.setProperty('--sb', corMistura(t.sb, '#000000', .35)); r.setProperty('--sbact', corMistura(t.sb, '#ffffff', .08)); r.removeProperty('--bg'); }
+  else { r.setProperty('--acc', t.acc); r.setProperty('--acc2', corMistura(t.acc, '#ffffff', .88)); r.setProperty('--sb', t.sb); r.setProperty('--sbact', corMistura(t.sb, '#ffffff', .1)); r.setProperty('--bg', t.bg); }
+}
+function setAparencia(k, v){ const ap = S.config.aparencia = S.config.aparencia || {}; ap[k] = v; if(['acc','sb','bg'].includes(k)) ap.preset = 'pers'; save(); render(); }
+function cardAparencia(){
+  const ap = S.config.aparencia || {}, t = aparenciaAtual(), cal = temaDoCalendario(hoje());
+  const amostra = (k, c) => `<button title="${esc(c.nome)}" onclick="setAparencia('preset','${k}')" style="border:2px solid ${(ap.preset||'padrao')===k?'var(--ink)':'var(--line)'};border-radius:12px;padding:6px;background:${c.bg};cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:84px">
+    <span style="display:flex;gap:3px"><i style="width:18px;height:18px;border-radius:5px;background:${c.sb};display:block"></i><i style="width:18px;height:18px;border-radius:5px;background:${c.acc};display:block"></i></span><span style="font-size:12px;color:#222">${esc(c.nome)}</span></button>`;
+  return `<div class="card"><h2>Aparência</h2>
+    <p class="mut" style="margin-top:-4px">Escolha as cores do programa. O modo dia/noite continua no botão da barra lateral.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${Object.entries(TEMAS_COR).map(([k,c]) => amostra(k,c)).join('')}</div>
+    <h3>Cores do seu jeito</h3>
+    <div class="row"><div><label>Cor principal</label><input type="color" value="${ap.acc||t.acc}" onchange="setAparencia('acc',this.value)" style="height:42px;padding:3px"></div>
+      <div><label>Barra lateral</label><input type="color" value="${ap.sb||t.sb}" onchange="setAparencia('sb',this.value)" style="height:42px;padding:3px"></div>
+      <div><label>Fundo (modo dia)</label><input type="color" value="${ap.bg||t.bg}" onchange="setAparencia('bg',this.value)" style="height:42px;padding:3px"></div></div>
+    <h3>Temas do calendário</h3>
+    <label style="display:flex;gap:10px;align-items:flex-start;color:var(--ink);cursor:pointer"><input type="checkbox" style="width:20px;height:20px;flex:none;margin-top:2px" ${ap.auto?'checked':''} onchange="setAparencia('auto',this.checked)">
+      <span><b>Personalizar sozinho nas datas comemorativas</b><br><span class="mut">Natal, Ano Novo, Carnaval, Páscoa, Festa Junina, Semana da Pátria, Outubro Rosa, Halloween, Novembro Azul e Dia da Mulher. Fora dessas datas, volta às cores que você escolheu.</span></span></label>
+    <p class="mut" style="margin-top:8px">${cal ? `Hoje: <b>${cal.emoji} ${esc(cal.nome)}</b>${ap.auto?' (ativo)':' (ligue a opção acima para usar)'}.` : 'Hoje não há data comemorativa; o próximo tema aparece sozinho quando chegar a data.'}</p>
+    ${ap.preset || ap.auto ? `<button class="g" onclick="S.config.aparencia={};save();render()">Voltar ao padrão</button>` : ''}</div>`;
+}
 
 /* ---------- Constância: semana com ✓ e dias estudados ---------- */
 // Primeiro nome de quem está usando: conta Google do site ou o nome informado em Configurações
@@ -3221,6 +3285,7 @@ function vConfig(){
       <li><b>Foco e pausas</b> (Barbara Oakley, <i>Aprendendo a Aprender</i>): blocos divididos em focos de até ~50 min com pausas curtas.</li>
       <li><b>Os 4 pilares da aprendizagem</b> (Stanislas Dehaene): atenção, engajamento ativo, retorno sobre o erro e consolidação (1ª revisão no dia seguinte, depois do sono).</li>
       <li><b>Constância</b>: sequência de dias e XP tornam o progresso visível e ajudam a manter o hábito.</li></ul></div>
+    ${cardAparencia()}
     <div class="card"><h2>Dados e backup</h2><p class="mut">${ONLINE && ONLINE.tipo==='firebase' ? 'Seus dados ficam salvos na sua conta (login Google) e aparecem em todos os aparelhos em que você entrar: computador, celular e tablet.' : ONLINE ? 'Seus dados ficam salvos na sua conta do Claude e aparecem em todos os aparelhos em que você abrir este link (computador, celular, tablet).' : DESK ? 'Seus dados são salvos automaticamente em <b>Documentos\\Tutor de Estudos\\dados.json</b> (com uma cópia da versão anterior).' : 'Os dados ficam salvos neste navegador. Faça backup regularmente.'}</p>
     <button class="b" onclick="exportar()">Baixar backup (.json)</button> ${DESK ? '<button class="g" onclick="DESK.abrirPasta()">Abrir pasta dos dados</button>' : ''}
     <label>${ONLINE ? 'Trazer dados de outra versão (arquivo de backup .json do programa ou do link do Claude)' : 'Restaurar backup'}</label><input type="file" accept=".json" onchange="restaurar(this.files[0])">
