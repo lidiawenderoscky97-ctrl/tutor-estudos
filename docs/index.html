@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="60">
+<meta name="versao" content="61">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -83,6 +83,8 @@ main{padding:18px 28px 60px;max-width:1180px}
 .hero{background:var(--sb);color:#fff;border:0;display:flex;gap:20px;align-items:center;flex-wrap:wrap;box-shadow:inset 4px 0 0 var(--acc)}
 .hero .mut{color:rgba(255,255,255,.8)}
 /* Painel: boas-vindas na metade esquerda; indicadores um embaixo do outro à direita */
+.rel-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+@media print{ aside,#faixa,.top,.rel-nao-imprime,#toast{display:none!important} .app{display:block} main{padding:0!important} body{background:#fff} .card,.kpi{break-inside:avoid;border-color:#ccc} }
 .ptopo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch;margin-bottom:16px}
 .ptopo>.hero{margin:0;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:14px}
 .ptopo>.hero>div{flex:none!important;min-width:0!important}
@@ -1184,7 +1186,7 @@ function ir(a){ aba=a; if(a!=='hoje'){ caixaAberta=null; maisTempo=null; avisoHo
 // passou da meia-noite com a página aberta: refaz a tela para mostrar as metas do novo dia
 setInterval(() => { if(diaRender && diaRender !== hoje() && aba === 'hoje' && S && S.materias && !document.querySelector('.caixa input:focus')){ render(); avisar('Começou um novo dia: as metas foram atualizadas. As de ontem que ficaram pendentes aparecem como atrasadas.'); } }, 60000);
 function render(){
-  diaRender = hoje(); try{ aplicarAparencia(); }catch(e){}
+  diaRender = hoje(); try{ if(S && S.config && relSemanalAuto()) save(); }catch(e){} try{ aplicarAparencia(); }catch(e){}
   const lvl = nivel(xpTotal());
   document.getElementById('menu').innerHTML = `<div class="logo">${(()=>{ try{ const a = aparenciaAtual(); return a.badge ? a.badge : '<i>'+(a.emoji || '✓')+'</i>'; }catch(e){ return '<i>✓</i>'; } })()}Estudo Guiado</div>` +
     ABAS.map(([k,n]) => `<button class="${k===aba?'on':''}" onclick="ir('${k}')" title="${n}">${ICON[k]}<span>${n}</span></button>`).join('') +
@@ -1220,7 +1222,7 @@ function vPainel(){
   const tp = tempoPorTipo(addDias(hoje(),-6)), tpt = tp.conteudo+tp.questoes+tp.revisao;
   const d = parse(hoje()).getDay();
   const tm = temaAtual(), escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-  let h = `<div class="ptopo"><div class="card hero">
+  let h = avisoRelatorioPainel() + `<div class="ptopo"><div class="card hero">
     <div style="flex:1;min-width:240px"><h2><span style="display:inline-flex;align-items:center;gap:10px">Olá${nomeUsuario()?', '+esc(nomeUsuario()):''}! ${aparenciaAtual().badge || aparenciaAtual().emoji || '👋'}</span></h2>${aparenciaAtual().msg?`<div style="margin:-2px 0 6px;font-weight:600;color:#fff">${esc(aparenciaAtual().msg)}</div>`:''}<div class="mut" style="margin-bottom:4px">${DIAS[d][0].toUpperCase()+DIAS[d].slice(1)}, ${br(hoje())}${ONLINE && ONLINE.usuario && ONLINE.usuario.email ? ' · conectada como '+esc(ONLINE.usuario.email) : ''}</div>
       <div class="mut">${S.config.concurso?esc(S.config.concurso)+(S.config.banca?' · '+esc(S.config.banca):''):'Defina seu concurso em Configurações'}</div>
       <div style="margin-top:10px"><span class="badge">Sequência: ${seq} ${seq===1?'dia':'dias'}</span><span class="badge">Nível ${lv.n}</span><span class="badge">${diasEstudados()} dias estudados</span><button onclick="alternarNoite()" title="${escuro?'Usar o modo dia':'Usar o modo noite'}" aria-label="${escuro?'Modo dia':'Modo noite'}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer">${escuro?'☀️ Modo dia':'🌙 Modo noite'}</button></div>
@@ -2776,7 +2778,109 @@ function cardPrioridades(n){
       <td class="n">${x.usaTec ? pct(x.share) : INCID[x.t.incid||2]}</td><td class="n">${x.p==null?'<span class="mut">—</span>':`<span class="tag ${corP(x.p)}">${pct(x.p)}</span> <span class="mut" style="font-size:13.5px">${x.q}q</span>`}</td>
       <td>${x.t.status==='concluido' ? (x.p!=null && x.p<lim() ? '<span class="tag warn">revisar</span>' : '<span class="tag ok">concluído</span>') : x.t.status==='estudando' ? '<span class="tag">estudando</span>' : '<span class="mut">a estudar</span>'}</td></tr>`).join('')}</table></div></div>`;
 }
-function vDesempenho(){ return vDesempenhoBase() + cardLeiSecaDesemp(); }
+/* ============ Relatórios de estudo ============
+   Sub-aba de Desempenho: relatório de qualquer período e relatório semanal automático no dia escolhido.
+   S.config.relat = {dia: 0–6 (dia da semana em que sai o semanal; -1 desliga), lista:[{id, de, ate, criado, visto}]} */
+let desAba = 'geral', REL = {de:'', ate:'', aberto:null};
+function relCfg(){ const r = S.config.relat = S.config.relat || {}; if(r.dia === undefined) r.dia = 1; r.lista = r.lista || []; return r; }
+// gera o semanal que estiver faltando: semana que termina na véspera do dia escolhido
+function relSemanalAuto(){
+  const r = relCfg(); if(r.dia < 0 || !S.sessoes || !S.sessoes.length) return null;
+  const h = hoje(), dw = parse(h).getDay(), d = addDias(h, -((dw - r.dia + 7) % 7)); // último dia escolhido (hoje ou antes)
+  const de = addDias(d, -7), ate = addDias(d, -1);
+  if(r.lista.some(x => x.de === de && x.ate === ate)) return null;
+  if(!S.sessoes.some(s => s.data >= de && s.data <= ate)) return null; // semana sem estudo registrado: não gera
+  const novo = {id:uid(), de, ate, criado:h, visto:false, auto:true};
+  r.lista.unshift(novo); r.lista = r.lista.slice(0, 26); return novo;
+}
+function relDados(de, ate){
+  const noP = d => d >= de && d <= ate, ses = S.sessoes.filter(s => noP(s.data));
+  const tot = ses.reduce((t,s) => ({min:t.min+(+s.min||0), q:t.q+(+s.q||0), a:t.a+(+s.a||0)}), {min:0, q:0, a:0});
+  const dias = []; for(let d = de; d <= ate; d = addDias(d,1)){ const l = ses.filter(s => s.data === d); dias.push({d, min:l.reduce((t,s)=>t+(+s.min||0),0), q:l.reduce((t,s)=>t+(+s.q||0),0)}); if(dias.length > 400) break; }
+  const diasEst = dias.filter(x => x.min > 0 || x.q > 0).length;
+  let mP = 0, mF = 0, diasMeta = 0, diasComMeta = 0;
+  Object.entries(S.metas||{}).forEach(([d,l]) => { if(!noP(d)) return; const lm = (l||[]).filter(x => x.tipo !== 'extra' && !x.adiantada); if(!lm.length) return; diasComMeta++;
+    mP += lm.length; mF += lm.filter(x => x.feita).length; if(diaBatido(d)) diasMeta++; });
+  const porMat = S.materias.map(m => { const l = ses.filter(s => s.materiaId === m.id); const q = l.reduce((t,s)=>t+(+s.q||0),0), a = l.reduce((t,s)=>t+(+s.a||0),0);
+    return {m, min:l.reduce((t,s)=>t+(+s.min||0),0), q, a, p: q ? a/q : null}; }).filter(x => x.min || x.q).sort((a,b) => b.min - a.min);
+  const porTop = {}; ses.forEach(s => { if(!s.topicoId || !+s.q) return; const x = porTop[s.topicoId] = porTop[s.topicoId] || {mid:s.materiaId, tid:s.topicoId, q:0, a:0}; x.q += +s.q; x.a += +s.a||0; });
+  const tops = Object.values(porTop).filter(x => x.q >= 5).map(x => ({...x, p:x.a/x.q}));
+  const fracos = tops.slice().sort((a,b) => a.p - b.p).slice(0, 6).filter(x => x.p < lim()), fortes = tops.slice().sort((a,b) => b.p - a.p).slice(0, 5).filter(x => x.p >= lim());
+  const tipos = {teoria:0, questoes:0, revisao:0, outros:0}; ses.forEach(s => { const k = ['conteudo','teoria','ambos','extra'].includes(s.tipo) ? 'teoria' : s.tipo === 'revisao' ? 'revisao' : ['questoes','reforco'].includes(s.tipo) ? 'questoes' : 'outros'; tipos[k] += +s.min||0; });
+  const revs = S.revisoes.filter(r => r.feita && noP(r.feita)).length;
+  const concl = S.revisoes.filter(r => r.etapa === 0 && noP(addDias(r.due, -(S.config.intervalos||[1])[0]))).length;
+  const ls = Object.entries((S.leiSeca||{}).dias||{}).filter(([d]) => noP(d)).reduce((t,[,v]) => [t[0]+(+v[0]||0), t[1]+(+v[1]||0)], [0,0]);
+  const fc = Object.entries((S.flash||{}).dias||{}).filter(([d]) => noP(d)).reduce((t,[,v]) => [t[0]+(+v.v||0), t[1]+(+v.a||0)], [0,0]);
+  const sims = (S.simulados||[]).filter(x => x.data && noP(x.data));
+  return {de, ate, ndias: dias.length, tot, p: tot.q ? tot.a/tot.q : null, dias, diasEst, mP, mF, diasMeta, diasComMeta, porMat, fracos, fortes, tipos, revs, concl, ls, fc, sims};
+}
+const relFmtP = p => p == null ? '—' : pct(p);
+function relDelta(atual, ant, ehPct){ if(atual == null || ant == null || (!ehPct && !ant)) return '';
+  const d = ehPct ? Math.round((atual - ant)*100) : Math.round((atual - ant) / ant * 100); if(!d) return '<span class="mut"> · igual ao período anterior</span>';
+  return ` <span class="tag ${d>0?'ok':'bad'}">${d>0?'▲':'▼'} ${Math.abs(d)}${ehPct?' p.p.':'%'}</span>`; }
+function relHtml(de, ate){
+  const R = relDados(de, ate), n = R.ndias, A = relDados(addDias(de, -n), addDias(de, -1));
+  const maxD = Math.max(...R.dias.map(x => x.min), 1), tt = R.tipos.teoria + R.tipos.questoes + R.tipos.revisao + R.tipos.outros || 1;
+  const nomeT = x => { const m = mat(x.mid), t = topico(m, x.tid); return (m ? m.nome + ' › ' : '') + (t ? t.nome : ''); };
+  const dicas = [];
+  if(R.fracos[0]) dicas.push(`Priorize questões e revisão de <b>${esc(curto(nomeT(R.fracos[0]),80))}</b> (${relFmtP(R.fracos[0].p)} de acerto).`);
+  if(R.diasComMeta && R.diasMeta / R.diasComMeta < .6) dicas.push(`Você bateu a meta em ${R.diasMeta} de ${R.diasComMeta} dias. Se o plano estiver pesado, ajuste as horas em <b>Meu plano</b>.`);
+  if(R.tot.min && R.tipos.questoes / tt < .2) dicas.push('Pouco tempo em questões: lembre que resolver questões fixa mais que reler.');
+  if(R.p != null && A.p != null && R.p < A.p - .05) dicas.push('O acerto caiu em relação ao período anterior: aumente as revisões dos assuntos fracos.');
+  if(!dicas.length && R.tot.min) dicas.push('Bom ritmo! Mantenha a constância e siga as revisões do dia.');
+  return `<div class="relat" id="relat">
+    <div class="rel-cab"><div><h2 style="margin:0">Relatório de estudos</h2><div class="mut">${br(de)} a ${br(ate)} · ${n} ${n===1?'dia':'dias'}${S.config.concurso?' · '+esc(S.config.concurso):''}${nomeUsuario()?' · '+esc(nomeUsuario()):''}</div></div>
+      <div class="inl rel-nao-imprime" style="margin:0"><button class="b" onclick="window.print()">🖨️ Imprimir / salvar PDF</button><button class="g" onclick="REL.aberto=null;render()">Fechar</button></div></div>
+    <div class="kpis" style="margin-top:14px">
+      <div class="kpi"><div><div class="mut">Tempo estudado</div><div class="big">${hm(R.tot.min)}</div><div class="mut">média ${hm(Math.round(R.tot.min / n))}/dia${relDelta(R.tot.min, A.tot.min)}</div></div></div>
+      <div class="kpi"><div><div class="mut">Dias estudados</div><div class="big">${R.diasEst}/${n}</div><div class="mut">${R.diasComMeta ? `meta batida em ${R.diasMeta} ${R.diasMeta===1?'dia':'dias'}` : 'sem metas no período'}</div></div></div>
+      <div class="kpi"><div><div class="mut">Questões</div><div class="big">${R.tot.q}</div><div class="mut">${relFmtP(R.p)} de acerto${relDelta(R.p, A.p, true)}</div></div></div>
+      <div class="kpi"><div><div class="mut">Metas concluídas</div><div class="big">${R.mF}/${R.mP}</div><div class="mut">${R.mP ? pct(R.mF/R.mP) : '—'} · ${R.revs} revisões · ${R.concl} assuntos concluídos</div></div></div></div>
+    <div class="g2" style="margin-top:16px"><div class="card"><h2>Tempo por dia</h2>
+      <div class="weeks" style="height:150px">${R.dias.slice(-31).map(x => `<div title="${br(x.d)}: ${hm(x.min)}${x.q?' · '+x.q+' questões':''}"><b style="height:${x.min/maxD*100}%"></b>${n <= 14 ? 'DSTQQSS'[parse(x.d).getDay()] : br(x.d).slice(0,2)}</div>`).join('')}</div>
+      <div class="stack" style="margin-top:14px"><i style="width:${R.tipos.teoria/tt*100}%;background:var(--acc)"></i><i style="width:${R.tipos.questoes/tt*100}%;background:var(--ok)"></i><i style="width:${R.tipos.revisao/tt*100}%;background:var(--rev)"></i><i style="width:${R.tipos.outros/tt*100}%;background:var(--mut)"></i></div>
+      <div class="leg"><span style="--c:var(--acc)">Teoria ${hm(R.tipos.teoria)}</span><span style="--c:var(--ok)">Questões ${hm(R.tipos.questoes)}</span><span style="--c:var(--rev)">Revisão ${hm(R.tipos.revisao)}</span>${R.tipos.outros?`<span style="--c:var(--mut)">Outros ${hm(R.tipos.outros)}</span>`:''}</div></div>
+      <div class="card"><h2>Recomendações</h2><ul class="pl">${dicas.map(d => `<li>${d}</li>`).join('')}</ul>
+        ${R.ls[0] || R.fc[0] || R.sims.length ? `<h3>Outras atividades</h3><ul class="pl">${R.ls[0]?`<li>Lei seca: ${R.ls[0]} questões, ${pct(R.ls[1]/R.ls[0])} de acerto</li>`:''}${R.fc[0]?`<li>Flashcards: ${R.fc[0]} revisados, ${pct(R.fc[1]/R.fc[0])} lembrados</li>`:''}${R.sims.map(x => `<li>Simulado ${esc(x.nome||'')} (${br(x.data)}): ${x.q?pct(x.a/x.q):'—'}</li>`).join('')}</ul>` : ''}</div></div>
+    <div class="card" style="margin-top:16px"><h2>Por matéria</h2>${R.porMat.length ? `<div style="overflow-x:auto"><table><tr><th>Matéria</th><th class="n">Tempo</th><th class="n">Questões</th><th class="n">Acerto</th><th style="width:30%"></th></tr>
+      ${R.porMat.map(x => `<tr><td>${esc(x.m.nome)}</td><td class="n">${hm(x.min)}</td><td class="n">${x.q}</td><td class="n">${relFmtP(x.p)}</td><td><div class="bar"><i class="${x.p==null?'':x.p<.6?'bad':x.p<lim()?'warn':'ok'}" style="width:${x.min/Math.max(...R.porMat.map(y=>y.min),1)*100}%"></i></div></td></tr>`).join('')}</table></div>` : '<div class="empty">Nenhum estudo registrado no período.</div>'}</div>
+    <div class="g2" style="margin-top:16px"><div class="card"><h2>Pontos de atenção</h2>${R.fracos.length ? R.fracos.map(x => `<div class="item"><span>${esc(curto(nomeT(x), 90))}</span><span class="tag ${x.p<.6?'bad':'warn'}">${pct(x.p)} · ${x.q} q</span></div>`).join('') : '<div class="empty">Nenhum assunto abaixo do limiar com 5+ questões no período.</div>'}</div>
+      <div class="card"><h2>Pontos fortes</h2>${R.fortes.length ? R.fortes.map(x => `<div class="item"><span>${esc(curto(nomeT(x), 90))}</span><span class="tag ok">${pct(x.p)} · ${x.q} q</span></div>`).join('') : '<div class="empty">Resolva 5+ questões por assunto para aparecer aqui.</div>'}</div></div>
+    <p class="mut" style="margin-top:10px">Comparações com o período anterior de mesmo tamanho (${br(addDias(de,-n))} a ${br(addDias(de,-1))}). Gerado em ${br(hoje())}.</p></div>`;
+}
+function relPeriodo(k){
+  const h = hoje(), seg = segunda(h), m1 = h.slice(0,8) + '01';
+  const p = {semana:[seg, h], semanaPassada:[addDias(seg,-7), addDias(seg,-1)], d30:[addDias(h,-29), h], mes:[m1, h],
+    mesPassado:[(d => d.slice(0,8)+'01')(addDias(m1,-1)), addDias(m1,-1)], tudo:[(S.sessoes.map(s=>s.data).sort()[0]) || h, h]}[k];
+  REL.de = p[0]; REL.ate = p[1]; render();
+}
+function relGerar(){ const de = (document.getElementById('rel_de')||{}).value || REL.de, ate = (document.getElementById('rel_ate')||{}).value || REL.ate;
+  if(!de || !ate) return avisar('Escolha a data inicial e a final.'); if(de > ate) return avisar('A data inicial precisa ser antes da final.');
+  REL.de = de; REL.ate = ate; REL.aberto = {de, ate}; render(); setTimeout(() => { const e = document.getElementById('relat'); if(e && e.scrollIntoView) e.scrollIntoView({block:'start', behavior:'smooth'}); }, 30); }
+function relAbrir(id){ const r = relCfg().lista.find(x => x.id === id); if(!r) return; r.visto = true; REL.aberto = {de:r.de, ate:r.ate}; desAba = 'relat'; save(); if(aba !== 'desempenho') ir('desempenho'); else render();
+  setTimeout(() => { const e = document.getElementById('relat'); if(e && e.scrollIntoView) e.scrollIntoView({block:'start'}); }, 30); }
+function vRelatorios(){
+  const r = relCfg(); if(!REL.de){ REL.de = addDias(hoje(), -6); REL.ate = hoje(); }
+  let h = `<div class="card rel-nao-imprime"><h2>Gerar relatório</h2>
+    <p class="mut" style="margin-top:-4px">Escolha o período: o relatório mostra tempo estudado, questões e acerto, metas batidas, matérias, pontos fortes e de atenção, comparando com o período anterior.</p>
+    <div class="inl" style="margin:0 0 10px">${[['semana','Esta semana'],['semanaPassada','Semana passada'],['d30','Últimos 30 dias'],['mes','Este mês'],['mesPassado','Mês passado'],['tudo','Desde o início']].map(([k,n]) => `<button class="g" onclick="relPeriodo('${k}')">${n}</button>`).join('')}</div>
+    <div class="row"><div><label for="rel_de">De</label><input id="rel_de" type="date" value="${REL.de}" onchange="REL.de=this.value"></div><div><label for="rel_ate">Até</label><input id="rel_ate" type="date" value="${REL.ate}" onchange="REL.ate=this.value"></div></div>
+    <div class="inl"><button class="b" onclick="relGerar()">Gerar relatório</button></div></div>`;
+  if(REL.aberto) h += `<div style="margin-top:16px">${relHtml(REL.aberto.de, REL.aberto.ate)}</div>`;
+  h += `<div class="card rel-nao-imprime" style="margin-top:16px"><h2>Relatório semanal automático</h2>
+    <p class="mut" style="margin-top:-4px">Toda semana, no dia escolhido, o tutor gera o relatório dos 7 dias anteriores e avisa no Painel.</p>
+    <div class="row"><div><label for="rel_dia">Gerar toda</label><select id="rel_dia" onchange="relCfg().dia=+this.value;save();relSemanalAuto();save();render()">${[[-1,'Não gerar automaticamente'],[1,'Segunda-feira'],[2,'Terça-feira'],[3,'Quarta-feira'],[4,'Quinta-feira'],[5,'Sexta-feira'],[6,'Sábado'],[0,'Domingo']].map(([v,n]) => `<option value="${v}" ${r.dia===v?'selected':''}>${n}</option>`).join('')}</select></div></div>
+    ${r.lista.length ? `<h3>Relatórios gerados</h3>${r.lista.map(x => `<div class="item"><div><b>${br(x.de)} a ${br(x.ate)}</b> ${x.visto?'':'<span class="tag warn">novo</span>'}<div class="mut">gerado em ${br(x.criado)}${x.auto?' · semanal automático':''}</div></div><button class="g" onclick="relAbrir('${x.id}')">Abrir</button></div>`).join('')}` : '<div class="empty">O primeiro relatório semanal aparece no próximo dia escolhido (quando houver estudo registrado na semana).</div>'}</div>`;
+  return h;
+}
+function avisoRelatorioPainel(){
+  const n = relCfg().lista.find(x => !x.visto); if(!n) return '';
+  return `<div class="alert info" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 16px;font-size:16px">📊 <span style="flex:1;min-width:200px"><b>Seu relatório semanal está pronto</b> (${br(n.de)} a ${br(n.ate)}).</span>
+    <button class="b" onclick="relAbrir('${n.id}')">Ver relatório</button><button class="g" onclick="relCfg().lista.find(x=>x.id==='${n.id}').visto=true;save();render()">Dispensar</button></div>`;
+}
+function vDesempenho(){
+  const abas = `<div class="inl rel-nao-imprime" style="margin:0 0 12px;gap:8px">${[['geral','Visão geral'],['relat','Relatórios']].map(([k,r]) => `<button class="${desAba===k?'b':'g'}" onclick="desAba='${k}';render()">${r}</button>`).join('')}</div>`;
+  return abas + (desAba === 'relat' ? vRelatorios() : vDesempenhoBase() + cardLeiSecaDesemp()); }
 function cardLeiSecaDesemp(){
   const r = lsPorLeiResumo().filter(x => x.q); if(!r.length) return '';
   if(!LS.indice && !LS.preparando) lsPreparar();
