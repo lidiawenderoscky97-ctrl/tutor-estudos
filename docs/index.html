@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="69">
+<meta name="versao" content="70">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -4606,14 +4606,26 @@ function vLeiSeca(){
 /* ---------- Acesso por convite (site com login) ----------
    A conta mestre gera convites (convites/<código>). O primeiro login que usar o convite fica com ele:
    o convite é marcado como usado e a conta ganha acessos/<id>. O acesso vale para a conta Google, em qualquer aparelho. */
-const ADMIN_EMAILS = ['lidinha_wx@hotmail.com'];
-const ehAdmin = u => !!u && ADMIN_EMAILS.includes(String(u.email || '').toLowerCase());
+const ADMIN_EMAILS = ['lidinha_wx@hotmail.com']; // dona: a única que pode escolher outras contas mestre
+let MESTRES = []; // outras contas mestre (config/mestres no Firestore), geram convites e removem alunos
+const emailDe = u => String(u && u.email || '').trim().toLowerCase();
+const ehDona = u => !!u && ADMIN_EMAILS.includes(emailDe(u));
+const ehAdmin = u => !!u && (ehDona(u) || MESTRES.includes(emailDe(u)));
+async function mestresCarregar(){ try{ const d = await FB.fs.collection('config').doc('mestres').get(); MESTRES = d.exists ? (d.data().emails || []).map(x => String(x).toLowerCase()) : []; }catch(e){ MESTRES = []; } }
+async function mestresSalvar(lista){ try{ await FB.fs.collection('config').doc('mestres').set({emails: lista}); MESTRES = lista; avisar('Contas mestre atualizadas.'); }
+  catch(e){ avisar('Não consegui salvar ('+(e.code||e.message)+'). Confira se as regras novas do Firebase foram publicadas.'); } render(); }
+function mestreAdd(){ const el = document.getElementById('adm_mestre'), e = String(el && el.value || '').trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return avisar('Digite um e-mail válido (o da conta Google da pessoa).');
+  if(ADMIN_EMAILS.includes(e) || MESTRES.includes(e)) return avisar('Esse e-mail já é conta mestre.');
+  mestresSalvar([...MESTRES, e]); }
+async function mestreDel(e){ if(!(await confirmar(`Tirar ${e} das contas mestre?\n\nA pessoa deixa de gerar convites. Se ela não tiver um convite próprio, também perde o acesso ao tutor.`))) return; mestresSalvar(MESTRES.filter(x => x !== e)); }
 const codigoConvite = t => { t = String(t || '').trim(); const m = t.match(/convite=([A-Za-z0-9-]+)/); if(m) t = m[1]; return t.toUpperCase().replace(/[^A-Z0-9]/g, ''); };
 (function(){ try{ const c = new URLSearchParams(location.search).get('convite'); if(c) localStorage.setItem('eg-convite', codigoConvite(c)); }catch(e){} })();
 const conviteGuardado = () => { try{ return localStorage.getItem('eg-convite') || ''; }catch(e){ return ''; } };
 function limparConvite(){ try{ localStorage.removeItem('eg-convite'); }catch(e){}
   try{ if(/[?&]convite=/.test(location.search)) history.replaceState(null, '', location.pathname); }catch(e){} }
 async function acessoVerificar(u){
+  await mestresCarregar();
   if(ehAdmin(u)) return true;
   try{ const d = await FB.fs.collection('acessos').doc(u.uid).get(); if(d.exists) return true; }
   catch(e){ if(!/permission/i.test(e.code || e.message || '')) return {msg:'Não consegui conferir o seu acesso agora ('+(e.code||e.message)+'). Confira a internet e recarregue a página.'}; }
@@ -4692,7 +4704,11 @@ function cardConvites(){
       <h3>Alunos com acesso (${(ADM.acessos||[]).length})</h3>${(ADM.acessos||[]).length ? ADM.acessos.map(a => { const c = (ADM.convites||[]).find(x => x.id === a.convite);
         return `<div class="item"><div style="min-width:0"><b>${esc(a.nome || 'Sem nome')}</b>${c && c.para ? ` <span class="mut">· ${esc(c.para)}</span>` : ''}<div class="mut">${esc(a.email || '')} · desde ${quando(a.desde)}</div></div>
         <button class="g" style="color:var(--bad)" onclick="admRemover('${a.uid}')">Remover acesso</button></div>`; }).join('') : '<p class="mut">Ninguém ainda.</p>'}
-      <div class="inl"><button class="lk" onclick="admCarregar()">atualizar lista</button></div>` : ''}</div>`;
+      <div class="inl"><button class="lk" onclick="admCarregar()">atualizar lista</button></div>` : ''}
+    <h3>Contas mestre</h3><p class="mut" style="margin-top:-4px">Podem gerar convites e remover alunos. ${ehDona(FB.auth.currentUser) ? 'Só você escolhe quem entra aqui.' : 'Só a dona do tutor muda esta lista.'}</p>
+    <div class="item"><span><b>${esc(ADMIN_EMAILS[0])}</b> <span class="mut">· dona</span></span></div>
+    ${MESTRES.map(e => `<div class="item"><span>${esc(e)}</span>${ehDona(FB.auth.currentUser) ? `<button class="x" title="Tirar das contas mestre" onclick="mestreDel('${esc(e)}')">✕</button>` : ''}</div>`).join('')}
+    ${ehDona(FB.auth.currentUser) ? `<div class="inl"><div><label for="adm_mestre">E-mail da conta Google</label><input id="adm_mestre" type="email" placeholder="pessoa@gmail.com"></div><button class="b" onclick="mestreAdd()">Adicionar conta mestre</button></div>` : ''}</div>`;
 }
 
 /* ============ Site com login (Firebase) ============
