@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="68">
+<meta name="versao" content="69">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -3710,6 +3710,7 @@ function vConfig(){
       <li><b>Os 4 pilares da aprendizagem</b> (Stanislas Dehaene): atenção, engajamento ativo, retorno sobre o erro e consolidação (1ª revisão no dia seguinte, depois do sono).</li>
       <li><b>Constância</b>: sequência de dias e XP tornam o progresso visível e ajudam a manter o hábito.</li></ul></div>
     ${cardAparencia()}
+    ${cardConvites()}
     <div class="card"><h2>Dados e backup</h2><p class="mut">${ONLINE && ONLINE.tipo==='firebase' ? 'Seus dados ficam salvos na sua conta (login Google) e aparecem em todos os aparelhos em que você entrar: computador, celular e tablet.' : ONLINE ? 'Seus dados ficam salvos na sua conta do Claude e aparecem em todos os aparelhos em que você abrir este link (computador, celular, tablet).' : DESK ? 'Seus dados são salvos automaticamente em <b>Documentos\\Tutor de Estudos\\dados.json</b> (com uma cópia da versão anterior).' : 'Os dados ficam salvos neste navegador. Faça backup regularmente.'}</p>
     <button class="b" onclick="exportar()">Baixar backup (.json)</button> ${DESK ? '<button class="g" onclick="DESK.abrirPasta()">Abrir pasta dos dados</button>' : ''}
     <label>${ONLINE ? 'Trazer dados de outra versão (arquivo de backup .json do programa ou do link do Claude)' : 'Restaurar backup'}</label><input type="file" accept=".json" onchange="restaurar(this.files[0])">
@@ -4584,6 +4585,98 @@ function vLeiSeca(){
   return h + `</div>`;
 }
 
+/* ---------- Acesso por convite (site com login) ----------
+   A conta mestre gera convites (convites/<código>). O primeiro login que usar o convite fica com ele:
+   o convite é marcado como usado e a conta ganha acessos/<id>. O acesso vale para a conta Google, em qualquer aparelho. */
+const ADMIN_EMAILS = ['lidinha_wx@hotmail.com'];
+const ehAdmin = u => !!u && ADMIN_EMAILS.includes(String(u.email || '').toLowerCase());
+const codigoConvite = t => { t = String(t || '').trim(); const m = t.match(/convite=([A-Za-z0-9-]+)/); if(m) t = m[1]; return t.toUpperCase().replace(/[^A-Z0-9]/g, ''); };
+(function(){ try{ const c = new URLSearchParams(location.search).get('convite'); if(c) localStorage.setItem('eg-convite', codigoConvite(c)); }catch(e){} })();
+const conviteGuardado = () => { try{ return localStorage.getItem('eg-convite') || ''; }catch(e){ return ''; } };
+function limparConvite(){ try{ localStorage.removeItem('eg-convite'); }catch(e){}
+  try{ if(/[?&]convite=/.test(location.search)) history.replaceState(null, '', location.pathname); }catch(e){} }
+async function acessoVerificar(u){
+  if(ehAdmin(u)) return true;
+  try{ const d = await FB.fs.collection('acessos').doc(u.uid).get(); if(d.exists) return true; }
+  catch(e){ if(!/permission/i.test(e.code || e.message || '')) return {msg:'Não consegui conferir o seu acesso agora ('+(e.code||e.message)+'). Confira a internet e recarregue a página.'}; }
+  const cod = conviteGuardado();
+  return cod ? usarConvite(u, cod) : {msg:''};
+}
+async function usarConvite(u, cod){
+  cod = codigoConvite(cod); if(cod.length < 6) return {msg:'Código de convite incompleto. Cole o link inteiro que você recebeu.'};
+  const cref = FB.fs.collection('convites').doc(cod); let c;
+  try{ c = await cref.get(); }catch(e){ return {msg:'Não consegui conferir o convite ('+(e.code||e.message)+').'}; }
+  if(!c.exists){ limparConvite(); return {msg:'Este convite não existe ou foi cancelado. Confira o link ou peça um convite novo.'}; }
+  const cd = c.data() || {};
+  if(cd.usadoPor && cd.usadoPor !== u.uid){ limparConvite(); return {msg:'Este convite já foi usado por outra conta. Cada convite vale para uma pessoa só: peça um convite seu.'}; }
+  const b = FB.fs.batch();
+  if(!cd.usadoPor) b.update(cref, {usadoPor:u.uid, usadoEm:Date.now(), email:u.email||'', nome:u.displayName||''});
+  b.set(FB.fs.collection('acessos').doc(u.uid), {convite:cod, email:u.email||'', nome:u.displayName||'', desde:Date.now()});
+  try{ await b.commit(); limparConvite(); return true; }
+  catch(e){ return {msg:'Não consegui usar o convite ('+(e.code||e.message)+'). Tente de novo ou peça outro convite.'}; }
+}
+function telaSemAcesso(u, msg){
+  document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Estudo Guiado</div>`;
+  document.getElementById('titulo').textContent = 'Acesso por convite';
+  ['cron','contagem','sync'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = ''; });
+  document.getElementById('app').innerHTML = `<div class="card" style="max-width:600px">
+    <h2>Seu acesso ainda não foi liberado</h2>
+    <p>Você entrou como <b>${esc(u.displayName || '')}</b> (${esc(u.email || '')}).</p>
+    <p class="mut">O Estudo Guiado é usado só por convite. Abra o link de convite que você recebeu, ou cole o link (ou o código) aqui embaixo. Depois disso, é só entrar com esta mesma conta Google no celular, no tablet ou no computador.</p>
+    ${msg ? `<div class="alert bad">${esc(msg)}</div>` : ''}
+    <label for="cv_cod">Link ou código do convite</label><input id="cv_cod" placeholder="Ex.: https://estudoguiado.pages.dev/?convite=K7P2M9XQAB">
+    <div class="inl"><button class="b" id="cv_btn" onclick="usarConviteManual()">Usar convite</button><button class="g" onclick="FB.auth.signOut()">Entrar com outra conta</button></div></div>`;
+}
+async function usarConviteManual(){
+  const u = FB.auth.currentUser; if(!u) return; const b = document.getElementById('cv_btn'); if(b){ b.disabled = true; b.textContent = 'Conferindo…'; }
+  const r = await usarConvite(u, document.getElementById('cv_cod').value);
+  if(r === true) await entrarComConta(u); else telaSemAcesso(u, r.msg);
+}
+// painel da conta mestre: gerar convites e remover alunos
+let ADM = {convites:null, acessos:null, carregando:false, erro:'', novo:null};
+const ehMestre = () => !!(ONLINE && ONLINE.tipo === 'firebase' && FB && ehAdmin(FB.auth.currentUser));
+const linkConvite = c => location.origin + location.pathname + '?convite=' + c;
+async function admCarregar(){
+  if(!ehMestre()) return; ADM.carregando = true; ADM.erro = ''; render();
+  try{ const [cv, ac] = await Promise.all([FB.fs.collection('convites').get(), FB.fs.collection('acessos').get()]);
+    ADM.convites = cv.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b) => (b.criado||0) - (a.criado||0));
+    ADM.acessos = ac.docs.map(d => ({uid:d.id, ...d.data()})).sort((a,b) => (b.desde||0) - (a.desde||0)); }
+  catch(e){ ADM.erro = e.code || e.message; }
+  ADM.carregando = false; if(aba === 'config') render();
+}
+async function admGerar(){
+  const para = (document.getElementById('adm_para') || {}).value || '';
+  const AL = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = new Uint32Array(10); crypto.getRandomValues(r);
+  const cod = Array.from(r, x => AL[x % AL.length]).join('');
+  try{ await FB.fs.collection('convites').doc(cod).set({criado:Date.now(), para:String(para).trim().slice(0, 60)}); ADM.novo = cod; await admCopiar(cod, true); }
+  catch(e){ avisar('Não consegui gerar o convite ('+(e.code||e.message)+'). Confira se as regras do Firebase foram publicadas.'); }
+  admCarregar();
+}
+async function admCopiar(cod, silencioso){ try{ await navigator.clipboard.writeText(linkConvite(cod)); avisar(silencioso ? 'Convite gerado e link copiado. Agora é só colar na conversa com o aluno.' : 'Link copiado.'); }catch(e){ if(!silencioso) avisar('Copie o link manualmente: '+linkConvite(cod)); } }
+async function admCancelar(cod){ if(!(await confirmar('Cancelar este convite? O link deixa de funcionar.'))) return;
+  try{ await FB.fs.collection('convites').doc(cod).delete(); }catch(e){ avisar('Não consegui cancelar ('+(e.code||e.message)+').'); } admCarregar(); }
+async function admRemover(uidA){ const a = (ADM.acessos||[]).find(x => x.uid === uidA); if(!a) return;
+  if(!(await confirmar(`Remover o acesso de ${a.nome || a.email}?\n\nA pessoa não consegue mais abrir o tutor. Os dados dela continuam guardados: se você mandar um convite novo, ela volta de onde parou.`))) return;
+  try{ const b = FB.fs.batch(); b.delete(FB.fs.collection('acessos').doc(uidA)); if(a.convite) b.delete(FB.fs.collection('convites').doc(a.convite)); await b.commit(); avisar('Acesso removido.'); }
+  catch(e){ avisar('Não consegui remover ('+(e.code||e.message)+').'); } admCarregar(); }
+function cardConvites(){
+  if(!ehMestre()) return '';
+  if(!ADM.convites && !ADM.carregando && !ADM.erro) setTimeout(admCarregar, 0);
+  const pend = (ADM.convites||[]).filter(c => !c.usadoPor), quando = t => t ? br(new Date(t - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)) : '—';
+  return `<div class="card"><h2>Convites e alunos <span class="tag ok">conta mestre</span></h2>
+    <p class="mut" style="margin-top:-4px">Cada convite é um link que funciona uma vez só: a primeira conta Google que entrar por ele fica com o acesso (no celular, no tablet e no computador). Se a pessoa repassar o link, ele já não funciona.</p>
+    <div class="inl" style="margin-top:0"><div><label for="adm_para">Para quem (opcional, só para você lembrar)</label><input id="adm_para" maxlength="60" placeholder="Ex.: Maria, turma de novembro"></div><button class="b" onclick="admGerar()">Gerar convite</button></div>
+    ${ADM.novo ? `<div class="alert info">Convite novo: <b style="word-break:break-all">${esc(linkConvite(ADM.novo))}</b> <button class="lk" onclick="admCopiar('${ADM.novo}')">copiar</button></div>` : ''}
+    ${ADM.erro ? `<div class="alert bad">Não consegui ler os convites (${esc(ADM.erro)}). ${/permission/i.test(ADM.erro)?'As regras do Firebase com os convites ainda não foram publicadas.':''}</div>` : ''}
+    ${ADM.carregando && !ADM.convites ? '<p class="mut">Carregando…</p>' : ''}
+    ${ADM.convites ? `<h3>Convites ainda não usados (${pend.length})</h3>${pend.length ? pend.map(c => `<div class="item"><div style="min-width:0"><b>${esc(c.para || 'Sem nome')}</b><div class="mut">criado em ${quando(c.criado)} · ${esc(c.id)}</div></div>
+        <div class="inl" style="margin:0"><button class="g" onclick="admCopiar('${c.id}')">Copiar link</button><button class="x" title="Cancelar convite" onclick="admCancelar('${c.id}')">✕</button></div></div>`).join('') : '<p class="mut">Nenhum.</p>'}
+      <h3>Alunos com acesso (${(ADM.acessos||[]).length})</h3>${(ADM.acessos||[]).length ? ADM.acessos.map(a => { const c = (ADM.convites||[]).find(x => x.id === a.convite);
+        return `<div class="item"><div style="min-width:0"><b>${esc(a.nome || 'Sem nome')}</b>${c && c.para ? ` <span class="mut">· ${esc(c.para)}</span>` : ''}<div class="mut">${esc(a.email || '')} · desde ${quando(a.desde)}</div></div>
+        <button class="g" style="color:var(--bad)" onclick="admRemover('${a.uid}')">Remover acesso</button></div>`; }).join('') : '<p class="mut">Ninguém ainda.</p>'}
+      <div class="inl"><button class="lk" onclick="admCarregar()">atualizar lista</button></div>` : ''}</div>`;
+}
+
 /* ============ Site com login (Firebase) ============
    Cada pessoa entra com a conta Google; os dados ficam em usuarios/<id da pessoa>,
    e as regras do banco só deixam cada um ler e gravar a própria pasta. */
@@ -4617,7 +4710,7 @@ async function entrarGoogle(){
 let TRANSFERIR = null;
 async function trocarConta(){
   if(!FB || !FB.auth.currentUser) return;
-  if(!(await confirmar('Trocar de conta Google?\n\nNa próxima tela, escolha a conta nova. Todo o seu progresso (edital, metas, revisões, questões, lei seca, cadernos e leis em PDF) vai junto para ela. A conta atual não é apagada: ela continua com uma cópia dos dados.'))) return;
+  if(!(await confirmar('Trocar de conta Google?\n\nNa próxima tela, escolha a conta nova. Todo o seu progresso (edital, metas, revisões, questões, lei seca, cadernos e leis em PDF) vai junto para ela. A conta atual não é apagada: ela continua com uma cópia dos dados.' + (ehAdmin(FB.auth.currentUser) ? '' : '\n\nA conta nova precisa de um convite próprio: peça um a quem te passou o acesso antes de trocar.')))) return;
   clearTimeout(filaSalvar); try{ await gravarOnline(); }catch(e){}
   TRANSFERIR = {dados: JSON.parse(JSON.stringify(S)), uid: FB.auth.currentUser.uid, email: ONLINE && ONLINE.usuario ? ONLINE.usuario.email : ''};
   const prov = new firebase.auth.GoogleAuthProvider(); prov.setCustomParameters({prompt:'select_account'});
@@ -4660,6 +4753,15 @@ async function iniciarFirebase(){
   FB.auth.onAuthStateChanged(async u => {
     clearTimeout(filaSalvar); ultimoSalvo = {}; sujo = false; pendente = false;
     if(!u){ ONLINE = null; S = padrao(); telaLogin(); return; }
+    document.getElementById('app').innerHTML = '<div class="card"><h2>Conferindo seu acesso…</h2></div>';
+    const ac = await acessoVerificar(u);
+    if(ac !== true){ telaSemAcesso(u, ac.msg); return; }
+    await entrarComConta(u);
+  });
+  // aviso de versão nova do site (continua abaixo)
+  iniciarFirebaseFim();
+}
+async function entrarComConta(u){
     ONLINE = {tipo:'firebase', db: adaptadorFirebase(FB.fs, u.uid), usuario:{nome:u.displayName||'', email:u.email||''}};
     document.getElementById('app').innerHTML = '<div class="card"><h2>Carregando seus dados…</h2></div>';
     try{ const d = await carregarOnline(); S = d || padrao(); ultimaLeitura = Date.now(); }
@@ -4667,8 +4769,8 @@ async function iniciarFirebase(){
     migrar(); aba = 'painel'; render(); statusSync(ONLINE.somenteLeitura ? 'Sem conexão com seus dados' : 'Salvo na sua conta ✓'); if(!ONLINE.somenteLeitura) rankPublicar();
     if(!ONLINE.somenteLeitura){ const d0 = JSON.parse(JSON.stringify(S)); if(await aplicarTransferencia(u, d0)){ aba = 'config'; render(); } }
     else if(TRANSFERIR){ avisar('Não consegui abrir os dados da conta nova, então o progresso não foi levado. Volte para a conta anterior: seus dados continuam lá.'); TRANSFERIR = null; }
-  });
-  // aviso de versão nova do site
+}
+function iniciarFirebaseFim(){
   const checar = async () => { try{ const r = await fetch('versao.json?t='+Date.now()); if(!r.ok) return; const v = await r.json();
     if(v.versao > VERSAO) window.__atualizacao(v.versao, v.notas, ''); }catch(e){} };
   setInterval(checar, 30*60000); document.addEventListener('visibilitychange', () => { if(document.visibilityState==='visible') checar(); });
