@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="67">
+<meta name="versao" content="68">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -533,6 +533,7 @@ async function gravarOnline(){
     for(const path of Object.keys(ultimoSalvo)) if(!(path in docs)){ await ONLINE.db.doc(path).delete(); delete ultimoSalvo[path]; }
     if(!pendente) sujo = false;
     statusSync('Salvo na sua conta ✓');
+    rankPublicar();
   }catch(e){ statusSync('Não salvo'); avisar('Não foi possível salvar online ('+(e.code||e.message)+'). Suas mudanças continuam nesta tela; confira a internet.'); }
   gravando = false;
   if(pendente){ pendente = false; gravarOnline(); }
@@ -3050,9 +3051,77 @@ function avisoRelatorioPainel(){
   return `<div class="alert info" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 16px;font-size:16px">📊 <span style="flex:1;min-width:200px"><b>Seu relatório semanal está pronto</b> (${br(n.de)} a ${br(n.ate)}).</span>
     <button class="b" onclick="relAbrir('${n.id}')">Ver relatório</button><button class="g" onclick="relCfg().lista.find(x=>x.id==='${n.id}').visto=true;save();render()">Dispensar</button></div>`;
 }
+/* ---------- Horas da comunidade: horas líquidas de todos os alunos do site, semana de segunda a domingo ----------
+   Cada aluno grava só o próprio total em ranking/<segunda-feira>/alunos/<id>: {min, dias[7], nome, ts}.
+   Nome só vai quando o aluno escolhe aparecer na lista; senão aparece como "Aluno". */
+const rankCfg = () => { const r = S.config.ranking = S.config.ranking || {}; if(r.participar === undefined) r.participar = true; return r; };
+const rankOnline = () => !!(ONLINE && ONLINE.tipo === 'firebase' && FB && FB.auth.currentUser && !ONLINE.somenteLeitura);
+function rankSemana(seg){ const dias = [0,0,0,0,0,0,0]; S.sessoes.forEach(x => { const i = diff(seg, x.data); if(i >= 0 && i < 7) dias[i] += +x.min || 0; });
+  return {min: dias.reduce((a,b) => a+b, 0), dias}; }
+let rankEnviado = {}, RANK = {seg:'', dados:null, carregando:false, erro:''};
+async function rankPublicar(){
+  if(!rankOnline()) return; const r = rankCfg(), uidU = FB.auth.currentUser.uid, seg0 = segunda(hoje());
+  for(const seg of [seg0, addDias(seg0, -7)]){
+    const ref = FB.fs.collection('ranking').doc(seg).collection('alunos').doc(uidU);
+    const sem = rankSemana(seg), nome = r.publico ? String(r.apelido || (ONLINE.usuario.nome||'').split(' ')[0] || 'Aluno').slice(0, 30) : '';
+    const corpo = {min: Math.min(10080, Math.round(sem.min)), dias: sem.dias.map(x => Math.min(1440, Math.round(x))), nome};
+    const chave = r.participar ? JSON.stringify(corpo) : 'fora';
+    if(rankEnviado[seg] === chave) continue;
+    try{ if(!r.participar || (!corpo.min && seg !== seg0)) await ref.delete(); else await ref.set({...corpo, ts: Date.now()});
+      rankEnviado[seg] = chave; }
+    catch(e){ RANK.erro = e.code || e.message; return; }
+  }
+}
+async function rankCarregar(seg){
+  if(!rankOnline()) return; RANK = {seg, dados:null, carregando:true, erro:''}; render();
+  try{ const q = await FB.fs.collection('ranking').doc(seg).collection('alunos').get(); const eu = FB.auth.currentUser.uid;
+    RANK.dados = q.docs.map(d => ({...d.data(), eu: d.id === eu})).filter(x => +x.min > 0); }
+  catch(e){ RANK.erro = e.code || e.message; }
+  RANK.carregando = false; if(aba === 'desempenho' && desAba === 'comunidade') render();
+}
+function rankMudar(delta){ const seg = addDias(RANK.seg || segunda(hoje()), 7*delta); if(seg > segunda(hoje())) return; rankCarregar(seg); }
+async function rankSetCfg(k, v){ rankCfg()[k] = v; save(); await rankPublicar(); if(RANK.seg) rankCarregar(RANK.seg); else render(); }
+function vComunidade(){
+  const r = rankCfg();
+  if(!rankOnline()) return `<div class="card"><h2>Horas da comunidade</h2><p class="mut">Aqui aparecem as horas líquidas de estudo de todos os alunos da plataforma, somadas de segunda a domingo.</p>
+    <div class="alert info">Essa contagem usa a conta Google: abra o tutor pelo site <b>estudoguiado.pages.dev</b> e entre com o Google para ver o total da comunidade e somar as suas horas. No programa do computador os dados ficam só no seu computador.</div>
+    <p class="mut" style="margin:0">Sua semana até agora: <b>${hm(rankSemana(segunda(hoje())).min)}</b> líquidas.</p></div>`;
+  const seg = RANK.seg || segunda(hoje());
+  if(!RANK.seg && !RANK.carregando){ setTimeout(() => rankPublicar().then(() => rankCarregar(seg)), 0); }
+  const dom = addDias(seg, 6), atual = seg === segunda(hoje());
+  const nav = `<div class="inl" style="margin:0 0 12px;align-items:center"><button class="g" onclick="rankMudar(-1)">← Semana anterior</button>
+    <b style="font-size:17px">Seg ${br(seg)} a dom ${br(dom)}</b>${atual?' <span class="tag ok">semana atual</span>':''}
+    <button class="g" onclick="rankMudar(1)" ${atual?'disabled':''}>Próxima semana →</button>
+    <button class="lk" onclick="rankCarregar('${seg}')">atualizar</button></div>`;
+  const cfg = `<div class="card"><h2>Sua participação</h2>
+    <label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);margin:4px 0"><input type="checkbox" ${r.participar?'checked':''} onchange="rankSetCfg('participar',this.checked)" style="width:auto;margin-top:4px">
+      <span>Somar as minhas horas no total da comunidade<br><span class="mut">Vai só o total de horas líquidas por dia da semana. Matérias, notas e anotações não saem da sua conta.</span></span></label>
+    ${r.participar ? `<label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);margin:10px 0 4px"><input type="checkbox" ${r.publico?'checked':''} onchange="rankSetCfg('publico',this.checked)" style="width:auto;margin-top:4px">
+      <span>Aparecer com nome na lista de quem mais estudou<br><span class="mut">Desmarcado, você aparece como "Aluno".</span></span></label>
+      ${r.publico ? `<label for="rk_ap">Nome na lista</label><div class="inl" style="margin:0"><input id="rk_ap" maxlength="30" style="max-width:260px" placeholder="${esc((ONLINE.usuario.nome||'').split(' ')[0]||'Seu apelido')}" value="${esc(r.apelido||'')}"><button class="g" onclick="rankSetCfg('apelido',document.getElementById('rk_ap').value.trim())">Salvar nome</button></div>` : ''}` : ''}</div>`;
+  if(RANK.erro) return nav + `<div class="alert bad">Não consegui ler as horas da comunidade (${esc(RANK.erro)}).${/permission/i.test(RANK.erro)?' As regras do banco ainda não liberam a contagem da comunidade.':''}</div>` + cfg;
+  if(RANK.carregando || !RANK.dados) return nav + `<div class="card"><h2>Carregando as horas da comunidade…</h2></div>` + cfg;
+  const L = RANK.dados.slice().sort((a,b) => b.min - a.min), tot = L.reduce((t,x) => t + x.min, 0), n = L.length;
+  const meu = r.participar ? (L.find(x => x.eu) || null) : null, minhas = rankSemana(seg).min;
+  const pos = meu ? L.indexOf(meu) + 1 : 0;
+  const dias = [0,1,2,3,4,5,6].map(i => L.reduce((t,x) => t + (+(x.dias||[])[i]||0), 0)), maxD = Math.max(1, ...dias);
+  const media = n ? tot / n : 0;
+  let h = nav + `<div class="kpis">
+    <div class="kpi"><div><div class="mut">Horas líquidas de todos</div><div class="big">${hm(tot)}</div><div class="mut">na semana, somando todos os alunos</div></div></div>
+    <div class="kpi"><div><div class="mut">Alunos que estudaram</div><div class="big">${n}</div><div class="mut">registraram estudo na semana</div></div></div>
+    <div class="kpi"><div><div class="mut">Média por aluno</div><div class="big">${hm(media)}</div><div class="mut">${n?hm(media/7)+' por dia':'—'}</div></div></div>
+    <div class="kpi"><div><div class="mut">Suas horas líquidas</div><div class="big">${hm(minhas)}</div><div class="mut">${meu?`${pos}º de ${n}${n>1?' · estudou mais que '+Math.round((n-pos)/(n-1)*100)+'% dos alunos':''}`:r.participar?'sem estudo registrado':'fora da contagem'}</div></div></div></div>`;
+  h += `<div class="grid" style="margin-top:16px"><div class="card"><h2>Horas da comunidade por dia</h2>
+    ${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map((d,i) => `<div class="brow" style="grid-template-columns:44px 1fr 80px"><span class="mut">${d}</span><div class="bar"><i style="width:${dias[i]/maxD*100}%"></i></div><span>${hm(dias[i])}</span></div>`).join('')}
+    <p class="mut" style="margin-bottom:0">Conta o tempo das metas concluídas e dos registros avulsos (horas líquidas), de segunda a domingo. Estudo depois da meia-noite, até 5h59, conta no dia anterior.</p></div>
+    <div class="card"><h2>Quem mais estudou</h2>${n ? L.slice(0, 20).map((x,i) => `<div class="item" style="padding:6px 0${x.eu?';font-weight:700':''}"><span><span class="mut">${i+1}º</span> ${x.eu?'Você':esc(x.nome||'Aluno')}</span><span>${hm(x.min)}</span></div>`).join('')
+      + (meu && pos > 20 ? `<div class="item" style="padding:6px 0;font-weight:700"><span><span class="mut">${pos}º</span> Você</span><span>${hm(meu.min)}</span></div>` : '')
+      : '<div class="empty">Ninguém registrou estudo nesta semana ainda.</div>'}</div></div>`;
+  return h + `<div style="margin-top:16px">${cfg}</div>`;
+}
 function vDesempenho(){
-  const abas = `<div class="inl rel-nao-imprime" style="margin:0 0 12px;gap:8px">${[['geral','Visão geral'],['relat','Relatórios']].map(([k,r]) => `<button class="${desAba===k?'b':'g'}" onclick="desAba='${k}';render()">${r}</button>`).join('')}</div>`;
-  return abas + (desAba === 'relat' ? vRelatorios() : vDesempenhoBase() + cardLeiSecaDesemp()); }
+  const abas = `<div class="inl rel-nao-imprime" style="margin:0 0 12px;gap:8px">${[['geral','Visão geral'],['relat','Relatórios'],['comunidade','Horas da comunidade']].map(([k,r]) => `<button class="${desAba===k?'b':'g'}" onclick="desAba='${k}';render()">${r}</button>`).join('')}</div>`;
+  return abas + (desAba === 'relat' ? vRelatorios() : desAba === 'comunidade' ? vComunidade() : vDesempenhoBase() + cardLeiSecaDesemp()); }
 function cardLeiSecaDesemp(){
   const r = lsPorLeiResumo().filter(x => x.q); if(!r.length) return '';
   if(!LS.indice && !LS.preparando) lsPreparar();
@@ -4595,7 +4664,7 @@ async function iniciarFirebase(){
     document.getElementById('app').innerHTML = '<div class="card"><h2>Carregando seus dados…</h2></div>';
     try{ const d = await carregarOnline(); S = d || padrao(); ultimaLeitura = Date.now(); }
     catch(e){ S = padrao(); ONLINE.somenteLeitura = true; avisar('Não consegui ler seus dados agora ('+(e.code||e.message)+'). Nada será salvo até recarregar a página.'); }
-    migrar(); aba = 'painel'; render(); statusSync(ONLINE.somenteLeitura ? 'Sem conexão com seus dados' : 'Salvo na sua conta ✓');
+    migrar(); aba = 'painel'; render(); statusSync(ONLINE.somenteLeitura ? 'Sem conexão com seus dados' : 'Salvo na sua conta ✓'); if(!ONLINE.somenteLeitura) rankPublicar();
     if(!ONLINE.somenteLeitura){ const d0 = JSON.parse(JSON.stringify(S)); if(await aplicarTransferencia(u, d0)){ aba = 'config'; render(); } }
     else if(TRANSFERIR){ avisar('Não consegui abrir os dados da conta nova, então o progresso não foi levado. Volte para a conta anterior: seus dados continuam lá.'); TRANSFERIR = null; }
   });
