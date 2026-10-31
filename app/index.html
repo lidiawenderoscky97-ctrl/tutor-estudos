@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="70">
+<meta name="versao" content="71">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -3715,7 +3715,7 @@ function vConfig(){
     <button class="b" onclick="exportar()">Baixar backup (.json)</button> ${DESK ? '<button class="g" onclick="DESK.abrirPasta()">Abrir pasta dos dados</button>' : ''}
     <label>${ONLINE ? 'Trazer dados de outra versão (arquivo de backup .json do programa ou do link do Claude)' : 'Restaurar backup'}</label><input type="file" accept=".json" onchange="restaurar(this.files[0])">
     ${ONLINE && ONLINE.tipo==='firebase' ? `<h3>Conta</h3><p class="mut">Conectada como <b>${esc(ONLINE.usuario.nome)}</b> (${esc(ONLINE.usuario.email)}).</p><div class="inl"><button class="b" onclick="trocarConta()">Trocar de conta Google (levar meu progresso)</button><button class="g" onclick="sairConta()">Sair da conta</button></div>
-      <p class="mut" style="margin-top:8px">Trocar de conta leva tudo para a conta nova: edital, metas, revisões, questões, lei seca, cadernos e leis em PDF. A conta atual continua com uma cópia dos dados, nada é apagado.</p>` : ''}
+      <p class="mut" style="margin-top:8px">Trocar de conta leva tudo para a conta nova: edital, metas, revisões, questões, lei seca, cadernos e leis em PDF. A conta atual continua com uma cópia dos dados, nada é apagado. O acesso ao tutor também passa para a conta nova, sem precisar de outro convite.</p>` : ''}
     <h3>Versão do programa</h3><p class="mut" id="infoVersao">Versão ${VERSAO}.${DESK ? ' As atualizações chegam automaticamente quando você abre o programa.' : ''}</p>
     ${DESK ? '<button class="g" onclick="verificarAtualizacao()">Verificar atualizações agora</button>' : ''}
     <h3>Zona de perigo</h3><button class="g" style="color:var(--bad)" onclick="confirmar('Apagar TODOS os dados?').then(ok=>{if(ok){S=padrao();save();render();}})">Apagar todos os dados</button></div></div>`;
@@ -4611,11 +4611,25 @@ async function acessoVerificar(u){
   if(ehAdmin(u)) return true;
   try{ const d = await FB.fs.collection('acessos').doc(u.uid).get(); if(d.exists) return true; }
   catch(e){ if(!/permission/i.test(e.code || e.message || '')) return {msg:'Não consegui conferir o seu acesso agora ('+(e.code||e.message)+'). Confira a internet e recarregue a página.'}; }
+  // troca de conta Google feita neste aparelho: o acesso passa para a conta nova
+  let tr = ''; try{ tr = localStorage.getItem('eg-troca') || ''; }catch(e){}
+  if(tr){ const r = await usarConvite(u, tr, true); try{ localStorage.removeItem('eg-troca'); }catch(e){} if(r === true) return true; }
   const cod = conviteGuardado();
   return cod ? usarConvite(u, cod) : {msg:''};
 }
-async function usarConvite(u, cod){
-  cod = codigoConvite(cod); if(cod.length < 6) return {msg:'Código de convite incompleto. Cole o link inteiro que você recebeu.'};
+// antes de trocar de conta: o acesso desta conta vira um convite de troca (T + id), que só a próxima conta a entrar usa
+async function trocaPreparar(){
+  const u = FB.auth.currentUser, cod = 'T' + u.uid, b = FB.fs.batch();
+  b.set(FB.fs.collection('convites').doc(cod), {tipo:'troca', por:u.uid, criado:Date.now()});
+  b.delete(FB.fs.collection('acessos').doc(u.uid));
+  await b.commit(); try{ localStorage.setItem('eg-troca', cod); }catch(e){}
+  return cod;
+}
+// troca cancelada: a própria conta usa o convite de troca e recupera o acesso
+async function trocaDesfazer(){ let tr = ''; try{ tr = localStorage.getItem('eg-troca') || ''; localStorage.removeItem('eg-troca'); }catch(e){}
+  const u = FB.auth.currentUser; if(tr && u) await usarConvite(u, tr, true); }
+async function usarConvite(u, cod, bruto){
+  if(!bruto) cod = codigoConvite(cod); if(cod.length < 6) return {msg:'Código de convite incompleto. Cole o link inteiro que você recebeu.'};
   const cref = FB.fs.collection('convites').doc(cod); let c;
   try{ c = await cref.get(); }catch(e){ return {msg:'Não consegui conferir o convite ('+(e.code||e.message)+').'}; }
   if(!c.exists){ limparConvite(); return {msg:'Este convite não existe ou foi cancelado. Confira o link ou peça um convite novo.'}; }
@@ -4674,7 +4688,7 @@ async function admRemover(uidA){ const a = (ADM.acessos||[]).find(x => x.uid ===
 function cardConvites(){
   if(!ehMestre()) return '';
   if(!ADM.convites && !ADM.carregando && !ADM.erro) setTimeout(admCarregar, 0);
-  const pend = (ADM.convites||[]).filter(c => !c.usadoPor), quando = t => t ? br(new Date(t - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)) : '—';
+  const pend = (ADM.convites||[]).filter(c => !c.usadoPor && c.tipo !== 'troca'), quando = t => t ? br(new Date(t - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)) : '—';
   return `<div class="card"><h2>Convites e alunos <span class="tag ok">conta mestre</span></h2>
     <p class="mut" style="margin-top:-4px">Cada convite é um link que funciona uma vez só: a primeira conta Google que entrar por ele fica com o acesso (no celular, no tablet e no computador). Se a pessoa repassar o link, ele já não funciona.</p>
     <div class="inl" style="margin-top:0"><div><label for="adm_para">Para quem (opcional, só para você lembrar)</label><input id="adm_para" maxlength="60" placeholder="Ex.: Maria, turma de novembro"></div><button class="b" onclick="admGerar()">Gerar convite</button></div>
@@ -4684,7 +4698,7 @@ function cardConvites(){
     ${ADM.convites ? `<h3>Convites ainda não usados (${pend.length})</h3>${pend.length ? pend.map(c => `<div class="item"><div style="min-width:0"><b>${esc(c.para || 'Sem nome')}</b><div class="mut">criado em ${quando(c.criado)} · ${esc(c.id)}</div></div>
         <div class="inl" style="margin:0"><button class="g" onclick="admCopiar('${c.id}')">Copiar link</button><button class="x" title="Cancelar convite" onclick="admCancelar('${c.id}')">✕</button></div></div>`).join('') : '<p class="mut">Nenhum.</p>'}
       <h3>Alunos com acesso (${(ADM.acessos||[]).length})</h3>${(ADM.acessos||[]).length ? ADM.acessos.map(a => { const c = (ADM.convites||[]).find(x => x.id === a.convite);
-        return `<div class="item"><div style="min-width:0"><b>${esc(a.nome || 'Sem nome')}</b>${c && c.para ? ` <span class="mut">· ${esc(c.para)}</span>` : ''}<div class="mut">${esc(a.email || '')} · desde ${quando(a.desde)}</div></div>
+        return `<div class="item"><div style="min-width:0"><b>${esc(a.nome || 'Sem nome')}</b>${c && c.para ? ` <span class="mut">· ${esc(c.para)}</span>` : c && c.tipo === 'troca' ? ' <span class="mut">· trocou de conta Google</span>' : ''}<div class="mut">${esc(a.email || '')} · desde ${quando(a.desde)}</div></div>
         <button class="g" style="color:var(--bad)" onclick="admRemover('${a.uid}')">Remover acesso</button></div>`; }).join('') : '<p class="mut">Ninguém ainda.</p>'}
       <div class="inl"><button class="lk" onclick="admCarregar()">atualizar lista</button></div>` : ''}
     <h3>Contas mestre</h3><p class="mut" style="margin-top:-4px">Podem gerar convites e remover alunos. ${ehDona(FB.auth.currentUser) ? 'Só você escolhe quem entra aqui.' : 'Só a dona do tutor muda esta lista.'}</p>
@@ -4726,8 +4740,9 @@ async function entrarGoogle(){
 let TRANSFERIR = null;
 async function trocarConta(){
   if(!FB || !FB.auth.currentUser) return;
-  if(!(await confirmar('Trocar de conta Google?\n\nNa próxima tela, escolha a conta nova. Todo o seu progresso (edital, metas, revisões, questões, lei seca, cadernos e leis em PDF) vai junto para ela. A conta atual não é apagada: ela continua com uma cópia dos dados.' + (ehAdmin(FB.auth.currentUser) ? '' : '\n\nA conta nova precisa de um convite próprio: peça um a quem te passou o acesso antes de trocar.')))) return;
+  if(!(await confirmar('Trocar de conta Google?\n\nNa próxima tela, escolha a conta nova. Todo o seu progresso (edital, metas, revisões, questões, lei seca, cadernos e leis em PDF) vai junto para ela. A conta atual não é apagada: ela continua com uma cópia dos dados.' + '\n\nO seu acesso ao tutor também passa para a conta nova (a conta atual deixa de entrar).'))) return;
   clearTimeout(filaSalvar); try{ await gravarOnline(); }catch(e){}
+  try{ await trocaPreparar(); }catch(e){ avisar('Não consegui preparar a troca de conta ('+(e.code||e.message)+'). Nada mudou.'); return; }
   TRANSFERIR = {dados: JSON.parse(JSON.stringify(S)), uid: FB.auth.currentUser.uid, email: ONLINE && ONLINE.usuario ? ONLINE.usuario.email : ''};
   const prov = new firebase.auth.GoogleAuthProvider(); prov.setCustomParameters({prompt:'select_account'});
   try{ await FB.auth.signInWithPopup(prov); }
@@ -4735,8 +4750,8 @@ async function trocarConta(){
     if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){
       // sem janela de login: a página recarrega no retorno, então a cópia fica guardada nesta aba até lá
       try{ sessionStorage.setItem('eg-transferir', JSON.stringify(TRANSFERIR)); await FB.auth.signInWithRedirect(prov); return; }
-      catch(e2){ TRANSFERIR = null; try{ sessionStorage.removeItem('eg-transferir'); }catch(e3){} avisar('Não consegui abrir o login do Google. Libere as janelas pop-up deste site e tente de novo.'); return; } }
-    TRANSFERIR = null;
+      catch(e2){ TRANSFERIR = null; try{ sessionStorage.removeItem('eg-transferir'); }catch(e3){} await trocaDesfazer(); avisar('Não consegui abrir o login do Google. Libere as janelas pop-up deste site e tente de novo.'); return; } }
+    TRANSFERIR = null; await trocaDesfazer();
     if(e.code !== 'auth/popup-closed-by-user') avisar('Não foi possível trocar de conta: '+(e.message||e.code));
   }
 }
