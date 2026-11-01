@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="73">
+<meta name="versao" content="74">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -1000,8 +1000,8 @@ setInterval(() => {
 /* ============ Concluir / desfazer metas ============ */
 let caixaAberta = null, maisTempo = null, avisoHoje = '';
 function adicionarTempo(id, min){
-  const metas = S.metas[hoje()]||[], i = metas.findIndex(x=>x.id===id); if(i<0) return;
-  const o = metas[i];
+  const metas = S.metas[hoje()] = S.metas[hoje()]||[]; let i = metas.findIndex(x=>x.id===id), o = metas[i];
+  if(i < 0){ o = acharMeta(id).meta; if(!o) return; i = metas.filter(x => x.feita).length - 1; } // meta de dia anterior: o extra entra no começo das pendentes de hoje
   const nova = {id:uid(), tipo:'extra', origem: o.tipo==='extra' ? o.origem : o.tipo, materiaId:o.materiaId, topicoId:o.topicoId, min};
   metas.splice(i+1, 0, nova);
   // respeita as horas líquidas: tira do fim as metas de conteúdo ainda pendentes
@@ -1108,6 +1108,10 @@ function acharMeta(id){
     const l = S.metas[dia] || [], meta = l.find(x => x.id === id); if(meta) return {dia, meta}; }
   return {dia:null, meta:null};
 }
+let extraConcluir = 0;
+// escolhe o tempo extra sem redesenhar a tela (mantém as questões e o tempo já digitados)
+function escolherExtra(v){ extraConcluir = v; document.querySelectorAll('[data-extra]').forEach(b => b.className = +b.dataset.extra === v ? 'b' : 'g');
+  const sv = document.getElementById('cx_salvar'); if(sv) sv.textContent = 'Salvar' + (v ? ' e acrescentar ' + v + ' min' : ''); }
 function concluirMeta(id){
   const {dia: diaMeta, meta} = acharMeta(id); if(!meta) return avisar('Não encontrei esta meta. Recarregue a página e tente de novo.');
   const diaReg = diaMeta < hoje() ? diaMeta : hoje(); // meta de um dia anterior: o estudo conta naquele dia
@@ -1142,7 +1146,9 @@ function concluirMeta(id){
     // conteúdo concluído agora não precisa mais aparecer pendente nas metas de hoje
     if(meta.tipo==='conteudo') S.metas[hoje()] = (S.metas[hoje()]||[]).filter(x => x.feita || x.atrasada !== diaMeta || x.origemId !== meta.id); }
   if(aviso) avisoHoje = aviso;
-  caixaAberta = null; save(); render();
+  caixaAberta = null;
+  if(extraConcluir){ const ex = extraConcluir; extraConcluir = 0; adicionarTempo(id, ex); if(aviso) avisoHoje = aviso + ' ' + avisoHoje; return; }
+  save(); render();
 }
 async function desfazerMeta(id){
   const {meta} = acharMeta(id); if(!meta || !meta.feita) return;
@@ -1389,14 +1395,14 @@ function cardMeta(x,i,dia){
   else {
     if(ativa) h += `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>`;
     else h += `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
-    if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';render()">Concluir</button>`;
+    if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';extraConcluir=0;render()">Concluir</button>`;
   }
   h += `</div>`;
   if(x.feita && maisTempo===x.id){
     const assuntoFechado = t.status==='concluido';
     h += `<div class="caixa"><b style="font-size:15.5px">Você já terminou ${x.tipo==='conteudo'||x.origem==='conteudo' ? (!teoriaConcluida(m,t)&&!assuntoFechado ? 'a teoria' : 'o assunto') : ''} ou precisa de mais tempo?</b>
       <div class="inl">${x.tipo==='conteudo'||x.origem==='conteudo' ? (assuntoFechado ? '<span class="tag ok">assunto já concluído</span>' : !teoriaConcluida(m,t) ? `<button class="g" onclick="terminouTeoria('${x.id}')">Terminei a teoria</button>` : `<button class="g" onclick="terminouAssunto('${x.id}')">Terminei o assunto</button>`) : `<button class="g" onclick="maisTempo=null;render()">Terminei</button>`}
-      <div><label for="mt_${x.id}">Mais tempo</label><select id="mt_${x.id}" style="width:auto">${[15,30,45,60,75,90,105,120].map(v=>`<option value="${v}" ${v===30?'selected':''}>${hm(v)}</option>`).join('')}</select></div>
+      <div><label for="mt_${x.id}">Mais tempo</label><select id="mt_${x.id}" style="width:auto">${[15,30,45,60].map(v=>`<option value="${v}" ${v===30?'selected':''}>${v} min</option>`).join('')}</select></div>
       <button class="b" onclick="adicionarTempo('${x.id}', +document.getElementById('mt_${x.id}').value)">Adicionar tempo</button>
       <button class="g" onclick="maisTempo=null;render()">Cancelar</button></div>
       <p class="mut" style="margin:6px 0 0">O tempo extra entra logo abaixo desta meta. Se o dia passar das horas líquidas, as últimas metas de conteúdo pendentes vão para os próximos dias.</p></div>`;
@@ -1407,8 +1413,10 @@ function cardMeta(x,i,dia){
     h += `<div class="caixa"><b style="font-size:15.5px">Meta finalizada! ${soTeoria?'Quanto tempo levou?':'Como foi?'}</b>
       <div class="inl">${soTeoria ? '' : `<div><label>Questões feitas</label><input id="cq" type="number" min="0" inputmode="numeric"></div>
       <div><label>Acertos</label><input id="ca" type="number" min="0" inputmode="numeric" onkeydown="if(event.key==='Enter')concluirMeta('${x.id}')"></div>`}
-      <div><label>Tempo real (min)</label><input id="cm" type="number" min="0" value="${minT}"></div>
-      <button class="b" onclick="concluirMeta('${x.id}')">Salvar</button><button class="g" onclick="caixaAberta=null;render()">Cancelar</button></div>
+      <div><label>Tempo real (min)</label><input id="cm" type="number" min="0" value="${minT}"></div></div>
+      <div style="margin-top:10px"><label>Precisa de mais tempo neste assunto? Acrescente uma meta extra hoje</label>
+        <div class="inl" style="margin:4px 0 0">${[0,15,30,45,60].map(v => `<button data-extra="${v}" class="${extraConcluir===v?'b':'g'}" onclick="escolherExtra(${v},'${x.id}')">${v?'+ '+v+' min':'Não precisa'}</button>`).join('')}</div></div>
+      <div class="inl"><button class="b" id="cx_salvar" onclick="concluirMeta('${x.id}')">Salvar${extraConcluir?' e acrescentar '+extraConcluir+' min':''}</button><button class="g" onclick="caixaAberta=null;extraConcluir=0;render()">Cancelar</button></div>
       <p class="mut" style="margin:6px 0 0">${soTeoria ? 'As questões deste assunto entram nas metas quando toda a teoria estiver concluída.' : x.tipo==='revisao'?`Abaixo de ${S.config.limiar}% o assunto volta mais cedo; acima, o intervalo aumenta.`:'Seu acerto alimenta o índice do assunto e o ajuste do ciclo.'}${ativa?' Tempo preenchido pelo cronômetro.':''}</p></div>`;
   }
   return h + `</div>`;
