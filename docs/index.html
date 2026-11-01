@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="71">
+<meta name="versao" content="72">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -502,6 +502,8 @@ function dividirEstado(){
   // flashcards (Claude e Firebase): progresso em partes de 1.500 cards, fora do documento principal
   { const {st:fst, ...fresto} = S.flash||{}; docs['tutor/estado/extras/flash'] = {flash: fresto};
     const fk = Object.keys(fst||{}); for(let i = 0; i*1500 < fk.length; i++){ const parte = {}; fk.slice(i*1500, (i+1)*1500).forEach(k => parte[k] = fst[k]); docs['tutor/estado/extras/flash-st-'+i] = {flashSt: parte}; } }
+  // editais guardados e matérias de editais anteriores (com o histórico ligado a elas)
+  if((S.editais||[]).length || (S.matArquivo||[]).length) docs['tutor/estado/extras/editais'] = {lista:S.editais||[], arquivo:S.matArquivo||[]};
   // leis enviadas em PDF: texto em partes de até 200 mil caracteres
   (S.leisProprias||[]).forEach(p => { const {texto, ...meta} = p, partes = Math.max(1, Math.ceil((texto||'').length/200000));
     for(let i = 0; i < partes; i++) docs['tutor/estado/leis/'+p.id+'-'+i] = {...meta, parte:i, partes, texto:(texto||'').slice(i*200000, (i+1)*200000)}; });
@@ -521,7 +523,8 @@ async function carregarOnline(){
     d.cadernos = d.cadernos || {}; d.simulados = d.simulados || [];
     try{ const ex = await db.doc('tutor/estado').collection('extras').get();
       ex.docs.forEach(x => { const j = JSON.stringify(x.data()||{}), o = JSON.parse(j); ultimoSalvo['tutor/estado/extras/'+x.id] = j;
-        if(x.id==='simulados') d.simulados = o.lista||[];
+        if(x.id==='editais'){ d.editais = o.lista||[]; d.matArquivo = o.arquivo||[]; }
+        else if(x.id==='simulados') d.simulados = o.lista||[];
         else if(x.id==='flash') d.flash = Object.assign(d.flash||{}, o.flash||{}, {st: (d.flash||{}).st||{}});
         else if(o.flashSt){ d.flash = d.flash || {}; d.flash.st = Object.assign(d.flash.st||{}, o.flashSt); }
         else if(o.leiSeca){ d.leiSeca = d.leiSeca || {st:{}}; d.leiSeca.st = d.leiSeca.st || {}; Object.assign(d.leiSeca.st, o.st||{}); }
@@ -530,7 +533,8 @@ async function carregarOnline(){
   }
   if(ONLINE.tipo!=='claude'){ try{ const ex = await db.doc('tutor/estado').collection('extras').get();
     ex.docs.forEach(x => { const j = JSON.stringify(x.data()||{}), o = JSON.parse(j); ultimoSalvo['tutor/estado/extras/'+x.id] = j;
-      if(x.id==='flash') d.flash = Object.assign(d.flash||{}, o.flash||{}, {st: (d.flash||{}).st||{}});
+      if(x.id==='editais'){ d.editais = o.lista||[]; d.matArquivo = o.arquivo||[]; }
+      else if(x.id==='flash') d.flash = Object.assign(d.flash||{}, o.flash||{}, {st: (d.flash||{}).st||{}});
       else if(o.flashSt){ d.flash = d.flash || {}; d.flash.st = Object.assign(d.flash.st||{}, o.flashSt); } }); }catch(e){} }
   try{ const lp = await db.doc('tutor/estado').collection('leis').get(), partes = {};
     lp.docs.forEach(x => { const j = JSON.stringify(x.data()||{}), o = JSON.parse(j); ultimoSalvo['tutor/estado/leis/'+x.id] = j; (partes[o.id] = partes[o.id] || []).push(o); });
@@ -1479,8 +1483,8 @@ function cardBusca(){
 }
 function itemSalvo(e){
   const emUso = norm(e.nome) === norm(S.config.concurso);
-  return `<div class="item"><div><b>${esc(e.nome)}</b>${emUso?' <span class="tag ok">em uso</span>':''}<div class="mut">${esc([e.banca, 'enviado por você', e.mats+' matérias · '+e.tops+' assuntos', 'atualizado em '+fmtData(e.atualizado)].filter(Boolean).join(' · '))}</div></div>
-    <div class="inl" style="margin:0">${emUso?'':`<button class="g" onclick="carregarSalvo('${e.id}')">Carregar edital</button>`}<button class="x" title="Excluir da lista" onclick="excluirSalvo('${e.id}')">✕</button></div></div>`;
+  return `<div class="item"><div><b>${esc(e.nome)}</b>${emUso?' <span class="tag ok">em uso</span>':''}<div class="mut">${esc([e.banca, e.mats+' matérias · '+e.tops+' assuntos', 'atualizado em '+fmtData(e.atualizado)].filter(Boolean).join(' · '))}</div></div>
+    <div class="inl" style="margin:0">${emUso?'':`<button class="g" onclick="carregarSalvo('${e.id}')">Voltar para este edital</button>`}<button class="x" title="Excluir da lista" onclick="excluirSalvo('${e.id}')">✕</button></div></div>`;
 }
 const fmtData = d => d ? d.split('-').reverse().join('/') : '';
 // Guarda o edital em uso (matérias, assuntos, pesos, incidência, aulas e links) na sua conta para carregar de novo depois
@@ -1497,7 +1501,7 @@ function exportarEditalTexto(){
   return L.join('\n');
 }
 function salvarEditalAtual(){
-  if(!S.config.concurso || !S.materias.length || !['pdf','proprio'].includes(S.config.origemEdital)) return;
+  if(!S.config.concurso || !S.materias.length || !['pdf','proprio','manual'].includes(S.config.origemEdital || 'manual')) return;
   S.editais = S.editais || [];
   let e = S.editais.find(x => norm(x.nome) === norm(S.config.concurso));
   if(!e){ e = {id: uid()}; S.editais.unshift(e); }
@@ -1509,9 +1513,11 @@ async function carregarSalvo(id){
   const e = (S.editais||[]).find(x => x.id === id); if(!e) return;
   if(S.materias.length && !(await confirmar(`Trocar para o edital “${e.nome}”?\n\nO edital atual fica salvo na sua lista. Assuntos com estudo registrado são mantidos.`))) return;
   salvarEditalAtual();
+  const nomes = nomesMatTexto(e.texto); restaurarArquivo(nomes);
   limparSemHistorico(e.texto);
   S.config.origemEdital = 'pdf';
-  const msg = importar(e.texto, true); buscaRes = null; buscaTermo = '';
+  const msg = importar(e.texto, true); arquivarFora(nomes);
+  S.config.concurso = e.nome; S.config.banca = e.banca || ''; if(S.config.cicloAB) S.config.cicloAB.grupos = {}; buscaRes = null; buscaTermo = '';
   buscaMsg = 'Edital carregado: '+msg;
   delete S.metas[hoje()]; gerarMetas(false); save(); render();
 }
@@ -1568,6 +1574,50 @@ function limparSemHistorico(texto){
   // curso do Estratégia, aulas e cadernos do TEC eram do concurso anterior: o novo edital traz os seus
   S.materias.forEach(m => { m.curso = ''; m.tecLink = ''; delete m.tecAtualizado; delete m.estCurso; delete m.estAulas; m.topicos.forEach(t => { t.aula = ''; delete t.tecQ; }); });
   S.config.tecLinkGeral = '';
+}
+
+/* ---------- Meu edital: nome do concurso, trocar por um edital novo e voltar a um edital salvo ---------- */
+let trocaEd = false;
+const nomesMatTexto = texto => new Set(String(texto||'').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//') && !l.startsWith('@') && !/^[-•*]/.test(l)).map(l => norm(l.replace(/^#+\s*/,'').split('|')[0].trim())));
+// matérias fora do edital em uso vão para o arquivo (com ids, para o histórico continuar ligado) e voltam quando o edital delas volta
+function arquivarFora(nomes){ S.matArquivo = S.matArquivo || [];
+  S.materias = S.materias.filter(m => { if(nomes.has(norm(m.nome))) return true; S.matArquivo = S.matArquivo.filter(x => norm(x.nome) !== norm(m.nome)); S.matArquivo.push(m); return false; }); }
+function restaurarArquivo(nomes){ const volta = (S.matArquivo||[]).filter(m => nomes.has(norm(m.nome)) && !S.materias.some(x => norm(x.nome) === norm(m.nome)));
+  S.materias.push(...volta); S.matArquivo = (S.matArquivo||[]).filter(m => !volta.includes(m)); }
+function cardMeuEdital(){
+  const c = S.config, outros = (S.editais||[]).filter(e => norm(e.nome) !== norm(c.concurso||''));
+  return `<div class="card" style="margin-bottom:16px"><h2>Meu edital</h2>
+    <div class="inl" style="margin-top:0;align-items:flex-end"><div style="flex:1;min-width:220px"><label for="ed_nome">Concurso</label><input id="ed_nome" value="${esc(c.concurso||'')}" placeholder="Ex.: Oficial de Justiça TJ-SP 2026" onchange="S.config.concurso=this.value.trim();save()"></div>
+      <div style="min-width:160px"><label for="ed_banca">Banca</label><input id="ed_banca" value="${esc(c.banca||'')}" placeholder="Ex.: Vunesp" onchange="S.config.banca=this.value.trim();save()"></div>
+      <button class="${trocaEd?'g':'b'}" onclick="trocaEd=!trocaEd;render()">${trocaEd?'Cancelar troca':'Trocar por um edital novo'}</button></div>
+    ${trocaEd ? `<div class="alert info" style="margin-top:10px">O edital atual fica guardado em "Editais guardados" e você pode voltar para ele quando quiser. No edital novo, as matérias e os assuntos com o mesmo nome continuam com o seu progresso; o resto começa do zero. Os links do Estratégia e do TEC são do concurso anterior e saem.</div>
+      <div class="row"><div><label for="te_nome">Nome do concurso novo</label><input id="te_nome" placeholder="Ex.: Escrevente TJ-SP 2027"></div><div><label for="te_banca">Banca (opcional)</label><input id="te_banca" placeholder="Ex.: Vunesp"></div></div>
+      <label for="te_txt">Matérias do edital novo (cole do jeito que vem no edital)</label>
+      <textarea id="te_txt" style="min-height:160px" placeholder="Língua Portuguesa - 1. Interpretação de texto. 2. Ortografia. 3. Crase.&#10;Direito Constitucional - 1. Princípios fundamentais. 2. Direitos e garantias fundamentais."></textarea>
+      <div class="inl"><button class="b" onclick="trocarEdital()">Trocar pelo edital novo</button></div>` : ''}
+    ${outros.length ? `<h3>Editais guardados</h3>${outros.map(itemSalvo).join('')}` : ''}</div>`;
+}
+async function trocarEdital(){
+  const nome = document.getElementById('te_nome').value.trim(), banca = document.getElementById('te_banca').value.trim(), txt = document.getElementById('te_txt').value.trim();
+  if(!nome) return avisar('Dê um nome ao concurso novo.');
+  const lidas = txt ? matsDoTextoEdital(txt) : [];
+  if(!lidas.length) return avisar('Cole as matérias do edital novo (ex.: "Língua Portuguesa - 1. Interpretação. 2. Crase.").');
+  if(S.materias.length && !(await confirmar(`Trocar para o edital “${nome}”?\n\n${lidas.length} matéria(s) e ${lidas.reduce((t,l)=>t+l.tops.length,0)} assunto(s).\nO edital atual${S.config.concurso?' (“'+S.config.concurso+'”)':''} fica guardado e você pode voltar para ele depois.`))) return;
+  if(!S.config.concurso) S.config.concurso = 'Edital até '+br(hoje());
+  salvarEditalAtual();
+  restaurarArquivo(new Set(lidas.map(l => norm(l.nome))));
+  limparSemHistorico(lidas.map(l => l.nome + '\n' + l.tops.map(t => '- ' + t).join('\n')).join('\n'));
+  lidas.forEach(l => {
+    let m = S.materias.find(x => norm(x.nome) === norm(l.nome));
+    if(!m){ m = {id:uid(), nome:l.nome, peso:3, nivel:3, curso:'', topicos:[]}; S.materias.push(m); }
+    l.tops.forEach(t => { if(!m.topicos.some(x => norm(x.nome) === norm(t))) m.topicos.push({id:uid(), nome:t, status:'nao', incid:2, paginas:0, feitos:0, aula:''}); });
+  });
+  // matérias que só ficaram por causa do histórico e não estão no edital novo: saem do edital (o histórico continua no Desempenho)
+  arquivarFora(new Set(lidas.map(l => norm(l.nome))));
+  S.config.concurso = nome; S.config.banca = banca; S.config.origemEdital = 'manual';
+  if(S.config.cicloAB) S.config.cicloAB.grupos = {};
+  trocaEd = false; delete S.metas[hoje()]; gerarMetas(false); save(); render();
+  avisar(`Edital trocado: ${S.materias.length} matéria(s). Ajuste o peso e o seu nível em cada matéria.`);
 }
 
 /* ---------- Importar edital em PDF ----------
@@ -2761,7 +2811,7 @@ function vEdital(){
   if(S.materias.some(m => m.topicos.some(temArtigos))){ if(LS.pronto && LS.sig !== lsAssinatura()) lsInvalidar(); if(!LS.pronto && !LS.preparando) lsPreparar(); }
   if(edAba === 'estat') return edAbas() + vAnalise();
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
-  let h = edAbas() + cardPdf() + cardEstrategia() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
+  let h = edAbas() + cardMeuEdital() + cardPdf() + cardEstrategia() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
     <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca.</p>`;
   h += S.materias.map(m => {
     const mc = m.topicos.filter(t=>t.status==='concluido').length, st = stats(s=>s.materiaId===m.id);
