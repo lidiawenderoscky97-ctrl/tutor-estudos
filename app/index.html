@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="72">
+<meta name="versao" content="73">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -29,7 +29,27 @@
   --sb:#0c0d14;--sbink:#cfd2e4;--sbon:#ffffff;--sbact:#1f2033;
 ;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+body{margin:0;font:15px/1.5 var(--fonte,system-ui),system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font-family:inherit}
+/* estilo moderno (Configurações → Aparência): gradientes suaves, cantos arredondados, sombras e vidro */
+html.moderno body{background:radial-gradient(1200px 600px at 100% -10%, color-mix(in srgb, var(--acc) 16%, transparent), transparent 60%),radial-gradient(900px 500px at -10% 110%, color-mix(in srgb, var(--acc) 12%, transparent), transparent 60%),var(--bg);background-attachment:fixed}
+html.moderno aside{background:linear-gradient(175deg, color-mix(in srgb, var(--sb) 82%, var(--acc)) 0%, var(--sb) 55%, color-mix(in srgb, var(--sb) 88%, #000) 100%);box-shadow:4px 0 24px rgba(0,0,0,.12)}
+html.moderno aside button{border-radius:12px;transition:background .18s,transform .18s}
+html.moderno aside button:hover{transform:translateX(2px)}
+html.moderno aside button.on{background:linear-gradient(90deg, color-mix(in srgb, var(--acc) 55%, transparent), color-mix(in srgb, var(--acc) 12%, transparent));box-shadow:none}
+html.moderno .card,html.moderno .kpi{border-radius:20px;border-color:color-mix(in srgb, var(--line) 60%, transparent);background:color-mix(in srgb, var(--card) 86%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 2px rgba(16,18,40,.04),0 10px 30px -12px color-mix(in srgb, var(--acc) 30%, rgba(16,18,40,.18));transition:transform .2s,box-shadow .2s}
+html.moderno .kpi:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(16,18,40,.05),0 16px 34px -12px color-mix(in srgb, var(--acc) 40%, rgba(16,18,40,.22))}
+html.moderno .hero{background:linear-gradient(135deg, var(--acc) 0%, color-mix(in srgb, var(--acc) 45%, var(--sb)) 55%, var(--sb) 100%)!important;box-shadow:0 18px 40px -16px color-mix(in srgb, var(--acc) 60%, transparent)!important;border-radius:22px}
+html.moderno button.b{border-radius:12px;border:0;background:linear-gradient(135deg, var(--acc), color-mix(in srgb, var(--acc) 70%, #8a3ffc));box-shadow:0 6px 16px -6px color-mix(in srgb, var(--acc) 70%, transparent);transition:transform .15s,box-shadow .15s}
+html.moderno button.b:hover{transform:translateY(-1px);box-shadow:0 10px 20px -8px color-mix(in srgb, var(--acc) 80%, transparent)}
+html.moderno button.g{border-radius:12px}
+html.moderno input,html.moderno select,html.moderno textarea{border-radius:12px}
+html.moderno .bar{border-radius:99px;overflow:hidden}
+html.moderno .bar i{background:linear-gradient(90deg, var(--acc), color-mix(in srgb, var(--acc) 60%, #22c1c3))}
+html.moderno .top h1{background:linear-gradient(90deg, var(--ink), var(--acc));-webkit-background-clip:text;background-clip:text;color:transparent}
+html.moderno .chip{backdrop-filter:blur(8px)}
+html.moderno .pkpis .kpi{background:linear-gradient(120deg, color-mix(in srgb, var(--acc) 55%, var(--sb)) 0%, var(--sb) 100%);border:0;box-shadow:0 10px 26px -14px color-mix(in srgb, var(--acc) 70%, transparent);backdrop-filter:none}
+html.cx-escuras :is(.chip,.card,.kpi,button.g,.meta,.dia,#modal .box,.hk>div,.prog,.lsb):not(.pkpis .kpi){--ink:#f4f5fb;--mut:#c9cbdc;color:var(--ink)}
 .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
 aside{background:var(--sb);color:var(--sbink);padding:18px 12px;position:sticky;top:env(safe-area-inset-top,0px);height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .logo{display:flex;align-items:center;gap:10px;color:var(--sbon);font-weight:700;font-size:17px;padding:4px 10px 16px}
@@ -3641,6 +3661,36 @@ function aplicarAparencia(){
   const escuro = tm==='escuro' || (tm==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
   if(escuro){ r.setProperty('--acc', corMistura(t.acc, '#ffffff', .25)); r.setProperty('--acc2', corMistura(t.acc, '#111219', .78)); r.setProperty('--sb', corMistura(t.sb, '#000000', .35)); r.setProperty('--sbact', corMistura(t.sb, '#ffffff', .08)); r.removeProperty('--bg'); }
   else { r.setProperty('--acc', t.acc); r.setProperty('--acc2', corMistura(t.acc, '#ffffff', .88)); r.setProperty('--sb', t.sb); r.setProperty('--sbact', corMistura(t.sb, '#ffffff', .1)); r.setProperty('--bg', t.bg); }
+  try{ aplicarEstilo(escuro); }catch(e){}
+}
+const FONTES_TXT = {
+  padrao:{nome:'Padrão do sistema', css:''},
+  inter:{nome:'Inter (moderna)', css:"'Inter'", g:'Inter:wght@400;500;600;700'},
+  poppins:{nome:'Poppins (arredondada)', css:"'Poppins'", g:'Poppins:wght@400;500;600;700'},
+  nunito:{nome:'Nunito (suave)', css:"'Nunito'", g:'Nunito:wght@400;600;700;800'},
+  montserrat:{nome:'Montserrat (elegante)', css:"'Montserrat'", g:'Montserrat:wght@400;500;600;700'},
+  lexend:{nome:'Lexend (leitura confortável)', css:"'Lexend'", g:'Lexend:wght@400;500;600;700'},
+  atkinson:{nome:'Atkinson Hyperlegible (letras bem distintas)', css:"'Atkinson Hyperlegible'", g:'Atkinson+Hyperlegible:wght@400;700'},
+  merriweather:{nome:'Merriweather (com serifa, de livro)', css:"'Merriweather'", g:'Merriweather:wght@400;700'},
+  mono:{nome:'JetBrains Mono (máquina de escrever)', css:"'JetBrains Mono'", g:'JetBrains+Mono:wght@400;600;700'}
+};
+const TAMANHOS = {p:['Pequeno',.92], n:['Normal',1], g:['Grande',1.1], mg:['Muito grande',1.22]};
+function carregarFonte(k){ const f = FONTES_TXT[k]; if(!f || !f.g || document.getElementById('fonte-'+k)) return;
+  const l = document.createElement('link'); l.id = 'fonte-'+k; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family='+f.g+'&display=swap'; document.head.appendChild(l); }
+const luminancia = hex => { const n = parseInt(String(hex).slice(1), 16); if(isNaN(n)) return 1; const c = [n>>16&255, n>>8&255, n&255].map(v => { v/=255; return v<=.03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); }); return .2126*c[0]+.7152*c[1]+.0722*c[2]; };
+function aplicarEstilo(escuro){
+  const ap = (S && S.config && S.config.aparencia) || {}, r = document.documentElement.style, h = document.documentElement;
+  const f = FONTES_TXT[ap.fonte] || FONTES_TXT.padrao; if(f.g) carregarFonte(ap.fonte);
+  if(f.css) r.setProperty('--fonte', f.css); else r.removeProperty('--fonte');
+  const z = (TAMANHOS[ap.tam] || TAMANHOS.n)[1]; if(z !== 1) r.setProperty('zoom', z); else r.removeProperty('zoom');
+  h.classList.toggle('moderno', !!ap.moderno);
+  ['--card','--line','--soft'].forEach(v => r.removeProperty(v)); h.classList.remove('cx-escuras');
+  if(ap.card){
+    const card = escuro ? corMistura(ap.card, '#1a1b26', .82) : ap.card, dark = luminancia(card) < .2;
+    r.setProperty('--card', card); if(dark && !escuro) h.classList.add('cx-escuras');
+    r.setProperty('--line', corMistura(card, dark ? '#ffffff' : '#000000', .12));
+    r.setProperty('--soft', corMistura(card, dark ? '#ffffff' : '#000000', .05));
+  }
 }
 function setAparencia(k, v){ const ap = S.config.aparencia = S.config.aparencia || {}; ap[k] = v; if(['acc','sb','bg'].includes(k)) ap.preset = 'pers'; save(); render(); }
 function cardAparencia(){
@@ -3658,11 +3708,23 @@ function cardAparencia(){
     <div class="row"><div><label>Cor principal</label><input type="color" value="${ap.acc||t.acc}" onchange="setAparencia('acc',this.value)" style="height:42px;padding:3px"></div>
       <div><label>Barra lateral</label><input type="color" value="${ap.sb||t.sb}" onchange="setAparencia('sb',this.value)" style="height:42px;padding:3px"></div>
       <div><label>Fundo (modo dia)</label><input type="color" value="${ap.bg||t.bg}" onchange="setAparencia('bg',this.value)" style="height:42px;padding:3px"></div></div>
+    <h3>Estilo do painel</h3>
+    <label style="display:flex;gap:10px;align-items:flex-start;color:var(--ink);cursor:pointer"><input type="checkbox" style="width:20px;height:20px;flex:none;margin-top:2px" ${ap.moderno?'checked':''} onchange="setAparencia('moderno',this.checked)">
+      <span><b>Visual moderno</b><br><span class="mut">Degradês nas cores que você escolheu, cantos mais arredondados, sombras suaves e caixas com efeito de vidro. Funciona com qualquer tema, time ou cor.</span></span></label>
+    <h3>Letras</h3>
+    <div class="row"><div><label for="ap_fonte">Fonte</label><select id="ap_fonte" onchange="setAparencia('fonte',this.value)">${Object.entries(FONTES_TXT).map(([k,f]) => `<option value="${k}" ${(ap.fonte||'padrao')===k?'selected':''} style="font-family:${f.css||'inherit'}">${esc(f.nome)}</option>`).join('')}</select></div>
+      <div><label for="ap_tam">Tamanho</label><select id="ap_tam" onchange="setAparencia('tam',this.value)">${Object.entries(TAMANHOS).map(([k,t]) => `<option value="${k}" ${(ap.tam||'n')===k?'selected':''}>${t[0]}</option>`).join('')}</select></div></div>
+    <p class="mut" style="margin:6px 0 0;font-family:${(FONTES_TXT[ap.fonte]||FONTES_TXT.padrao).css||'inherit'}">Exemplo: Princípios da administração pública — legalidade, impessoalidade, moralidade, publicidade e eficiência. 0123456789</p>
+    <h3>Cor das caixas</h3>
+    <div class="inl" style="margin-top:0;align-items:flex-end"><div><label for="ap_card">Fundo das caixas (cartões, metas e quadros)</label><input id="ap_card" type="color" value="${ap.card||'#ffffff'}" onchange="setAparencia('card',this.value)" style="height:42px;padding:3px;width:120px"></div>
+      ${['#ffffff','#fffaf0','#f3f8ff','#f2fbf5','#fdf3f8','#f6f3ff','#2a2d3e'].map(c => `<button title="${c}" onclick="setAparencia('card','${c}')" style="width:34px;height:34px;border-radius:10px;border:2px solid ${ap.card===c?'var(--ink)':'var(--line)'};background:${c};cursor:pointer"></button>`).join('')}
+      ${ap.card ? `<button class="lk" onclick="setAparencia('card','')">voltar ao branco</button>` : ''}</div>
+    <p class="mut" style="margin:6px 0 0">Com uma cor escura, as letras das caixas ficam claras sozinhas. No modo noite a cor escolhida aparece como um tom suave.</p>
     <h3>Temas do calendário</h3>
     <label style="display:flex;gap:10px;align-items:flex-start;color:var(--ink);cursor:pointer"><input type="checkbox" style="width:20px;height:20px;flex:none;margin-top:2px" ${ap.auto?'checked':''} onchange="setAparencia('auto',this.checked)">
       <span><b>Personalizar sozinho nas datas comemorativas</b><br><span class="mut">Natal, Ano Novo, Carnaval, Páscoa, Festa Junina, Semana da Pátria, Outubro Rosa, Halloween, Novembro Azul e Dia da Mulher. Fora dessas datas, volta às cores que você escolheu.</span></span></label>
     <p class="mut" style="margin-top:8px">${cal ? `Hoje: <b>${cal.emoji} ${esc(cal.nome)}</b>${ap.auto?' (ativo)':' (ligue a opção acima para usar)'}.` : 'Hoje não há data comemorativa; o próximo tema aparece sozinho quando chegar a data.'}</p>
-    ${ap.preset || ap.auto ? `<button class="g" onclick="S.config.aparencia={};save();render()">Voltar ao padrão</button>` : ''}</div>`;
+    ${ap.preset || ap.auto || ap.fonte || ap.tam || ap.card || ap.moderno ? `<button class="g" onclick="S.config.aparencia={};save();render()">Voltar tudo ao padrão</button>` : ''}</div>`;
 }
 
 /* ---------- Constância: semana com ✓ e dias estudados ---------- */
