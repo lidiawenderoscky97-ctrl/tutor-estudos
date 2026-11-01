@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="74">
+<meta name="versao" content="75">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -67,7 +67,8 @@ html.moderno .bar i{background:linear-gradient(90deg, var(--acc), color-mix(in s
 html.moderno .top h1{background:linear-gradient(90deg, var(--ink), var(--acc));-webkit-background-clip:text;background-clip:text;color:transparent}
 html.moderno .chip{backdrop-filter:blur(8px)}
 html.moderno .pkpis .kpi{background:linear-gradient(120deg, color-mix(in srgb, var(--acc) 55%, var(--sb)) 0%, var(--sb) 100%);border:0;box-shadow:0 10px 26px -14px color-mix(in srgb, var(--acc) 70%, transparent);backdrop-filter:none}
-html.cx-escuras :is(.chip,.card,.kpi,button.g,.meta,.dia,#modal .box,.hk>div,.prog,.lsb):not(.pkpis .kpi){--ink:#f4f5fb;--mut:#c9cbdc;color:var(--ink)}
+html.cx-escuras :is(.chip,.card,.kpi,button.g,.meta,.dia,#modal .box,.hk>div,.prog,.lsb):not(.pkpis .kpi){--ink:#f4f5fb;--mut:#c9cbdc;color:var(--ink);--acc2:color-mix(in srgb, var(--acc) 28%, #1d1e2b);--ok:#4fd48a;--okbg:#16291f;--warn:#f2a54d;--warnbg:#2d2316;--bad:#f37575;--badbg:#301a1c;--rev:#c49bff;--revbg:#2a2140;--ref:#f2a54d;--refbg:#2d2316;--gold:#f2c14d;--bg:color-mix(in srgb, var(--card) 78%, #000);color-scheme:dark}
+html.cx-escuras .tipo:not(.revisao):not(.reforco):not(.extra):not(.fixa):not(.questoes),html.cx-escuras .tag{filter:brightness(1.6)}
 .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
 aside{background:var(--sb);color:var(--sbink);padding:18px 12px;position:sticky;top:env(safe-area-inset-top,0px);height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .logo{display:flex;align-items:center;gap:10px;color:var(--sbon);font-weight:700;font-size:17px;padding:4px 10px 16px}
