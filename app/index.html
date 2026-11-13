@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="75">
+<meta name="versao" content="76">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -1614,8 +1614,13 @@ async function trocarEdital(){
   const lidas = txt ? matsDoTextoEdital(txt) : [];
   if(!lidas.length) return avisar('Cole as matérias do edital novo (ex.: "Língua Portuguesa - 1. Interpretação. 2. Crase.").');
   if(S.materias.length && !(await confirmar(`Trocar para o edital “${nome}”?\n\n${lidas.length} matéria(s) e ${lidas.reduce((t,l)=>t+l.tops.length,0)} assunto(s).\nO edital atual${S.config.concurso?' (“'+S.config.concurso+'”)':''} fica guardado e você pode voltar para ele depois.`))) return;
-  if(!S.config.concurso) S.config.concurso = 'Edital até '+br(hoje());
-  salvarEditalAtual();
+  aplicarEditalNovo(nome, banca, lidas);
+  trocaEd = false; delete S.metas[hoje()]; gerarMetas(false); save(); render();
+  avisar(`Edital trocado: ${S.materias.length} matéria(s). Ajuste o peso e o seu nível em cada matéria.`);
+}
+// troca o edital pelas matérias lidas ([{nome, tops}]): o atual fica guardado; o que tem o mesmo nome mantém o progresso
+function aplicarEditalNovo(nome, banca, lidas){
+  if(S.materias.length){ if(!S.config.concurso) S.config.concurso = 'Edital até '+br(hoje()); salvarEditalAtual(); }
   restaurarArquivo(new Set(lidas.map(l => norm(l.nome))));
   limparSemHistorico(lidas.map(l => l.nome + '\n' + l.tops.map(t => '- ' + t).join('\n')).join('\n'));
   lidas.forEach(l => {
@@ -1627,8 +1632,6 @@ async function trocarEdital(){
   arquivarFora(new Set(lidas.map(l => norm(l.nome))));
   S.config.concurso = nome; S.config.banca = banca; S.config.origemEdital = 'manual';
   if(S.config.cicloAB) S.config.cicloAB.grupos = {};
-  trocaEd = false; delete S.metas[hoje()]; gerarMetas(false); save(); render();
-  avisar(`Edital trocado: ${S.materias.length} matéria(s). Ajuste o peso e o seu nível em cada matéria.`);
 }
 
 /* ---------- Importar edital em PDF ----------
@@ -2528,7 +2531,8 @@ async function estColetor(){
     feitos++; msg('Lendo as aulas de ' + pend.length + ' cursos… (' + feitos + '/' + pend.length + ')'); } };
   await Promise.all([trabalhar(), trabalhar(), trabalhar()]);
   cursos = cursos.filter(c => c.aulas.length);
-  const txt = 'ESTUDO-GUIADO-ESTRATEGIA ' + JSON.stringify({v: 2, fase, cursos: cursos.map(c => ({id: c.id, url: c.url, titulo: c.titulo, fase: c.fase, aulas: c.aulas}))});
+  const objetivo = ((document.querySelector('h1') || {}).innerText || '').trim().slice(0, 120);
+  const txt = 'ESTUDO-GUIADO-ESTRATEGIA ' + JSON.stringify({v: 2, fase, objetivo, cursos: cursos.map(c => ({id: c.id, url: c.url, titulo: c.titulo, fase: c.fase, aulas: c.aulas}))});
   box.querySelector('#eg-msg').innerHTML = cursos.length ? 'Pronto: ' + cursos.length + ' cursos lidos. Clique em <b>Copiar</b> e cole no Estudo Guiado (Edital → Cursos do Estratégia).' : 'Não consegui ler as aulas destes cursos. Abra um curso e clique no favorito dentro da página dele.';
   const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'width:100%;height:70px;font-size:11px'; box.appendChild(ta);
   const bt = botao('Copiar'); bt.onclick = async () => { try{ await navigator.clipboard.writeText(txt); }catch(e){ ta.select(); document.execCommand('copy'); } bt.textContent = 'Copiado ✓'; };
@@ -2559,6 +2563,7 @@ function estProcessar(){
   let dados; try{ dados = JSON.parse(txt.slice(i + 24).trim()); }catch(e){ return avisar('O texto colado está incompleto. Copie de novo pelo favorito.'); }
   const cursos = (dados.cursos || []).filter(c => c.aulas && c.aulas.length);
   if(!cursos.length) return avisar('Nenhum curso com aulas foi encontrado.');
+  if(!S.materias.length || estModoMontar){ estMontarIniciar(cursos, dados); return; }
   const escolha = {}, aulas = {};
   // fase dos cursos: a que veio da leitura; se vieram as duas, a fase do plano (Configurações → Fase do concurso)
   const fases = [...new Set(cursos.map(c => c.fase).filter(Boolean))];
@@ -2590,18 +2595,84 @@ function estAplicar(manterRevisao){
   delete S.metas[hoje()]; gerarMetas(false); save(); render();
   avisar(`${nm} matérias ligadas aos cursos do Estratégia${estEstado && estEstado.fase ? ' (' + (estEstado.fase === 'pos' ? 'pós' : 'pré') + '-edital)' : ''} e ${nt} assuntos às suas aulas. O edital verticalizado e o plano agora seguem a ordem das aulas.`);
 }
+/* ---------- Montar o edital pelos cursos do Estratégia (antes do edital sair) ----------
+   Cada curso vira uma matéria e cada capítulo do LDI (ou aula do site antigo) vira um assunto, já ligado à aula. */
+let estMontar = null, estModoMontar = false;
+const EST_NAO_ASSUNTO = /apresenta[cç][aã]o|^aula demonstrativa|quest[oõ]es comentadas|lista de quest|^quest[oõ]es$|^resumo|gabarito|mapas? mentais?|simulado|considera[cç][oõ]es finais|b[oô]nus|^revis[aã]o|^introdu[cç][aã]o ao curso|^orienta[cç][oõ]es|cronograma|^informa[cç][oõ]es|^v[ií]deo/i;
+const EST_NAO_CURSO = /reta final|bizu|resumo|simulado|revis[aã]o|quest[oõ]es comentadas|discursiv|mapas? mentais|passo estrat|audiolivro|curso de quest/i;
+function estNomeMateria(titulo){
+  let t = String(titulo || '').split(/\s+[–—]\s+/)[0];
+  t = t.replace(/\((?:prof|profa|professora?)\.?[^)]*\)/ig, '').replace(/\s+(para|p\/)\s+.*$/i, '').replace(/[-–(]*\s*(p[rό]e|pr[eé]|p[oó]s)[\s-]*edital\s*\)?/ig, '')
+       .replace(/\s*-\s*$/,'').replace(/\s{2,}/g, ' ').trim();
+  return t || String(titulo || '').slice(0, 60);
+}
+const estAssuntos = c => (c.aulas || []).filter(a => a[2] && !EST_NAO_ASSUNTO.test(String(a[2]).trim()));
+function estMontarIniciar(cursos, dados){
+  const fases = [...new Set(cursos.map(c => c.fase).filter(Boolean))];
+  const fase = dados.fase || (fases.includes('pre') ? 'pre' : fases[0] || '');
+  estMontar = {cursos, fase, sel:{}, nomes:{}, objetivo: dados.objetivo || ''};
+  cursos.forEach(c => estMontar.nomes[c.id] = estNomeMateria(c.titulo));
+  estMontarMarcar(); estModoMontar = false; render();
+  setTimeout(() => { const e = document.getElementById('estMontar'); if(e) e.scrollIntoView({behavior:'smooth', block:'start'}); }, 60);
+}
+// marca um curso por matéria (o da fase escolhida, sem cursos de reta final/resumo/etc.)
+function estMontarMarcar(){
+  const vistos = new Set(); estMontar.sel = {};
+  estMontar.cursos.forEach(c => { const ok = (!estMontar.fase || !c.fase || c.fase === estMontar.fase) && !EST_NAO_CURSO.test(c.titulo) && estAssuntos(c).length;
+    const k = norm(estMontar.nomes[c.id]); if(ok && !vistos.has(k)){ vistos.add(k); estMontar.sel[c.id] = true; } });
+}
+function estMontarFase(f){ estMontar.fase = f; estMontarMarcar(); render(); }
+async function estMontarAplicar(){
+  const nome = (document.getElementById('em_nome') || {}).value || '', banca = (document.getElementById('em_banca') || {}).value || '';
+  const escolhidos = estMontar.cursos.filter(c => estMontar.sel[c.id]);
+  if(!nome.trim()) return avisar('Dê um nome ao concurso (ex.: Oficial de Justiça TJ-SP).');
+  if(!escolhidos.length) return avisar('Marque pelo menos um curso.');
+  const porMat = new Map(); // mesma matéria em dois cursos: junta os assuntos
+  escolhidos.forEach(c => { const n = estMontar.nomes[c.id].trim() || estNomeMateria(c.titulo), k = norm(n);
+    if(!porMat.has(k)) porMat.set(k, {nome:n, tops:[], curso:c}); const l = porMat.get(k);
+    estAssuntos(c).forEach(a => { const tn = String(a[2]).trim(); if(!l.tops.some(x => norm(x) === norm(tn))) l.tops.push(tn); }); });
+  const lidas = [...porMat.values()];
+  if(S.materias.length && !(await confirmar(`Montar o edital “${nome.trim()}” pelos cursos do Estratégia?\n\n${lidas.length} matéria(s) e ${lidas.reduce((t,l)=>t+l.tops.length,0)} assunto(s).\nO edital atual fica guardado em Editais guardados e você pode voltar para ele depois.`))) return;
+  aplicarEditalNovo(nome.trim(), banca.trim(), lidas);
+  S.config.origemEdital = 'estrategia';
+  if(estMontar.fase) S.config.fase = estMontar.fase;
+  // liga cada matéria ao curso e cada assunto ao capítulo de onde veio
+  const escolha = {}, aulas = {};
+  lidas.forEach(l => { const m = S.materias.find(x => norm(x.nome) === norm(l.nome)); if(!m) return; escolha[m.id] = l.curso.id;
+    m.topicos.forEach(t => { const a = (l.curso.aulas || []).find(a => a[2] && norm(String(a[2]).trim()) === norm(t.nome)); if(a) aulas[t.id] = a[0]; }); });
+  estEstado = {cursos: estMontar.cursos, escolha, aulas, fase: estMontar.fase};
+  estMontar = null;
+  estAplicar(true);
+  avisar(`Edital montado pelos cursos do Estratégia: ${S.materias.length} matéria(s), ${S.materias.reduce((t,m)=>t+m.topicos.length,0)} assuntos. Ajuste o peso e o seu nível em cada matéria. Quando o edital oficial sair, use "Trocar por um edital novo": o que tiver o mesmo nome mantém o progresso.`);
+}
+function cardEstMontar(){
+  if(!estMontar) return '';
+  const temFases = new Set(estMontar.cursos.map(c => c.fase).filter(Boolean)).size > 1;
+  const lista = estMontar.cursos.filter(c => !estMontar.fase || !c.fase || c.fase === estMontar.fase || estMontar.sel[c.id]);
+  const nSel = estMontar.cursos.filter(c => estMontar.sel[c.id]).length;
+  return `<div class="card" id="estMontar" style="margin-top:16px;border:2px solid var(--acc)"><h2>Montar o edital pelos cursos do Estratégia</h2>
+    <p class="mut" style="margin-top:-4px">Cada curso marcado vira uma matéria, e cada capítulo do curso vira um assunto, já ligado à aula. Apresentação, questões comentadas, resumos e simulados ficam de fora. Confira o nome das matérias e desmarque o que não quiser.</p>
+    <div class="row"><div><label for="em_nome">Concurso</label><input id="em_nome" value="${esc(estMontar.objetivo || S.config.concurso || '')}" placeholder="Ex.: Oficial de Justiça TJ-SP"></div><div><label for="em_banca">Banca (opcional)</label><input id="em_banca" value="${esc(S.config.banca || '')}" placeholder="Ex.: Vunesp"></div></div>
+    ${temFases ? `<div class="inl" style="margin:8px 0"><span class="mut">Cursos de:</span>${[['pre','Pré-edital'],['pos','Pós-edital']].map(([v,n]) => `<button class="${estMontar.fase===v?'b':'g'}" onclick="estMontarFase('${v}')">${n}</button>`).join('')}</div>` : ''}
+    <div style="overflow-x:auto"><table><tr><th></th><th>Matéria no edital</th><th>Curso</th><th class="n">Assuntos</th></tr>
+    ${lista.map(c => `<tr style="${estMontar.sel[c.id]?'':'opacity:.6'}"><td><input type="checkbox" style="width:auto" ${estMontar.sel[c.id]?'checked':''} onchange="estMontar.sel['${esc(c.id)}']=this.checked;render()"></td>
+      <td><input value="${esc(estMontar.nomes[c.id])}" style="min-width:200px" onchange="estMontar.nomes['${esc(c.id)}']=this.value"></td>
+      <td class="mut" style="font-size:13px">${c.fase ? (c.fase==='pos'?'[Pós] ':'[Pré] ') : ''}${esc(curto(c.titulo, 90))}</td><td class="n">${estAssuntos(c).length}</td></tr>`).join('')}</table></div>
+    <p class="mut" style="margin:6px 0 0">Dois cursos com o mesmo nome de matéria são juntados numa só (sem repetir assuntos).</p>
+    <div class="inl"><button class="b" onclick="estMontarAplicar()">Montar o edital (${nSel} curso${nSel===1?'':'s'})</button><button class="g" onclick="estMontar=null;render()">Cancelar</button></div></div>`;
+}
 function cardEstrategia(){
-  if(!S.materias.length) return '';
   const semCurso = S.materias.filter(m => !m.estCurso && !m.estUrl).length;
   let h = `<div class="card" style="margin-top:16px"><h2>Cursos do Estratégia</h2>
-    <p class="mut">Liga cada matéria ao seu curso no Estratégia e cada assunto à aula que trata dele, para qualquer concurso. Os links das metas abrem a aula certa e o estudo segue a ordem do curso. ${semCurso ? `<b>${semCurso} matéria(s) ainda sem curso.</b>` : 'Todas as matérias já têm curso.'}</p>
+    <p class="mut">Liga cada matéria ao seu curso no Estratégia e cada assunto à aula que trata dele, para qualquer concurso. Os links das metas abrem a aula certa e o estudo segue a ordem do curso. ${!S.materias.length ? '<b>Sem edital ainda? Dá para montar o edital pelos próprios cursos.</b>' : semCurso ? `<b>${semCurso} matéria(s) ainda sem curso.</b>` : 'Todas as matérias já têm curso.'}</p>
     <details><summary style="cursor:pointer"><b>Como fazer (uma vez por concurso, no computador)</b></summary><ol class="pl mut" style="padding-left:18px;margin:6px 0">
       <li>Arraste este botão para a barra de favoritos do navegador: <a class="b" style="text-decoration:none;padding:5px 12px;border-radius:9px;background:var(--acc);color:var(--accink);font-weight:600" href="${esc(linkColetor())}" onclick="event.preventDefault();avisar('Arraste o botão para a barra de favoritos e clique nele no site do Estratégia.')">Estudo Guiado ← Estratégia</a>
         <span>(se a barra não aparecer: Ctrl+Shift+B). Ou <button class="lk" onclick="copiarColetor()">copie o código</button> e crie um favorito com ele no lugar do endereço.</span></li>
       <li>Entre no site do Estratégia com sua conta. No <b>site novo</b> (concursos.estrategia.com), abra <b>Minhas Matrículas</b> ou a página do seu concurso; no <b>site antigo</b>, abra Minhas Matrículas. Clique no favorito, escolha <b>Pré-edital</b>, <b>Pós-edital</b> ou <b>Todos</b>, marque o concurso e clique em <b>Ler as aulas</b> (leva cerca de 1 minuto; deixe a aba aberta na frente). Se a lista não aparecer, abra a página de um curso e clique no favorito lá.</li>
-      <li>Clique em <b>Copiar</b> na janelinha e cole abaixo. O edital verticalizado é atualizado com as aulas na hora (por isso, monte o edital antes).</li></ol></details>
+      <li>Clique em <b>Copiar</b> na janelinha e cole abaixo. Com o edital já montado, clique em <b>Ligar matérias e aulas</b>; sem edital (pré-edital), clique em <b>Montar o edital pelos cursos</b>.</li></ol></details>
     <label for="estTxt">Texto copiado do Estratégia</label><textarea id="estTxt" style="min-height:70px" placeholder="Cole aqui (Ctrl+V)"></textarea>
-    <div class="inl"><button class="b" onclick="estProcessar()">Ligar matérias e aulas</button></div>`;
+    <div class="inl">${S.materias.length ? `<button class="b" onclick="estProcessar()">Ligar matérias e aulas</button>` : ''}<button class="${S.materias.length?'g':'b'}" onclick="estModoMontar=true;estProcessar();estModoMontar=false">Montar o edital pelos cursos</button></div>
+    <p class="mut" style="margin:6px 0 0">Ainda sem edital (pré-edital)? Use <b>Montar o edital pelos cursos</b>: as matérias e os assuntos vêm dos cursos do Estratégia, já ligados às aulas.</p>` + cardEstMontar();
   if(estEstado){
     const optC = sel => `<option value="">sem curso</option>` + estEstado.cursos.map(c => `<option value="${esc(c.id)}" ${c.id===sel?'selected':''}>${c.fase ? (c.fase==='pos'?'[Pós] ':'[Pré] ') : ''}${esc(curto(c.titulo, 90))}</option>`).join('');
     const temFases = new Set(estEstado.cursos.map(c => c.fase).filter(Boolean)).size > 1;
