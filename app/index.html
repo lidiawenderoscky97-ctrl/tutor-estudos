@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="77">
+<meta name="versao" content="78">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -148,8 +148,13 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .mat summary{padding:11px 14px;cursor:pointer;display:flex;gap:10px;align-items:center;list-style:none;flex-wrap:wrap}
 .mat summary::-webkit-details-marker{display:none}
 .mat .body{padding:4px 14px 12px;border-top:1px solid var(--line)}
-.tp{display:grid;grid-template-columns:22px 1fr 70px 90px 64px 28px;gap:8px;align-items:center;padding:6px 0;font-size:14px;border-top:1px dashed var(--line)}
+.tp{display:grid;grid-template-columns:18px 22px 1fr 70px 90px 64px 28px;gap:8px;align-items:center;padding:6px 0;font-size:14px;border-top:1px dashed var(--line)}
 .tp.hd{border-top:0;color:var(--mut);font-size:12px}
+.tp .arr{cursor:grab;color:var(--mut);font-size:15px;line-height:1;text-align:center;user-select:none;touch-action:none;padding:6px 0;border-radius:6px}
+.tp .arr:hover{color:var(--acc);background:var(--soft)}
+.tp.arrastando{opacity:.45}
+.tp.alvo-cima{box-shadow:inset 0 3px 0 var(--acc)}.tp.alvo-baixo{box-shadow:inset 0 -3px 0 var(--acc)}
+body.arrastando-top,body.arrastando-top *{cursor:grabbing!important;user-select:none}
 .tp select,.tp input[type=number]{padding:3px 6px;font-size:13px}
 .tp input[type=checkbox]{width:17px;height:17px;accent-color:var(--acc)}
 .tp .nm small{display:block;color:var(--mut);font-size:12px}
@@ -339,7 +344,7 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;backgrou
   aside button span{display:none}
   aside button.on span{display:inline}
   .top,main{padding-left:16px;padding-right:16px}
-  .tp{grid-template-columns:22px 1fr 64px 28px}.tp .hide{display:none}
+  .tp{grid-template-columns:18px 22px 1fr 64px 28px}.tp .hide{display:none}
   .brow{grid-template-columns:100px 1fr 70px}
   .meta{grid-template-columns:28px 1fr}.meta .acts{grid-column:2;justify-content:flex-start}
 }
@@ -732,9 +737,10 @@ function ciclo(extra, dia){
 const numAula = t => { const m = String(t.aula||'').match(/\d+/); return m ? +m[0] : null; };
 function ordemTopicos(m){
   const ord = {estudando:0, nao:1}, modo = S.config.ordemEstudo || 'crono-inc';
-  const temAula = m.topicos.some(t => numAula(t)!=null);
+  const temAula = !m.ordemManual && m.topicos.some(t => numAula(t)!=null);
   const crono = x => temAula ? (numAula(x.t) ?? 999)*1000 + x.i : x.i;
-  const onda = x => modo==='crono-inc' && (+x.t.incid||2)===1 ? 1 : 0;
+  const onda = x => !m.ordemManual && modo==='crono-inc' && (+x.t.incid||2)===1 ? 1 : 0;
+  if(m.ordemManual) return m.topicos.filter(t => t.status!=='concluido').sort((a,b) => ord[a.status]-ord[b.status] || m.topicos.indexOf(a)-m.topicos.indexOf(b)); // ordem arrastada pelo aluno
   if(posEdital()){ const sc = t => incRelativa(m,t) * fatorFraco(t);
     return m.topicos.map((t,i)=>({t,i,s:sc(t)})).filter(x=>x.t.status!=='concluido')
       .sort((a,b)=> ord[a.t.status]-ord[b.t.status] || b.s-a.s || crono(a)-crono(b)).map(x=>x.t); }
@@ -2600,7 +2606,7 @@ function estAplicar(manterRevisao){
     m.estAulas = {}; c.aulas.forEach(a => { if(a[0]) m.estAulas[a[0]] = a[1]; }); m.curso = c.titulo; m.estFase = c.fase || estEstado.fase || ''; nm++;
     m.topicos.forEach(t => { const n = estEstado.aulas[t.id]; if(n){ const a = c.aulas.find(x => x[0] === n); t.aula = (/\/ldi\//.test(c.url||'') ? 'Capítulo ' : 'Aula ') + n + (a && a[2] ? ' – ' + curto(a[2], 90) : ''); nt++; } });
     // edital verticalizado na ordem das aulas do curso (assuntos sem aula ficam no fim, na ordem do edital)
-    const pos = new Map(m.topicos.map((t,i) => [t.id, i]));
+    delete m.ordemManual; const pos = new Map(m.topicos.map((t,i) => [t.id, i]));
     m.topicos.sort((a,b) => { const na = numAula(a), nb = numAula(b); return (na ?? 999) - (nb ?? 999) || pos.get(a.id) - pos.get(b.id); }); });
   if(!manterRevisao) estEstado = null;
   delete S.metas[hoje()]; gerarMetas(false); save(); render();
@@ -2919,8 +2925,9 @@ function vEdital(){
         <a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(linkEstrategia(m))}" target="_blank" rel="noopener">${(m.estCurso||m.estUrl)?'Abrir curso':'Minhas matrículas'}</a></div>
       <div class="inl" style="margin:0 0 8px"><div style="flex:1;min-width:220px"><label>Link do caderno no TEC</label><input value="${esc(m.tecLink||'')}" placeholder="https://www.tecconcursos.com.br/..." onchange="setMatLink('${m.id}',this.value)"></div>
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
-      <div class="tp hd"><span></span><span>Assunto</span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
-      ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp"><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
+      <div class="tp hd"><span></span><span></span><span>Assunto <span style="font-weight:400">(arraste ⠿ para mudar a ordem)</span></span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
+      ${m.ordemManual ? `<div class="alert info" style="margin:0 0 8px;padding:7px 10px">A ordem dos assuntos é a que você arrastou, e as metas seguem essa ordem. <button class="lk" onclick="ordemAuto('${m.id}')">voltar à ordem automática</button></div>` : ''}
+      ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp" data-tid="${t.id}"><span class="arr" title="Arraste para mudar a ordem" onpointerdown="arrastarTop(event,'${m.id}','${t.id}')">⠿</span><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
         <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.estatP!=null?'Estratégia: '+String(t.estatP).replace('.',',')+'% de cobrança':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>${descLeiHtml(t)}
           ${(lks => lks.map((lk,i) => `<span class="tptec"><input value="${esc(lk)}" title="Caderno ${i+1} do TEC deste assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${i})"><a href="${esc(lk)}" target="_blank" rel="noopener">${lks.length>1?'Caderno '+(i+1):'Abrir no TEC'} ↗</a><button class="x" title="Tirar este caderno" onclick="setTopTec('${m.id}','${t.id}','',${i})">✕</button></span>`).join('')
             + `<span class="tptec"><input value="" placeholder="${lks.length?'+ Adicionar outro caderno do TEC':'Link do caderno no TEC deste assunto'}" title="Link de um caderno do TEC Concursos para este assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${lks.length})"></span>`)(linksTecTop(t))}</span>
@@ -3048,6 +3055,41 @@ function addMat(){
   if(!S.config.origemEdital) S.config.origemEdital = 'manual';
   delete S.metas[hoje()]; save(); render();
   avisar(`${nM} matéria(s) nova(s) e ${nA} assunto(s) adicionados. Ajuste o peso e o seu nível em cada matéria.`);
+}
+/* ---------- Ordem dos assuntos: arrastar pela alça ⠿ (mouse ou dedo) ---------- */
+function moverTop(mid, tid, novo){
+  const m = mat(mid); if(!m) return; const i = m.topicos.findIndex(t => t.id === tid); if(i < 0) return;
+  const [t] = m.topicos.splice(i, 1); novo = Math.max(0, Math.min(m.topicos.length, novo)); m.topicos.splice(novo, 0, t);
+  if(i === novo) return render();
+  m.ordemManual = true; gerarMetas(true); save(); render();
+}
+function ordemAuto(mid){ const m = mat(mid); if(!m) return; delete m.ordemManual;
+  const pos = new Map(m.topicos.map((t,i) => [t.id, i]));
+  m.topicos.sort((a,b) => (numAula(a) ?? 999) - (numAula(b) ?? 999) || pos.get(a.id) - pos.get(b.id));
+  gerarMetas(true); save(); render(); avisar('Ordem automática de volta: segue as aulas do curso e a incidência.'); }
+function arrastarTop(ev, mid, tid){
+  ev.preventDefault();
+  const linha = ev.target.closest('.tp'), lista = linha && linha.parentElement; if(!lista) return;
+  const linhas = () => [...lista.querySelectorAll('.tp[data-tid]')];
+  linha.classList.add('arrastando'); document.body.classList.add('arrastando-top');
+  let alvo = null, depois = false;
+  const limpar = () => linhas().forEach(l => l.classList.remove('alvo-cima','alvo-baixo'));
+  const mover = e => {
+    const el = document.elementFromPoint(e.clientX, e.clientY), l = el && el.closest('.tp[data-tid]');
+    limpar(); if(!l || l.parentElement !== lista){ alvo = null; return; }
+    const r = l.getBoundingClientRect(); alvo = l; depois = e.clientY > r.top + r.height/2;
+    if(l !== linha) l.classList.add(depois ? 'alvo-baixo' : 'alvo-cima');
+    if(e.clientY < 70) window.scrollBy(0, -12); else if(e.clientY > innerHeight - 70) window.scrollBy(0, 12);
+  };
+  const soltar = () => {
+    removeEventListener('pointermove', mover); removeEventListener('pointerup', soltar); removeEventListener('pointercancel', soltar);
+    limpar(); linha.classList.remove('arrastando'); document.body.classList.remove('arrastando-top');
+    if(!alvo || alvo === linha) return;
+    const ids = linhas().map(l => l.dataset.tid).filter(x => x !== tid);
+    let k = ids.indexOf(alvo.dataset.tid); if(depois) k++;
+    moverTop(mid, tid, k);
+  };
+  addEventListener('pointermove', mover); addEventListener('pointerup', soltar); addEventListener('pointercancel', soltar);
 }
 function addTop(mid){const i=document.getElementById('nt_'+mid), n=i.value.trim(); if(!n) return; mat(mid).topicos.push({id:uid(),nome:n,status:'nao',incid:2,paginas:0,feitos:0,aula:''}); abertas.add(mid); save(); render(); document.getElementById('nt_'+mid).focus();}
 async function delTop(mid,tid){if(!(await confirmar('Excluir assunto e seu histórico?')))return; const m=mat(mid); m.topicos=m.topicos.filter(t=>t.id!==tid); S.revisoes=S.revisoes.filter(r=>r.topicoId!==tid); S.sessoes=S.sessoes.filter(s=>s.topicoId!==tid); save(); render();}
