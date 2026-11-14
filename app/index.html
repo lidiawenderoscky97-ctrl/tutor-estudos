@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="78">
+<meta name="versao" content="79">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -2901,6 +2901,177 @@ Crase   8,20%">${esc(anEstado.txt||'')}</textarea>
       <div class="inl"><button class="b" onclick="anSalvar()">Guardar análise</button><button class="g" onclick="anEstado={mid:'',txt:'',lidos:null};render()">Descartar</button></div>` : ''}</div>`;
   return h;
 }
+/* ---------- Incidência pelo TEC: lê o índice de assuntos dos cadernos (quantas questões de cada assunto)
+   e calcula quanto cada assunto do edital é cobrado dentro da matéria ---------- */
+async function tecIncColetor(){
+  if(!/tecconcursos\.com\.br$/.test(location.hostname)){ alert('Abra o TEC Concursos (já logado), entre na pasta dos seus cadernos e clique de novo neste favorito.'); return; }
+  const velho = document.getElementById('eg-tec'); if(velho) velho.remove();
+  const box = document.createElement('div'); box.id = 'eg-tec';
+  box.style.cssText = 'position:fixed;z-index:2147483647;top:16px;right:16px;width:440px;max-width:calc(100vw - 32px);background:#fff;color:#1d1e2b;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.35);font:14px/1.45 system-ui,sans-serif;padding:16px';
+  box.innerHTML = '<b style="font-size:16px">Estudo Guiado · incidência pelo TEC</b><div id="eg-st" style="margin:8px 0;color:#555">Lendo os cadernos…</div>';
+  document.body.appendChild(box);
+  const st = t => { box.querySelector('#eg-st').textContent = t; };
+  const api = u => fetch('/api' + u, {credentials:'include', headers:{Accept:'application/json'}}).then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  try{
+    const cads = new Map();
+    const lerPasta = async (idP, idSub) => {
+      for(let p = 1; p < 40; p++){
+        const j = await api('/pastas-cadernos/' + idP + (idSub ? '/subpastas/' + idSub : '') + '/itens?ordenacao=NOME&paginar=true&pagina=' + p);
+        const itens = (j && j.itens) || []; let novos = 0;
+        for(const it of itens){ if(it.subpasta){ if(!idSub) await lerPasta(idP, it.id); continue; } if(!cads.has(it.id)){ cads.set(it.id, {id:it.id, nome:it.nome, total:it.quantidadeItens}); novos++; } }
+        if(!itens.length || !novos) break;
+      }
+    };
+    const mc = location.pathname.match(/cadernos\/(\d+)/), mp = location.pathname.match(/pastas\/(\d+)(?:\/subpastas\/(\d+))?/);
+    if(mc) cads.set(+mc[1], {id:+mc[1], nome:document.title.replace(/\s*[-|].*TEC.*$/i,''), total:null});
+    else if(mp) await lerPasta(mp[1], mp[2]);
+    else { const j = await api('/pastas-cadernos/?buscarSubpastas=true'); for(const p of (j.pastas || [])){ st('Lendo a pasta ' + p.nome + '…'); await lerPasta(p.id); } }
+    const lista = [...cads.values()].slice(0, 150);
+    if(!lista.length) throw new Error('não achei cadernos aqui. Abra a pasta dos seus cadernos (Estudo → Minhas pastas) e clique de novo.');
+    let i = 0;
+    for(const c of lista){
+      st('Lendo o índice do caderno ' + (++i) + ' de ' + lista.length + '…');
+      const raiz = await api('/cadernos/' + c.id + '/carregar-indice');
+      const nos = []; // [id, nome, questões, índice do pai, é matéria]
+      const andar = (n, pai) => { const k = nos.length; nos.push([n.id, n.nome, n.contagem || 0, pai, n.tipo === 'Materia' ? 1 : 0]); (n.subTree || []).forEach(x => andar(x, k)); };
+      (raiz || []).forEach(n => andar(n, -1));
+      c.nos = nos; if(c.total == null) c.total = nos.filter(n => n[3] === -1).reduce((s, n) => s + n[2], 0);
+    }
+    const txt = 'ESTUDO-GUIADO-TEC ' + JSON.stringify({v:1, cadernos:lista});
+    st(lista.length + ' caderno(s) lido(s). Clique em Copiar e cole no Estudo Guiado (Edital → Incidência pelo TEC).');
+    const ta = document.createElement('textarea'); ta.value = txt; ta.readOnly = true; ta.style.cssText = 'width:100%;height:70px;font-size:11px;border:1px solid #ccc;border-radius:8px;padding:6px;box-sizing:border-box';
+    const bt = document.createElement('button'); bt.textContent = 'Copiar'; bt.style.cssText = 'margin-top:8px;background:#5b5bd6;color:#fff;border:0;border-radius:9px;padding:8px 16px;font-weight:600;cursor:pointer';
+    const fx = document.createElement('button'); fx.textContent = 'Fechar'; fx.style.cssText = 'margin:8px 0 0 8px;background:#eee;color:#222;border:0;border-radius:9px;padding:8px 14px;cursor:pointer';
+    bt.onclick = async () => { try{ await navigator.clipboard.writeText(txt); }catch(e){ ta.select(); document.execCommand('copy'); } bt.textContent = 'Copiado ✓'; };
+    fx.onclick = () => box.remove();
+    box.append(ta, bt, fx);
+  }catch(e){ st('Não consegui ler: ' + e.message); const fx = document.createElement('button'); fx.textContent = 'Fechar'; fx.onclick = () => box.remove(); box.append(fx); }
+}
+const linkTecInc = () => 'javascript:' + encodeURIComponent('(' + tecIncColetor.toString() + ')()');
+
+// semelhança entre nomes de assuntos (palavras em comum, sem acento, com radical curto; número de lei pesa mais)
+const TEC_STOP = new Set('de da do das dos e a o as os em na no nas nos para por com sem ao aos um uma uns umas lei leis art arts artigo artigos sobre seu sua seus suas geral gerais nocoes nocao conceito conceitos aspectos disposicoes basicos basicas principais sua demais outros outras etc atual federal decreto'.split(' '));
+function tecTokens(s){
+  return [...new Set(norm(s).replace(/(\d)\.(\d)/g, '$1$2').replace(/[^a-z0-9]+/g, ' ').split(' ')
+    .filter(w => w && !TEC_STOP.has(w) && (w.length > 2 || /\d/.test(w)) && !/^(19|20)\d\d$/.test(w))
+    .map(w => /\d/.test(w) ? w : (w.length > 5 && w.endsWith('es') ? w.slice(0, -2) : w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w).slice(0, 6)))];
+}
+// quanto do nome do assunto do TEC (a) aparece no assunto do edital (b), dando mais peso às palavras raras no edital da matéria
+function tecScore(a, b, idf, mx){
+  if(!a.length || !b.length) return 0;
+  const B = new Set(b); let tem = 0, tot = 0, lei = 0;
+  a.forEach(w => { const p = idf[w] != null ? idf[w] : mx * .5; tot += p; if(B.has(w)){ tem += p; if(/^\d{3,}$/.test(w)) lei = 1; } });
+  return tem / (tot || 1) + (lei ? .3 : 0) + tecSimil(a, b) * .01;
+}
+function tecSimil(a, b){
+  if(!a.length || !b.length) return 0;
+  const B = new Set(b); let n = 0, lei = 0; a.forEach(w => { if(B.has(w)){ n++; if(/^\d{3,}$/.test(w)) lei = 1; } });
+  return n / Math.sqrt(a.length * b.length) + (lei ? .3 : 0);
+}
+const tecIdCaderno = l => { const m = String(l || '').match(/cadernos\/(\d+)/); return m ? +m[1] : null; };
+const tecNomeCaderno = s => String(s || '').replace(/\s+-\s+.*$/, '').trim();
+let tecInc = null; // {cadernos, porMat: {mid: {cad, total, conta:{tid:q}, folhas:[{k,id,nome,q,alvo,auto}]}}}
+function tecIncProcessar(){
+  const el = document.getElementById('tecIncTxt'), txt = (el && el.value || '').trim();
+  const i = txt.indexOf('ESTUDO-GUIADO-TEC '); if(i < 0) return avisar('Cole o texto copiado no TEC (começa com ESTUDO-GUIADO-TEC).');
+  let dados; try{ dados = JSON.parse(txt.slice(i + 18)); }catch(e){ return avisar('O texto colado está incompleto. Copie de novo no TEC.'); }
+  const cads = (dados.cadernos || []).filter(c => c && c.nos);
+  if(!cads.length) return avisar('Nenhum caderno no texto colado.');
+  tecInc = {cadernos: cads, porMat: {}};
+  const porId = new Map(cads.map(c => [+c.id, c])), usados = new Set();
+  // cadernos ligados a assuntos (um caderno só daquele assunto)
+  const doTopico = {};
+  S.materias.forEach(m => m.topicos.forEach(t => linksTecTop(t).forEach(l => { const c = porId.get(tecIdCaderno(l)); if(c){ (doTopico[m.id] = doTopico[m.id] || {})[t.id] = ((doTopico[m.id]||{})[t.id] || 0) + (+c.total || 0); usados.add(+c.id); } })));
+  S.materias.forEach(m => {
+    let cad = porId.get(tecIdCaderno(m.tecLink)); let auto = false;
+    if(!cad || usados.has(+cad.id)){ // sem link: procura pelo nome do caderno
+      const tm = tecTokens(m.nome); let best = null, bs = 0;
+      cads.forEach(c => { if(usados.has(+c.id)) return; const s = tecSimil(tm, tecTokens(tecNomeCaderno(c.nome))); if(s > bs){ bs = s; best = c; } });
+      cad = bs >= .6 ? best : null; auto = !!cad;
+    }
+    const pt = doTopico[m.id] || {};
+    if(!cad && !Object.keys(pt).length) return;
+    const r = {cad: cad ? +cad.id : null, cadNome: cad ? cad.nome : '', auto, total: 0, folhas: [], soCaderno: pt};
+    if(cad){
+      usados.add(+cad.id);
+      const nos = cad.nos, tops = m.topicos.map(t => ({t, k: tecTokens(t.nome)})), mapa = m.tecMap || {};
+      const df = {}; tops.forEach(o => o.k.forEach(w => df[w] = (df[w] || 0) + 1));
+      const idf = {}; Object.keys(df).forEach(w => idf[w] = Math.log(1 + tops.length / df[w])); const mx = Math.log(1 + tops.length);
+      const melhor = idx => { // melhor assunto do edital para o nó idx, olhando também os assuntos "pais" no TEC
+        let b = null, bs = 0, w = 1;
+        for(let j = idx; j >= 0 && w > .6; j = nos[j][3], w -= .1){ if(nos[j][4]) break; const k = tecTokens(nos[j][1]);
+          tops.forEach(o => { const s = tecScore(k, o.k, idf, mx) * w; if(s > bs){ bs = s; b = o.t; } }); }
+        return bs >= .35 ? b : null;
+      };
+      nos.forEach((n, idx) => {
+        if(n[4] || nos.some(x => x[3] === idx)) return; // só as folhas (as contagens dos pais somam as das folhas)
+        const auto = melhor(idx), man = mapa[n[0]];
+        const alvo = man === '-' ? null : man && topico(m, man) ? man : auto ? auto.id : null;
+        r.folhas.push({id: n[0], nome: n[1], pai: n[3] >= 0 && !nos[n[3]][4] ? nos[n[3]][1] : '', q: n[2], alvo, auto: auto ? auto.id : null, man: man || ''});
+        r.total += n[2];
+      });
+      r.folhas.sort((a, b) => b.q - a.q);
+    }
+    tecInc.porMat[m.id] = r;
+  });
+  if(!Object.keys(tecInc.porMat).length){ tecInc = null; return avisar('Nenhum caderno colado bate com as matérias do edital. Confira os nomes ou cole o link do caderno de cada matéria (Edital → matéria → Link do caderno no TEC).'); }
+  render();
+}
+function tecContas(m){ // {tid: questões}, total da matéria
+  const r = tecInc.porMat[m.id], conta = {}; let total = r.total;
+  r.folhas.forEach(f => { if(f.alvo) conta[f.alvo] = (conta[f.alvo] || 0) + f.q; });
+  Object.entries(r.soCaderno || {}).forEach(([tid, q]) => { conta[tid] = q; });
+  if(!r.cad) total = Object.values(conta).reduce((s, q) => s + q, 0);
+  return {conta, total};
+}
+function tecIncNivel(q, media){ if(!q) return 1; const r = q / (media || 1); return r >= 1.25 ? 3 : r < .5 ? 1 : 2; }
+function tecIncAlvo(mid, fid, v){ const r = tecInc.porMat[mid], f = r.folhas.find(x => String(x.id) === String(fid)); if(!f) return;
+  f.man = v; f.alvo = v === '-' ? null : v === '' ? f.auto : v; render(); }
+function tecIncAplicar(){
+  let nT = 0, nM = 0;
+  Object.entries(tecInc.porMat).forEach(([mid, r]) => {
+    const m = mat(mid); if(!m) return; const {conta, total} = tecContas(m);
+    const comQ = m.topicos.map(t => conta[t.id] || 0), media = comQ.reduce((s, q) => s + q, 0) / (comQ.length || 1);
+    m.topicos.forEach(t => { const q = conta[t.id] || 0; t.tecQ = q; t.tecP = total ? Math.round(q / total * 1000) / 10 : 0; t.incid = tecIncNivel(q, media); nT++; });
+    m.tecMap = {}; r.folhas.forEach(f => { if(f.man) m.tecMap[f.id] = f.man; });
+    if(r.cad && (!m.tecLink || r.auto)) m.tecLink = 'https://www.tecconcursos.com.br/questoes/cadernos/' + r.cad;
+    m.tecAtualizado = hoje(); nM++;
+  });
+  tecInc = null; gerarMetas(true); save(); render();
+  avisar(`Incidência pelo TEC aplicada: ${nT} assuntos em ${nM} matéria(s). As metas pendentes foram refeitas.`);
+}
+const NIVEL_TXT = {1:'Baixa', 2:'Média', 3:'Alta'};
+function cardTecInc(){
+  if(!S.materias.length) return '';
+  const feitas = S.materias.filter(m => m.tecAtualizado).length;
+  let h = `<div class="card" style="margin-top:16px"><h2>Incidência pelo TEC</h2>
+    <p class="mut" style="margin-top:-4px">O tutor lê o índice dos seus cadernos no TEC (quantas questões há de cada assunto) e calcula quanto cada assunto do edital é cobrado dentro da matéria. Com isso a incidência (alta, média, baixa) é preenchida sozinha e o plano dá mais tempo ao que mais cai. ${feitas ? `<b>${feitas} matéria(s) já com incidência do TEC.</b>` : ''}</p>
+    <ol class="pl" style="margin:6px 0">
+      <li>Arraste para a barra de favoritos o botão <a class="b" style="text-decoration:none;padding:4px 11px;border-radius:9px;background:var(--acc);color:#fff;font-weight:600" href="${linkTecInc()}" onclick="event.preventDefault();avisar('Arraste este botão para a barra de favoritos do navegador.')">⭐ Incidência TEC</a> (uma vez só).</li>
+      <li>No TEC, já logado, abra <b>Estudo → Minhas pastas</b> e entre na pasta com os cadernos do concurso (um caderno por matéria; se tiver cadernos por assunto ligados no edital, eles também contam). Clique no favorito.</li>
+      <li>Clique em <b>Copiar</b> na janelinha, cole abaixo e confira.</li></ol>
+    <textarea id="tecIncTxt" style="min-height:60px" placeholder="Cole aqui (Ctrl+V)"></textarea>
+    <div class="inl"><button class="b" onclick="tecIncProcessar()">Calcular a incidência</button></div>`;
+  if(tecInc){
+    h += `<h3>Confira antes de aplicar</h3><p class="mut" style="margin-top:-4px">Cada assunto do TEC foi ligado ao assunto do edital de nome mais parecido. Se algum ficou errado ou sem ligação, troque em "Assuntos do TEC".</p>`;
+    Object.entries(tecInc.porMat).forEach(([mid, r]) => {
+      const m = mat(mid); if(!m) return; const {conta, total} = tecContas(m);
+      const media = m.topicos.reduce((s, t) => s + (conta[t.id] || 0), 0) / (m.topicos.length || 1);
+      const ligadas = r.folhas.filter(f => f.alvo).reduce((s, f) => s + f.q, 0), sem = r.folhas.filter(f => !f.alvo);
+      h += `<details class="mat" open><summary><b>${esc(m.nome)}</b> <span class="mut">${r.cad ? '· caderno ' + esc(curto(r.cadNome, 60)) + (r.auto ? ' (achado pelo nome)' : '') : '· cadernos por assunto'} · ${total} questões${r.cad && total ? ' · ' + Math.round(ligadas / total * 100) + '% ligadas ao edital' : ''}</span></summary><div class="body">
+        <div style="overflow-x:auto"><table><tr><th>Assunto do edital</th><th class="n">Questões</th><th class="n">% da matéria</th><th>Incidência</th></tr>
+        ${m.topicos.map(t => { const q = conta[t.id] || 0, nv = tecIncNivel(q, media); return `<tr><td>${esc(t.nome)}${r.soCaderno && r.soCaderno[t.id] != null ? ' <span class="tag">caderno próprio</span>' : ''}</td><td class="n">${q}</td><td class="n">${total ? String(Math.round(q / total * 1000) / 10).replace('.', ',') + '%' : '—'}</td><td><span class="tag ${nv === 3 ? 'bad' : nv === 1 ? '' : 'warn'}">${NIVEL_TXT[nv]}</span>${!q ? ' <span class="mut" style="font-size:12px">nenhuma questão ligada</span>' : ''}</td></tr>`; }).join('')}</table></div>
+        ${r.folhas.length ? `<details style="margin-top:8px"><summary class="mut">Assuntos do TEC (${r.folhas.length})${sem.length ? ` · <b style="color:var(--warn)">${sem.length} sem ligação (${sem.reduce((s, f) => s + f.q, 0)} questões)</b>` : ''}</summary>
+          <div style="overflow-x:auto"><table><tr><th>Assunto no TEC</th><th class="n">Questões</th><th>Conta para o assunto do edital</th></tr>
+          ${r.folhas.map(f => `<tr style="${f.alvo ? '' : 'background:var(--warnbg)'}"><td>${esc(f.nome)}${f.pai ? `<div class="mut" style="font-size:12px">${esc(f.pai)}</div>` : ''}</td><td class="n">${f.q}</td>
+            <td><select style="min-width:200px" onchange="tecIncAlvo('${mid}','${f.id}',this.value)"><option value="" ${!f.man ? 'selected' : ''}>${f.auto ? 'Automático: ' + esc(curto((topico(m, f.auto) || {}).nome, 40)) : 'Automático: sem ligação'}</option><option value="-" ${f.man === '-' ? 'selected' : ''}>Não contar</option>
+              ${m.topicos.map(t => `<option value="${t.id}" ${f.man === t.id ? 'selected' : ''}>${esc(curto(t.nome, 60))}</option>`).join('')}</select></td></tr>`).join('')}</table></div></details>` : ''}
+      </div></details>`;
+    });
+    h += `<div class="inl"><button class="b" onclick="tecIncAplicar()">Aplicar a incidência</button><button class="g" onclick="tecInc=null;render()">Cancelar</button></div>`;
+  }
+  return h + '</div>';
+}
 function edAbas(){
   return `<div class="inl" style="margin:0 0 4px;gap:8px">${[['vert','Edital verticalizado'],['estat','Análise estatística']].map(([k,r]) => `<button class="${edAba===k?'b':'g'}" onclick="edAba='${k}';render()">${r}</button>`).join('')}</div>`;
 }
@@ -2910,7 +3081,7 @@ function vEdital(){
   if(S.materias.some(m => m.topicos.some(temArtigos))){ if(LS.pronto && LS.sig !== lsAssinatura()) lsInvalidar(); if(!LS.pronto && !LS.preparando) lsPreparar(); }
   if(edAba === 'estat') return edAbas() + vAnalise();
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
-  let h = edAbas() + cardMeuEdital() + cardPdf() + cardEstrategia() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
+  let h = edAbas() + cardMeuEdital() + cardPdf() + cardEstrategia() + cardTecInc() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
     <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca.</p>`;
   h += S.materias.map(m => {
     const mc = m.topicos.filter(t=>t.status==='concluido').length, st = stats(s=>s.materiaId===m.id);
@@ -2928,7 +3099,7 @@ function vEdital(){
       <div class="tp hd"><span></span><span></span><span>Assunto <span style="font-weight:400">(arraste ⠿ para mudar a ordem)</span></span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
       ${m.ordemManual ? `<div class="alert info" style="margin:0 0 8px;padding:7px 10px">A ordem dos assuntos é a que você arrastou, e as metas seguem essa ordem. <button class="lk" onclick="ordemAuto('${m.id}')">voltar à ordem automática</button></div>` : ''}
       ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp" data-tid="${t.id}"><span class="arr" title="Arraste para mudar a ordem" onpointerdown="arrastarTop(event,'${m.id}','${t.id}')">⠿</span><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
-        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões':'', t.estatP!=null?'Estratégia: '+String(t.estatP).replace('.',',')+'% de cobrança':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>${descLeiHtml(t)}
+        <span class="nm">${esc(t.nome)}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões'+(t.tecP!=null?' ('+String(t.tecP).replace('.',',')+'% da matéria)':''):'', t.estatP!=null?'Estratégia: '+String(t.estatP).replace('.',',')+'% de cobrança':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>${descLeiHtml(t)}
           ${(lks => lks.map((lk,i) => `<span class="tptec"><input value="${esc(lk)}" title="Caderno ${i+1} do TEC deste assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${i})"><a href="${esc(lk)}" target="_blank" rel="noopener">${lks.length>1?'Caderno '+(i+1):'Abrir no TEC'} ↗</a><button class="x" title="Tirar este caderno" onclick="setTopTec('${m.id}','${t.id}','',${i})">✕</button></span>`).join('')
             + `<span class="tptec"><input value="" placeholder="${lks.length?'+ Adicionar outro caderno do TEC':'Link do caderno no TEC deste assunto'}" title="Link de um caderno do TEC Concursos para este assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${lks.length})"></span>`)(linksTecTop(t))}</span>
         <input type="number" min="0" value="${t.paginas||''}" placeholder="?" onchange="setTop('${m.id}','${t.id}','paginas',+this.value||0)">
