@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="76">
+<meta name="versao" content="77">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -837,13 +837,18 @@ function montarMetas(dia, base){
   }
   return metas;
 }
+// assinatura do edital usada nas metas de hoje: se as matérias ou os assuntos mudarem, as metas pendentes são refeitas
+const sigEdital = () => S.materias.map(m => m.id + ':' + m.topicos.length).sort().join('|');
+const metaValida = x => x.tipo === 'fixa' || (mat(x.materiaId) && topico(mat(x.materiaId), x.topicoId));
 function atualizarMetasAntigas(){
-  const l = S.metas[hoje()]; if(l && l.some(x=>x.tipo==='conteudo' && !x.feita && !x.fase)) gerarMetas(true);
+  const l = S.metas[hoje()]; if(!l) return;
+  const velha = l.some(x => !x.feita && !metaValida(x)) || (S.config.metasSig && S.config.metasSig !== sigEdital());
+  if(velha || l.some(x=>x.tipo==='conteudo' && !x.feita && !x.fase)) gerarMetas(true);
 }
 function gerarMetas(manterFeitas){
   const dia = hoje();
-  const base = manterFeitas ? (S.metas[dia]||[]).filter(x=>x.feita || x.tipo==='extra' || x.atrasada || x.adiantada) : [];
-  S.metas[dia] = montarMetas(dia, base);
+  const base = manterFeitas ? (S.metas[dia]||[]).filter(x=>x.feita || ((x.tipo==='extra' || x.atrasada || x.adiantada) && metaValida(x))) : [];
+  S.metas[dia] = montarMetas(dia, base); S.config.metasSig = sigEdital();
   Object.keys(S.metas).forEach(k => { if(diff(k, dia) > 60) delete S.metas[k]; });
   save();
 }
@@ -1546,7 +1551,7 @@ async function carregarSalvo(id){
   limparSemHistorico(e.texto);
   S.config.origemEdital = 'pdf';
   const msg = importar(e.texto, true); arquivarFora(nomes);
-  S.config.concurso = e.nome; S.config.banca = e.banca || ''; if(S.config.cicloAB) S.config.cicloAB.grupos = {}; buscaRes = null; buscaTermo = '';
+  S.config.concurso = e.nome; S.config.banca = e.banca || ''; if(S.config.cicloAB) S.config.cicloAB.grupos = {}; planoNovo(); buscaRes = null; buscaTermo = '';
   buscaMsg = 'Edital carregado: '+msg;
   delete S.metas[hoje()]; gerarMetas(false); save(); render();
 }
@@ -1650,6 +1655,12 @@ function aplicarEditalNovo(nome, banca, lidas){
   arquivarFora(new Set(lidas.map(l => norm(l.nome))));
   S.config.concurso = nome; S.config.banca = banca; S.config.origemEdital = 'manual';
   if(S.config.cicloAB) S.config.cicloAB.grupos = {};
+  planoNovo();
+}
+// plano novo: metas pendentes de dias anteriores não viram "atrasadas" e as de hoje são refeitas
+function planoNovo(){
+  Object.keys(S.metas).filter(k => k < hoje()).forEach(k => (S.metas[k]||[]).forEach(x => { if(!x.feita && !Object.isFrozen(x)) x.descartada = true; }));
+  delete S.metas[hoje()]; delete S.config.metasSig;
 }
 
 /* ---------- Importar edital em PDF ----------
@@ -3058,7 +3069,7 @@ function addMat(){
 }
 function addTop(mid){const i=document.getElementById('nt_'+mid), n=i.value.trim(); if(!n) return; mat(mid).topicos.push({id:uid(),nome:n,status:'nao',incid:2,paginas:0,feitos:0,aula:''}); abertas.add(mid); save(); render(); document.getElementById('nt_'+mid).focus();}
 async function delTop(mid,tid){if(!(await confirmar('Excluir assunto e seu histórico?')))return; const m=mat(mid); m.topicos=m.topicos.filter(t=>t.id!==tid); S.revisoes=S.revisoes.filter(r=>r.topicoId!==tid); S.sessoes=S.sessoes.filter(s=>s.topicoId!==tid); save(); render();}
-async function delMat(id){if(!(await confirmar('Excluir a matéria e todo o seu histórico?')))return; S.materias=S.materias.filter(m=>m.id!==id); S.sessoes=S.sessoes.filter(s=>s.materiaId!==id); S.revisoes=S.revisoes.filter(r=>r.materiaId!==id); save(); render();}
+async function delMat(id){if(!(await confirmar('Excluir a matéria e todo o seu histórico?')))return; S.materias=S.materias.filter(m=>m.id!==id); S.sessoes=S.sessoes.filter(s=>s.materiaId!==id); S.revisoes=S.revisoes.filter(r=>r.materiaId!==id); if(S.materias.length) gerarMetas(true); else delete S.metas[hoje()]; save(); render();}
 function importar(texto, silencioso){
   let atual=null, nM=0, nT=0, nU=0, ultTop=null;
   (texto ?? imp.value).split('\n').forEach(l => {
