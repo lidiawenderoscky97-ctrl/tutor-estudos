@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="79">
+<meta name="versao" content="80">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -2941,7 +2941,7 @@ async function tecIncColetor(){
       }
     };
     const mc = location.pathname.match(/cadernos\/(\d+)/), mp = location.pathname.match(/pastas\/(\d+)(?:\/subpastas\/(\d+))?/);
-    if(mc) cads.set(+mc[1], {id:+mc[1], nome:document.title.replace(/\s*[-|].*TEC.*$/i,''), total:null});
+    if(mc) cads.set(+mc[1], {id:+mc[1], nome:'', total:null});
     else if(mp) await lerPasta(mp[1], mp[2]);
     else { const j = await api('/pastas-cadernos/?buscarSubpastas=true'); for(const p of (j.pastas || [])){ st('Lendo a pasta ' + p.nome + '…'); await lerPasta(p.id); } }
     const lista = [...cads.values()].slice(0, 150);
@@ -2954,6 +2954,7 @@ async function tecIncColetor(){
       const andar = (n, pai) => { const k = nos.length; nos.push([n.id, n.nome, n.contagem || 0, pai, n.tipo === 'Materia' ? 1 : 0]); (n.subTree || []).forEach(x => andar(x, k)); };
       (raiz || []).forEach(n => andar(n, -1));
       c.nos = nos; if(c.total == null) c.total = nos.filter(n => n[3] === -1).reduce((s, n) => s + n[2], 0);
+      if(!c.nome) c.nome = nos.filter(n => n[3] === -1).map(n => n[1]).join(' / ') || ('Caderno ' + c.id);
     }
     const txt = 'ESTUDO-GUIADO-TEC ' + JSON.stringify({v:1, cadernos:lista});
     st(lista.length + ' caderno(s) lido(s). Clique em Copiar e cole no Estudo Guiado (Edital → Incidência pelo TEC).');
@@ -2995,17 +2996,29 @@ function tecIncProcessar(){
   let dados; try{ dados = JSON.parse(txt.slice(i + 18)); }catch(e){ return avisar('O texto colado está incompleto. Copie de novo no TEC.'); }
   const cads = (dados.cadernos || []).filter(c => c && c.nos);
   if(!cads.length) return avisar('Nenhum caderno no texto colado.');
-  tecInc = {cadernos: cads, porMat: {}};
+  tecInc = {cadernos: cads, cadMat: {}, porMat: {}};
+  tecIncCalcular();
+  if(!Object.keys(tecInc.porMat).length) avisar('Não consegui saber sozinho de qual matéria é cada caderno. Escolha a matéria de cada caderno logo abaixo.');
+}
+// nome do caderno e nomes das matérias do índice do TEC (ex.: "Língua Portuguesa (Português)")
+const tecNomesCaderno = c => [tecNomeCaderno(c.nome), ...(c.nos || []).filter(n => n[3] === -1).map(n => n[1])].filter(Boolean);
+function tecIncCadMat(cid, mid){ tecInc.cadMat[cid] = mid || '-'; tecIncCalcular(); render(); }
+function tecIncCalcular(){
+  const cads = tecInc.cadernos; tecInc.porMat = {};
   const porId = new Map(cads.map(c => [+c.id, c])), usados = new Set();
   // cadernos ligados a assuntos (um caderno só daquele assunto)
   const doTopico = {};
   S.materias.forEach(m => m.topicos.forEach(t => linksTecTop(t).forEach(l => { const c = porId.get(tecIdCaderno(l)); if(c){ (doTopico[m.id] = doTopico[m.id] || {})[t.id] = ((doTopico[m.id]||{})[t.id] || 0) + (+c.total || 0); usados.add(+c.id); } })));
+  // escolhidos à mão primeiro
+  Object.entries(tecInc.cadMat).forEach(([cid, mid]) => { if(mid === '-' || mat(mid)) usados.add(+cid); });
   S.materias.forEach(m => {
-    let cad = porId.get(tecIdCaderno(m.tecLink)); let auto = false;
-    if(!cad || usados.has(+cad.id)){ // sem link: procura pelo nome do caderno
+    const manual = Object.keys(tecInc.cadMat).find(cid => tecInc.cadMat[cid] === m.id);
+    let cad = manual ? porId.get(+manual) : null, auto = false;
+    if(!cad){ cad = porId.get(tecIdCaderno(m.tecLink)); if(cad && usados.has(+cad.id)) cad = null; }
+    if(!cad){ // sem link: procura pelo nome do caderno e pelas matérias do índice dele
       const tm = tecTokens(m.nome); let best = null, bs = 0;
-      cads.forEach(c => { if(usados.has(+c.id)) return; const s = tecSimil(tm, tecTokens(tecNomeCaderno(c.nome))); if(s > bs){ bs = s; best = c; } });
-      cad = bs >= .6 ? best : null; auto = !!cad;
+      cads.forEach(c => { if(usados.has(+c.id)) return; tecNomesCaderno(c).forEach(n => { const s = tecSimil(tm, tecTokens(n)); if(s > bs){ bs = s; best = c; } }); });
+      cad = bs >= .5 ? best : null; auto = !!cad;
     }
     const pt = doTopico[m.id] || {};
     if(!cad && !Object.keys(pt).length) return;
@@ -3032,7 +3045,6 @@ function tecIncProcessar(){
     }
     tecInc.porMat[m.id] = r;
   });
-  if(!Object.keys(tecInc.porMat).length){ tecInc = null; return avisar('Nenhum caderno colado bate com as matérias do edital. Confira os nomes ou cole o link do caderno de cada matéria (Edital → matéria → Link do caderno no TEC).'); }
   render();
 }
 function tecContas(m){ // {tid: questões}, total da matéria
@@ -3071,12 +3083,18 @@ function cardTecInc(){
     <textarea id="tecIncTxt" style="min-height:60px" placeholder="Cole aqui (Ctrl+V)"></textarea>
     <div class="inl"><button class="b" onclick="tecIncProcessar()">Calcular a incidência</button></div>`;
   if(tecInc){
-    h += `<h3>Confira antes de aplicar</h3><p class="mut" style="margin-top:-4px">Cada assunto do TEC foi ligado ao assunto do edital de nome mais parecido. Se algum ficou errado ou sem ligação, troque em "Assuntos do TEC".</p>`;
+    const ligados = new Set(Object.values(tecInc.porMat).map(r => r.cad).filter(Boolean));
+    const doTop = new Set(); S.materias.forEach(m => m.topicos.forEach(t => linksTecTop(t).forEach(l => doTop.add(tecIdCaderno(l)))));
+    const soltos = tecInc.cadernos.filter(c => !ligados.has(+c.id) && !doTop.has(+c.id));
+    if(soltos.length) h += `<div class="alert warn" style="margin-top:12px"><b>${soltos.length} caderno(s) sem matéria.</b> Escolha de qual matéria do edital é cada um (ou deixe "não usar").
+      ${soltos.map(c => `<div class="inl" style="margin:6px 0 0;align-items:center"><span style="flex:1;min-width:200px">${esc(curto(c.nome, 70))} <span class="mut">· ${c.total} questões</span></span>
+        <select style="max-width:260px" onchange="tecIncCadMat('${c.id}',this.value)"><option value="">não usar</option>${S.materias.map(m => `<option value="${m.id}">${esc(m.nome)}</option>`).join('')}</select></div>`).join('')}</div>`;
+    if(Object.keys(tecInc.porMat).length) h += `<h3>Confira antes de aplicar</h3><p class="mut" style="margin-top:-4px">Cada assunto do TEC foi ligado ao assunto do edital de nome mais parecido. Se algum ficou errado ou sem ligação, troque em "Assuntos do TEC".</p>`;
     Object.entries(tecInc.porMat).forEach(([mid, r]) => {
       const m = mat(mid); if(!m) return; const {conta, total} = tecContas(m);
       const media = m.topicos.reduce((s, t) => s + (conta[t.id] || 0), 0) / (m.topicos.length || 1);
       const ligadas = r.folhas.filter(f => f.alvo).reduce((s, f) => s + f.q, 0), sem = r.folhas.filter(f => !f.alvo);
-      h += `<details class="mat" open><summary><b>${esc(m.nome)}</b> <span class="mut">${r.cad ? '· caderno ' + esc(curto(r.cadNome, 60)) + (r.auto ? ' (achado pelo nome)' : '') : '· cadernos por assunto'} · ${total} questões${r.cad && total ? ' · ' + Math.round(ligadas / total * 100) + '% ligadas ao edital' : ''}</span></summary><div class="body">
+      h += `<details class="mat" open><summary><b>${esc(m.nome)}</b> <span class="mut">${r.cad ? '· caderno ' + esc(curto(r.cadNome, 60)) + (r.auto ? ' (achado pelo nome)' : '') + ` <button class="lk" onclick="event.preventDefault();tecIncCadMat('${r.cad}','-')">não é esse</button>` : '· cadernos por assunto'} · ${total} questões${r.cad && total ? ' · ' + Math.round(ligadas / total * 100) + '% ligadas ao edital' : ''}</span></summary><div class="body">
         <div style="overflow-x:auto"><table><tr><th>Assunto do edital</th><th class="n">Questões</th><th class="n">% da matéria</th><th>Incidência</th></tr>
         ${m.topicos.map(t => { const q = conta[t.id] || 0, nv = tecIncNivel(q, media); return `<tr><td>${esc(t.nome)}${r.soCaderno && r.soCaderno[t.id] != null ? ' <span class="tag">caderno próprio</span>' : ''}</td><td class="n">${q}</td><td class="n">${total ? String(Math.round(q / total * 1000) / 10).replace('.', ',') + '%' : '—'}</td><td><span class="tag ${nv === 3 ? 'bad' : nv === 1 ? '' : 'warn'}">${NIVEL_TXT[nv]}</span>${!q ? ' <span class="mut" style="font-size:12px">nenhuma questão ligada</span>' : ''}</td></tr>`; }).join('')}</table></div>
         ${r.folhas.length ? `<details style="margin-top:8px"><summary class="mut">Assuntos do TEC (${r.folhas.length})${sem.length ? ` · <b style="color:var(--warn)">${sem.length} sem ligação (${sem.reduce((s, f) => s + f.q, 0)} questões)</b>` : ''}</summary>
@@ -3086,7 +3104,7 @@ function cardTecInc(){
               ${m.topicos.map(t => `<option value="${t.id}" ${f.man === t.id ? 'selected' : ''}>${esc(curto(t.nome, 60))}</option>`).join('')}</select></td></tr>`).join('')}</table></div></details>` : ''}
       </div></details>`;
     });
-    h += `<div class="inl"><button class="b" onclick="tecIncAplicar()">Aplicar a incidência</button><button class="g" onclick="tecInc=null;render()">Cancelar</button></div>`;
+    h += `<div class="inl">${Object.keys(tecInc.porMat).length ? `<button class="b" onclick="tecIncAplicar()">Aplicar a incidência</button>` : ''}<button class="g" onclick="tecInc=null;render()">Cancelar</button></div>`;
   }
   return h + '</div>';
 }
