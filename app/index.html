@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="81">
+<meta name="versao" content="82">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -772,6 +772,9 @@ const minFixasSemana = () => (S.config.fixas||[]).reduce((s,f) => s + (+f.min||0
 function montarMetas(dia, base){
   const cap = capacidade(dia);
   const metas = (base||[]).slice();
+  // metas atrasadas replanejadas para este dia (ou para um dia que já passou sem ser aberto) entram primeiro
+  (S.config.filaAtr||[]).filter(q => q.dia <= dia && (dia === hoje() || q.dia === dia) && metaValida(q.meta) && !metas.some(y => y.origemId === q.meta.origemId))
+    .forEach(q => metas.unshift(Object.assign(JSON.parse(JSON.stringify(q.meta)), {id:uid()})));
   fixasDoDia(dia).forEach(f => { if(!metas.some(x => x.fixaId===f.id)) metas.unshift({id:uid(), tipo:'fixa', fixaId:f.id, nome:f.nome, min:+f.min||30, materiaId:f.materiaId||null, topicoId:null}); });
   let usado = metas.reduce((s,x)=>s+(x.min||0),0);
   let revUsado = metas.filter(x=>x.tipo!=='conteudo' && x.tipo!=='fixa').reduce((s,x)=>s+(x.min||0),0);
@@ -802,6 +805,7 @@ function montarMetas(dia, base){
   } else if(fracos[0] && revUsado + 30 <= cap*.6 && usado + 30 <= cap){ metas.push({id:uid(), tipo:'reforco', materiaId:fracos[0].m.id, topicoId:fracos[0].t.id, min:30}); usado += 30; }
   const extra = {}, plan = {}, cont = {}; let ultima = null, guarda = 0;
   metas.filter(x=>x.tipo==='conteudo').forEach(x=>{ plan[x.topicoId]=(plan[x.topicoId]||0)+(x.feita?0:1); cont[x.materiaId]=(cont[x.materiaId]||0)+1; ultima=x.materiaId; });
+  (S.config.filaAtr||[]).forEach(q => { if(q.dia > dia && q.meta.tipo==='conteudo') plan[q.meta.topicoId] = (plan[q.meta.topicoId]||0) + 1; }); // já replanejadas para outro dia
   // questões já liberadas (teoria concluída) entram antes de conteúdo novo, até 2 por dia
   const prontas = [];
   S.materias.forEach(m => m.topicos.forEach(t => {
@@ -835,9 +839,16 @@ function atualizarMetasAntigas(){
   if(velha || l.some(x=>x.tipo==='conteudo' && !x.feita && !x.fase)) gerarMetas(true);
 }
 function gerarMetas(manterFeitas){
-  const dia = hoje();
+  const dia = hoje(), novoDia = !manterFeitas && !S.metas[dia] && !projetando;
   const base = manterFeitas ? (S.metas[dia]||[]).filter(x=>x.feita || ((x.tipo==='extra' || x.atrasada || x.adiantada) && metaValida(x))) : [];
-  S.metas[dia] = montarMetas(dia, base); S.config.metasSig = sigEdital();
+  // dia novo: o que ficou sem fazer nos dias anteriores entra hoje como meta atrasada (o que não couber vai para os próximos dias)
+  if(novoDia){ S.metas[dia] = []; if(!metasAtrasadas().length) delete S.metas[dia]; }
+  const temAtr = novoDia && S.metas[dia];
+  if(!temAtr) S.metas[dia] = montarMetas(dia, base);
+  S.config.metasSig = sigEdital();
+  if(temAtr){ const r = trazerAtrasadas(dia);
+    if(r.n || r.dist) avisoHoje = `${r.n ? `${r.n} meta${r.n>1?'s':''} que ${r.n>1?'ficaram':'ficou'} sem fazer ${r.n>1?'entraram':'entrou'} hoje como atrasada${r.n>1?'s':''}, na frente das novas.` : ''}${r.dist ? ` ${r.dist} não ${r.dist>1?'couberam':'coube'} hoje e ${r.dist>1?'foram replanejadas':'foi replanejada'} para os próximos dias (veja no Cronograma).` : ''}`.trim(); }
+  if(!projetando) S.config.filaAtr = (S.config.filaAtr||[]).filter(q => q.dia > dia); // as replanejadas para hoje já entraram
   Object.keys(S.metas).forEach(k => { if(diff(k, dia) > 60) delete S.metas[k]; });
   save();
 }
@@ -1044,6 +1055,50 @@ function metasAtrasadas(){
   }));
   return out;
 }
+// copia limpa de uma meta atrasada, para entrar em outro dia
+function copiaAtrasada(x, d){ const c = JSON.parse(JSON.stringify(x)); ['feita','q','a','minReal','desfazer','adiantada','movida','descartada'].forEach(k => delete c[k]);
+  return Object.assign(c, {id:uid(), atrasada: x.atrasada || d, origemId: x.origemId || x.id}); }
+// coloca metas atrasadas nos próximos dias de estudo (até metade das horas de cada dia), a partir de "de"
+function distribuirAtrasadas(lista, de){
+  S.config.filaAtr = S.config.filaAtr || []; let dia = de || addDias(hoje(), 1), usado = 0, n = 0, voltas = 0;
+  const ocup = d => S.config.filaAtr.filter(q => q.dia === d).reduce((s,q) => s + q.meta.min, 0);
+  usado = ocup(dia);
+  lista.forEach(({dia: d, meta: x}) => {
+    while(voltas < 60 && (capacidade(dia) <= 0 || (usado + x.min > capacidade(dia) * .5 && usado > 0))){ dia = addDias(dia, 1); usado = ocup(dia); voltas++; }
+    S.config.filaAtr.push({dia, meta: copiaAtrasada(x, d)}); x.movida = dia; usado += x.min; n++;
+  });
+  return n;
+}
+// traz as atrasadas para hoje, até as horas do dia; o que não couber vai para os próximos dias
+function trazerAtrasadas(dia){
+  const atr = metasAtrasadas(); if(!atr.length) return {n:0, dist:0};
+  const base = (S.metas[dia]||[]).filter(x => x.feita || x.tipo==='extra' || x.adiantada || x.atrasada);
+  const cap = capacidade(dia); let usado = base.filter(x=>!x.adiantada).reduce((s,x)=>s+(x.feita?(x.minReal||x.min):x.min),0), n = 0;
+  const ordem = {revisao:0, conteudo:1, reforco:2}, sobra = [];
+  atr.sort((a,b) => (ordem[a.meta.tipo]??3)-(ordem[b.meta.tipo]??3) || (a.dia<b.dia?-1:1)).forEach(a => {
+    if(usado + a.meta.min > cap && usado > 0){ sobra.push(a); return; }
+    base.push(copiaAtrasada(a.meta, a.dia)); a.meta.movida = dia; usado += a.meta.min; n++;
+  });
+  S.metas[dia] = montarMetas(dia, base);
+  const dist = sobra.length ? distribuirAtrasadas(sobra) : 0;
+  return {n, dist};
+}
+function distribuirAtrasadasBotao(){
+  const atr = metasAtrasadas(); if(!atr.length) return;
+  const n = distribuirAtrasadas(atr.sort((a,b) => a.dia < b.dia ? -1 : 1));
+  avisoHoje = `${n} meta${n>1?'s':''} atrasada${n>1?'s':''} ${n>1?'foram distribuídas':'foi distribuída'} nos próximos dias de estudo, sem passar da metade das horas de cada dia. Veja no Cronograma.`;
+  save(); render();
+}
+// replanejar uma meta atrasada que está hoje para outro dia
+let replAberto = null;
+function replanejarMeta(id, dia){
+  const l = S.metas[hoje()] || [], x = l.find(y => y.id === id); if(!x || x.feita) return;
+  S.config.filaAtr = (S.config.filaAtr||[]).filter(q => q.meta.origemId !== (x.origemId || x.id));
+  S.config.filaAtr.push({dia, meta: copiaAtrasada(x, x.atrasada || hoje())});
+  S.metas[hoje()] = l.filter(y => y.id !== id); replAberto = null;
+  gerarMetas(true); avisoHoje = `Meta replanejada para ${br(dia).slice(0,5)}. Ela entra na frente das metas daquele dia.`; save(); render();
+}
+function opcoesDiasEstudo(n){ const out = []; for(let d = addDias(hoje(), 1), k = 0; out.length < n && k < 40; d = addDias(d, 1), k++) if(capacidade(d) > 0) out.push(d); return out; }
 function replanejarAtrasados(){
   const dia = hoje(), atr = metasAtrasadas(); if(!atr.length) return;
   const base = (S.metas[dia]||[]).filter(x => x.feita || x.tipo==='extra' || x.adiantada);
@@ -1345,7 +1400,7 @@ function vHoje(){
     if(f.meta && f.dia < hoje() && !f.meta.feita) h += `<p class="mut" style="margin:12px 0 0"><b>Meta do dia ${br(f.dia).slice(0,5)}:</b> conclua abaixo; o estudo fica registrado naquele dia.</p>` + cardMeta(f.meta, 0, f.dia); }
   if(atr.length){ const dias = [...new Set(atr.map(a=>a.dia))].sort();
     h += `<div class="alert warn" style="margin-top:10px"><b>${atr.length} meta${atr.length>1?'s':''} atrasada${atr.length>1?'s':''}</b> de ${dias.map(d=>br(d).slice(0,5)).join(', ')}: ${atr.slice(0,4).map(a=>{ const m=mat(a.meta.materiaId), t=topico(m,a.meta.topicoId); return esc(rotuloMeta(a.meta)+' · '+curto(t.nome,40)); }).join(' · ')}${atr.length>4?' …':''}
-      <div class="inl" style="margin-top:8px"><button class="b" onclick="replanejarAtrasados()">Replanejar para hoje</button><button class="g" onclick="descartarAtrasados()">Descartar</button><button class="g" onclick="verAtrasadas=!verAtrasadas;render()">${verAtrasadas?'Esconder':'Já fiz alguma: concluir'}</button></div></div>`;
+      <div class="inl" style="margin-top:8px"><button class="b" onclick="replanejarAtrasados()">Fazer hoje</button><button class="g" onclick="distribuirAtrasadasBotao()">Distribuir nos próximos dias</button><button class="g" onclick="descartarAtrasados()">Descartar</button><button class="g" onclick="verAtrasadas=!verAtrasadas;render()">${verAtrasadas?'Esconder':'Já fiz alguma: concluir'}</button></div></div>`;
     if(verAtrasadas || atr.some(a => a.meta.id === caixaAberta)) h += `<p class="mut" style="margin:10px 0 0">Conclua aqui as metas que você fez no dia certo: o estudo fica registrado naquele dia.</p>` + atr.map((a,i) => cardMeta(a.meta, i, a.dia)).join(''); }
   h += `</div>`;
   if(!metas.length){ const pz = pausaDe(hoje());
@@ -1409,6 +1464,9 @@ function cardMeta(x,i,dia){
     if(ativa) h += `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>`;
     else h += `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
     if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';extraConcluir=0;render()">Concluir</button>`;
+    if(x.atrasada && !dia && !ativa) h += replAberto === x.id
+      ? `<select onchange="if(this.value)replanejarMeta('${x.id}',this.value)" style="max-width:170px"><option value="">Replanejar para…</option>${opcoesDiasEstudo(7).map(d => `<option value="${d}">${DIAS3[parse(d).getDay()]} ${br(d).slice(0,5)}</option>`).join('')}</select>`
+      : `<button class="g" onclick="replAberto='${x.id}';render()">Replanejar</button>`;
   }
   h += `</div>`;
   if(x.feita && maisTempo===x.id){
@@ -1454,7 +1512,7 @@ function vSemana(){
   const blMeta = (x, passado) => { const nf = passado && !x.feita ? ' naofeita' : '';
     if(x.tipo==='fixa') return `<div class="bl fixa ${x.feita?'feita':''}${nf}"><b>${esc(curto(x.nome,30))}</b><div class="mut">Atividade fixa · ${hm(x.minReal||x.min)}${nf?' · não feita':''}</div></div>`;
     const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!m||!t) return '';
-    return `<div class="bl ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''}${nf}"><b>${esc(curto(m.nome,24))}</b>${esc(curto(t.nome,48))}<div class="mut">${rotuloMeta(x)} · ${hm(x.feita&&x.minReal!=null?x.minReal:x.min)}${t.aula && x.fase!=='questoes'?' · '+esc(t.aula):''}${nf?' · não feita':''}</div></div>`; };
+    return `<div class="bl ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''}${nf}"><b>${esc(curto(m.nome,24))}</b>${esc(curto(t.nome,48))}<div class="mut">${rotuloMeta(x)} · ${hm(x.feita&&x.minReal!=null?x.minReal:x.min)}${t.aula && x.fase!=='questoes'?' · '+esc(t.aula):''}${x.atrasada && !x.feita?` · <b style="color:var(--warn)">atrasada de ${br(x.atrasada).slice(0,5)}</b>`:''}${nf?' · não feita':''}</div></div>`; };
   const estudado = dia => S.sessoes.filter(x => x.data === dia).reduce((t,x) => t + (+x.min||0), 0);
   const titulo = semOff === 0 ? 'Esta semana' : semOff === -1 ? 'Semana passada' : semOff === 1 ? 'Próxima semana' : semOff < 0 ? `${-semOff} semanas atrás` : `Daqui a ${semOff} semanas`;
   const totSem = dias.reduce((t,d) => t + (d.passado || d.dia === hoje() ? estudado(d.dia) : 0), 0);
