@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="82">
+<meta name="versao" content="83">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -847,7 +847,7 @@ function gerarMetas(manterFeitas){
   if(!temAtr) S.metas[dia] = montarMetas(dia, base);
   S.config.metasSig = sigEdital();
   if(temAtr){ const r = trazerAtrasadas(dia);
-    if(r.n || r.dist) avisoHoje = `${r.n ? `${r.n} meta${r.n>1?'s':''} que ${r.n>1?'ficaram':'ficou'} sem fazer ${r.n>1?'entraram':'entrou'} hoje como atrasada${r.n>1?'s':''}, na frente das novas.` : ''}${r.dist ? ` ${r.dist} não ${r.dist>1?'couberam':'coube'} hoje e ${r.dist>1?'foram replanejadas':'foi replanejada'} para os próximos dias (veja no Cronograma).` : ''}`.trim(); }
+    if(r.n || r.dist) avisoHoje = `${r.n ? `${r.n} meta${r.n>1?'s':''} que ${r.n>1?'ficaram':'ficou'} sem fazer ${r.n>1?'entraram':'entrou'} hoje como atrasada${r.n>1?'s':''}, na frente das novas.` : ''}${r.dist - (r.outro||0) > 0 ? ` ${r.dist - r.outro} não ${r.dist - r.outro>1?'couberam':'coube'} hoje e ${r.dist - r.outro>1?'foram replanejadas':'foi replanejada'} para os próximos dias.` : ''}${r.outro ? ` ${r.outro} ${r.outro>1?'são de matérias':'é de matéria'} do Ciclo ${cicloDoDia(dia)==='A'?'B':'A'} e ${r.outro>1?'foram':'foi'} para os próximos dias desse ciclo.` : ''}${r.dist ? ' Veja no Cronograma.' : ''}`.trim(); }
   if(!projetando) S.config.filaAtr = (S.config.filaAtr||[]).filter(q => q.dia > dia); // as replanejadas para hoje já entraram
   Object.keys(S.metas).forEach(k => { if(diff(k, dia) > 60) delete S.metas[k]; });
   save();
@@ -1058,14 +1058,17 @@ function metasAtrasadas(){
 // copia limpa de uma meta atrasada, para entrar em outro dia
 function copiaAtrasada(x, d){ const c = JSON.parse(JSON.stringify(x)); ['feita','q','a','minReal','desfazer','adiantada','movida','descartada'].forEach(k => delete c[k]);
   return Object.assign(c, {id:uid(), atrasada: x.atrasada || d, origemId: x.origemId || x.id}); }
+// ciclo A/B: conteúdo atrasado só entra num dia do ciclo da matéria (revisão e reforço entram em qualquer dia)
+function cabeNoDia(x, dia){ if(!abAtivo() || x.tipo !== 'conteudo') return true; const m = mat(x.materiaId); if(!m) return true; const g = grupoAB(m); return g === 'AB' || g === cicloDoDia(dia); }
 // coloca metas atrasadas nos próximos dias de estudo (até metade das horas de cada dia), a partir de "de"
 function distribuirAtrasadas(lista, de){
-  S.config.filaAtr = S.config.filaAtr || []; let dia = de || addDias(hoje(), 1), usado = 0, n = 0, voltas = 0;
+  S.config.filaAtr = S.config.filaAtr || []; const ini = de || addDias(hoje(), 1); let n = 0;
   const ocup = d => S.config.filaAtr.filter(q => q.dia === d).reduce((s,q) => s + q.meta.min, 0);
-  usado = ocup(dia);
   lista.forEach(({dia: d, meta: x}) => {
-    while(voltas < 60 && (capacidade(dia) <= 0 || (usado + x.min > capacidade(dia) * .5 && usado > 0))){ dia = addDias(dia, 1); usado = ocup(dia); voltas++; }
-    S.config.filaAtr.push({dia, meta: copiaAtrasada(x, d)}); x.movida = dia; usado += x.min; n++;
+    // próximo dia com horas, com espaço (até metade das horas) e, no ciclo A/B, do ciclo da matéria
+    let dd = ini, k = 0;
+    while(k++ < 60 && (capacidade(dd) <= 0 || !cabeNoDia(x, dd) || (ocup(dd) > 0 && ocup(dd) + x.min > capacidade(dd) * .5))) dd = addDias(dd, 1);
+    S.config.filaAtr.push({dia: dd, meta: copiaAtrasada(x, d)}); x.movida = dd; n++;
   });
   return n;
 }
@@ -1074,14 +1077,15 @@ function trazerAtrasadas(dia){
   const atr = metasAtrasadas(); if(!atr.length) return {n:0, dist:0};
   const base = (S.metas[dia]||[]).filter(x => x.feita || x.tipo==='extra' || x.adiantada || x.atrasada);
   const cap = capacidade(dia); let usado = base.filter(x=>!x.adiantada).reduce((s,x)=>s+(x.feita?(x.minReal||x.min):x.min),0), n = 0;
-  const ordem = {revisao:0, conteudo:1, reforco:2}, sobra = [];
+  const ordem = {revisao:0, conteudo:1, reforco:2}, sobra = []; let outro = 0;
   atr.sort((a,b) => (ordem[a.meta.tipo]??3)-(ordem[b.meta.tipo]??3) || (a.dia<b.dia?-1:1)).forEach(a => {
+    if(!cabeNoDia(a.meta, dia)){ sobra.push(a); outro++; return; }
     if(usado + a.meta.min > cap && usado > 0){ sobra.push(a); return; }
     base.push(copiaAtrasada(a.meta, a.dia)); a.meta.movida = dia; usado += a.meta.min; n++;
   });
   S.metas[dia] = montarMetas(dia, base);
   const dist = sobra.length ? distribuirAtrasadas(sobra) : 0;
-  return {n, dist};
+  return {n, dist, outro};
 }
 function distribuirAtrasadasBotao(){
   const atr = metasAtrasadas(); if(!atr.length) return;
@@ -1098,21 +1102,24 @@ function replanejarMeta(id, dia){
   S.metas[hoje()] = l.filter(y => y.id !== id); replAberto = null;
   gerarMetas(true); avisoHoje = `Meta replanejada para ${br(dia).slice(0,5)}. Ela entra na frente das metas daquele dia.`; save(); render();
 }
-function opcoesDiasEstudo(n){ const out = []; for(let d = addDias(hoje(), 1), k = 0; out.length < n && k < 40; d = addDias(d, 1), k++) if(capacidade(d) > 0) out.push(d); return out; }
+function opcoesDiasEstudo(n, x){ const out = []; for(let d = addDias(hoje(), 1), k = 0; out.length < n && k < 40; d = addDias(d, 1), k++) if(capacidade(d) > 0 && (!x || cabeNoDia(x, d))) out.push(d); return out; }
 function replanejarAtrasados(){
   const dia = hoje(), atr = metasAtrasadas(); if(!atr.length) return;
   const base = (S.metas[dia]||[]).filter(x => x.feita || x.tipo==='extra' || x.adiantada);
   const cap = capacidade(dia); let usado = base.filter(x=>!x.adiantada).reduce((s,x)=>s+(x.feita?(x.minReal||x.min):x.min),0), n = 0, fora = 0;
-  const ordem = {revisao:0, conteudo:1, reforco:2};
+  const ordem = {revisao:0, conteudo:1, reforco:2}, outroCiclo = [];
   atr.sort((a,b) => (ordem[a.meta.tipo]??3)-(ordem[b.meta.tipo]??3) || (a.dia<b.dia?-1:1)).forEach(({dia:d, meta:x}) => {
+    if(!cabeNoDia(x, dia)){ outroCiclo.push({dia:d, meta:x}); return; }
     if(usado + x.min > cap && usado > 0){ fora++; return; }
     const c = JSON.parse(JSON.stringify(x)); delete c.feita; delete c.q; delete c.a; delete c.minReal; delete c.desfazer; delete c.adiantada; delete c.atrasada;
     base.push(Object.assign(c, {id:uid(), atrasada:d, origemId:x.id})); x.movida = dia; usado += x.min; n++;
   });
   S.metas[dia] = montarMetas(dia, base);
+  const nOutro = outroCiclo.length ? distribuirAtrasadas(outroCiclo) : 0;
   // o que ficou para trás já foi tratado: não volta a aparecer como atrasado (conteúdo segue pelo ciclo, revisão vencida segue na fila)
   Object.keys(S.metas).filter(k => k < dia && diff(k, dia) <= 7).forEach(k => (S.metas[k]||[]).forEach(x => { if(!x.feita && !x.movida && !x.descartada) x.movida = dia; }));
   avisoHoje = `${n} meta${n>1?'s':''} atrasada${n>1?'s':''} ${n>1?'entraram':'entrou'} no plano de hoje, na frente das novas.` +
+    (nOutro ? ` ${nOutro} ${nOutro>1?'são de matérias':'é de matéria'} do outro ciclo e ${nOutro>1?'foram':'foi'} para o próximo dia do ciclo dela${nOutro>1?'s':''}.` : '') +
     (fora ? ` ${fora} não ${fora>1?'couberam':'coube'} nas horas líquidas de hoje: o conteúdo segue nos próximos dias pelo ciclo, e as revisões atrasadas continuam aparecendo até serem feitas.` : '');
   save(); render();
 }
@@ -1465,7 +1472,7 @@ function cardMeta(x,i,dia){
     else h += `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
     if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';extraConcluir=0;render()">Concluir</button>`;
     if(x.atrasada && !dia && !ativa) h += replAberto === x.id
-      ? `<select onchange="if(this.value)replanejarMeta('${x.id}',this.value)" style="max-width:170px"><option value="">Replanejar para…</option>${opcoesDiasEstudo(7).map(d => `<option value="${d}">${DIAS3[parse(d).getDay()]} ${br(d).slice(0,5)}</option>`).join('')}</select>`
+      ? `<select onchange="if(this.value)replanejarMeta('${x.id}',this.value)" style="max-width:170px"><option value="">Replanejar para…</option>${opcoesDiasEstudo(7, x).map(d => `<option value="${d}">${DIAS3[parse(d).getDay()]} ${br(d).slice(0,5)}${abAtivo()?' · Ciclo '+cicloDoDia(d):''}</option>`).join('')}</select>`
       : `<button class="g" onclick="replAberto='${x.id}';render()">Replanejar</button>`;
   }
   h += `</div>`;
