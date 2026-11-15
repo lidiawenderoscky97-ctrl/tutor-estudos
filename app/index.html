@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="83">
+<meta name="versao" content="84">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -3889,7 +3889,39 @@ function vPlano(){
     ${concl.length ? `<div style="max-height:420px;overflow:auto"><table><tr><th></th><th>Assunto</th><th class="n">Acerto</th></tr>${concl.map(x=>`<tr><td><input type="checkbox" data-rev="${x.t.id}" style="width:17px;height:17px;accent-color:var(--acc)" aria-label="Rever ${esc(x.t.nome)}"></td>
       <td>${esc(curto(x.t.nome,70))}<div class="mut" style="font-size:13.5px">${esc(x.m.nome)}${x.t.estudadoFora?' · marcado como já estudado':''}${x.t.revisto?' · revisto '+x.t.revisto+'x':''}</div></td><td class="n">${x.p==null?'<span class="mut">—</span>':`<span class="tag ${corP(x.p)}">${pct(x.p)}</span>`}</td></tr>`).join('')}</table></div>
       <div class="inl"><button class="b" onclick="reverAssuntos()">Trazer de volta ao cronograma</button></div>` : '<div class="empty">Nenhum assunto concluído ainda.</div>'}</div></div>`;
-  return h;
+  return h + cardRecomecar();
+}
+/* ---------- Recomeçar os estudos: o edital fica; o andamento volta ao início ---------- */
+let recomecando = false;
+function cardRecomecar(){
+  const c = S.config;
+  let h = `<div class="card" style="margin-top:16px"><h2>🔄 Recomeçar os estudos</h2>
+    <p class="mut" style="margin-top:-4px">Volta o plano para o começo, como se fosse o primeiro dia: todos os assuntos voltam a "não estudado" e as metas, revisões e o ciclo recomeçam. O edital, as matérias, os links do Estratégia e do TEC, a incidência e as suas configurações continuam.${c.recomecoEm ? ` <b>Último recomeço: ${br(c.recomecoEm)}.</b>` : ''}</p>`;
+  if(!recomecando) return h + `<div class="inl" style="margin:0"><button class="g" onclick="recomecando=true;render()">Recomeçar os estudos…</button></div></div>`;
+  return h + `<div class="caixa" style="margin-top:6px">
+    <b>O que recomeça sempre:</b> andamento de todos os assuntos, metas (inclusive as atrasadas), revisões agendadas e o ciclo da semana.
+    <label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);margin:10px 0 4px"><input type="checkbox" id="rc_hist" style="width:auto;margin-top:4px">
+      <span>Apagar também o histórico de estudo<br><span class="mut">Horas estudadas, questões e acertos, simulados, ofensiva e XP. Desmarcado, o histórico fica no Desempenho e o acerto antigo continua guiando o reforço.</span></span></label>
+    <label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);margin:6px 0 4px"><input type="checkbox" id="rc_lei" style="width:auto;margin-top:4px">
+      <span>Zerar a lei seca e os flashcards<br><span class="mut">Artigos lidos e a agenda dos flashcards voltam ao início.</span></span></label>
+    <label style="display:flex;gap:8px;align-items:flex-start;color:var(--ink);margin:6px 0 4px"><input type="checkbox" id="rc_notas" style="width:auto;margin-top:4px">
+      <span>Apagar as anotações dos cadernos</span></label>
+    <p class="mut" style="margin:10px 0 4px">Antes, se quiser, guarde uma cópia de tudo: <button class="lk" onclick="exportar()">baixar backup</button> (dá para voltar depois em Configurações → Restaurar backup).</p>
+    <div class="inl"><button class="b" style="background:var(--bad);border-color:var(--bad)" onclick="recomecar()">Recomeçar agora</button><button class="g" onclick="recomecando=false;render()">Cancelar</button></div></div></div>`;
+}
+async function recomecar(){
+  const hist = document.getElementById('rc_hist').checked, lei = document.getElementById('rc_lei').checked, notas = document.getElementById('rc_notas').checked;
+  const extra = [hist ? 'o histórico de estudo (horas, questões, simulados, ofensiva)' : '', lei ? 'a lei seca e os flashcards' : '', notas ? 'as anotações' : ''].filter(Boolean);
+  if(!(await confirmar(`Recomeçar os estudos do zero?\n\nTodos os assuntos voltam a "não estudado" e as metas, revisões e o ciclo recomeçam${extra.length ? '.\nTambém será apagado: ' + extra.join(', ') : ''}.\n\nIsso não dá para desfazer (a não ser pelo backup).`))) return;
+  S.materias.forEach(m => m.topicos.forEach(t => { t.status = 'nao'; t.feitos = 0; delete t.estudadoFora; delete t.revisto; }));
+  S.metas = {}; S.revisoes = []; S.timer = null;
+  const c = S.config; c.filaAtr = []; c.cicloTs = Date.now(); delete c.metasSig; c.recomecoEm = hoje();
+  if(c.cicloAB) c.cicloAB.ref = hoje();
+  if(hist){ S.sessoes = []; S.simulados = []; c.ofensiva = {d:{}, rec:0}; }
+  if(lei){ S.leiSeca = Object.assign(S.leiSeca || {}, {st:{}, dias:{}}); S.flash = Object.assign(S.flash || {}, {st:{}, dias:{}}); }
+  if(notas) S.cadernos = {};
+  recomecando = false; avisoHoje = 'Estudos recomeçados: as metas de hoje partem do início do edital. Bons estudos!';
+  gerarMetas(false); save(); ir('hoje');
 }
 
 /* ---------- Cadernos de anotações por matéria ---------- */
