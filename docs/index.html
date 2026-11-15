@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="84">
+<meta name="versao" content="85">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -2783,11 +2783,15 @@ function cardEstrategia(){
   const semCurso = S.materias.filter(m => !m.estCurso && !m.estUrl).length;
   let h = `<div class="card" style="margin-top:16px"><h2>Cursos do Estratégia</h2>
     <p class="mut">Liga cada matéria ao seu curso no Estratégia e cada assunto à aula que trata dele, para qualquer concurso. Os links das metas abrem a aula certa e o estudo segue a ordem do curso. ${!S.materias.length ? '<b>Sem edital ainda? Dá para montar o edital pelos próprios cursos.</b>' : semCurso ? `<b>${semCurso} matéria(s) ainda sem curso.</b>` : 'Todas as matérias já têm curso.'}</p>
-    <details><summary style="cursor:pointer"><b>Como fazer (uma vez por concurso, no computador)</b></summary><ol class="pl mut" style="padding-left:18px;margin:6px 0">
-      <li>Arraste este botão para a barra de favoritos do navegador: <a class="b" style="text-decoration:none;padding:5px 12px;border-radius:9px;background:var(--acc);color:var(--accink);font-weight:600" href="${esc(linkColetor())}" onclick="event.preventDefault();avisar('Arraste o botão para a barra de favoritos e clique nele no site do Estratégia.')">Estudo Guiado ← Estratégia</a>
-        <span>(se a barra não aparecer: Ctrl+Shift+B). Ou <button class="lk" onclick="copiarColetor()">copie o código</button> e crie um favorito com ele no lugar do endereço.</span></li>
-      <li>Entre no site do Estratégia com sua conta. No <b>site novo</b> (concursos.estrategia.com), abra <b>Minhas Matrículas</b> ou a página do seu concurso; no <b>site antigo</b>, abra Minhas Matrículas. Clique no favorito, escolha <b>Pré-edital</b>, <b>Pós-edital</b> ou <b>Todos</b>, marque o concurso e clique em <b>Ler as aulas</b> (leva cerca de 1 minuto; deixe a aba aberta na frente). Se a lista não aparecer, abra a página de um curso e clique no favorito lá.</li>
-      <li>Clique em <b>Copiar</b> na janelinha e cole abaixo. Com o edital já montado, clique em <b>Ligar matérias e aulas</b>; sem edital (pré-edital), clique em <b>Montar o edital pelos cursos</b>.</li></ol></details>
+    <div class="alert info" style="margin:8px 0 10px"><b style="font-size:15.5px">Como fazer (uma vez por concurso, no computador)</b>
+      <ol style="padding-left:20px;margin:8px 0 0;line-height:1.6">
+      <li><b>Coloque o botão na barra de favoritos.</b> Arraste este botão com o mouse até a barra de favoritos do navegador: <a class="b" style="text-decoration:none;padding:5px 12px;border-radius:9px;background:var(--acc);color:var(--accink);font-weight:600;white-space:nowrap" href="${esc(linkColetor())}" onclick="event.preventDefault();avisar('Não clique: arraste o botão até a barra de favoritos e clique nele lá no site do Estratégia.')">Estudo Guiado ← Estratégia</a>
+        <div class="mut" style="font-size:13.5px">A barra de favoritos não aparece? Aperte <b>Ctrl+Shift+B</b>. Não conseguiu arrastar? <button class="lk" onclick="copiarColetor()">Copie o código</button>, crie um favorito qualquer e cole o código no lugar do endereço. Só precisa fazer isso uma vez.</div></li>
+      <li><b>Abra o seu concurso no Estratégia.</b> Entre com a sua conta em <b>concursos.estrategia.com</b>, vá em <b>Minhas Matrículas</b> e clique no concurso (a página que lista os cursos/disciplinas).</li>
+      <li><b>Clique no favorito</b> “Estudo Guiado ← Estratégia” com essa página aberta. Na janelinha, escolha <b>Pré-edital</b> (edital ainda não saiu) ou <b>Pós-edital</b>, marque o concurso e clique em <b>Ler as aulas</b>. Espere cerca de 1 minuto com a aba aberta na frente.
+        <div class="mut" style="font-size:13.5px">Apareceu “não encontrei cursos”? Abra um dos cursos do concurso (o LDI) e clique no favorito de novo, lá dentro.</div></li>
+      <li><b>Copie e cole aqui.</b> Clique em <b>Copiar</b> na janelinha, volte para esta tela e cole na caixa abaixo (<b>Ctrl+V</b>).</li>
+      <li><b>Clique no botão certo:</b> sem edital ainda (pré-edital) → <b>Montar o edital pelos cursos</b>; com o edital já montado → <b>Ligar matérias e aulas</b>. Confira a lista que aparece e confirme.</li></ol></div>
     <label for="estTxt">Texto copiado do Estratégia</label><textarea id="estTxt" style="min-height:70px" placeholder="Cole aqui (Ctrl+V)"></textarea>
     <div class="inl">${S.materias.length ? `<button class="b" onclick="estProcessar()">Ligar matérias e aulas</button>` : ''}<button class="${S.materias.length?'g':'b'}" onclick="estModoMontar=true;estProcessar();estModoMontar=false">Montar o edital pelos cursos</button></div>
     <p class="mut" style="margin:6px 0 0">Ainda sem edital (pré-edital)? Use <b>Montar o edital pelos cursos</b>: as matérias e os assuntos vêm dos cursos do Estratégia, já ligados às aulas.</p>` + cardEstMontar();
