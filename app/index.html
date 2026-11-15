@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="80">
+<meta name="versao" content="81">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -183,6 +183,7 @@ body.arrastando-top,body.arrastando-top *{cursor:grabbing!important;user-select:
 .dots i{width:10px;height:10px;border-radius:3px;background:var(--line);display:inline-block}
 .dots i.on{background:var(--acc)}
 .semana{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+.dia.passado{opacity:.92}.bl.naofeita{opacity:.55;border-style:dashed}
 @media (max-width:1000px){.semana{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
 .dia{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;min-height:160px}
 .dia.hj{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc2)}
@@ -849,12 +850,12 @@ function focos(min){
 
 /* ============ Cronograma: projeção dos próximos 7 dias ============ */
 // Simula a semana numa cópia dos dados, supondo que cada meta seja cumprida.
-function projetarSemana(){
+function projetarSemana(nDias){
   const real = S; projetando = true;
   const out = [];
   try{
     S = JSON.parse(JSON.stringify(real));
-    for(let d=0; d<7; d++){
+    for(let d=0; d<(nDias||7); d++){
       const dia = addDias(hoje(), d);
       const metas = d===0 ? (S.metas[dia] || montarMetas(dia, [])) : montarMetas(dia, []);
       out.push({dia, metas: JSON.parse(JSON.stringify(metas))});
@@ -1435,21 +1436,38 @@ function cardMeta(x,i,dia){
 }
 
 /* ---------- Cronograma ---------- */
+let semOff = 0; // semana mostrada no Cronograma (0 = esta semana)
 function vSemana(){
   if(!S.materias.length) return vazio();
   if(!S.metas[hoje()]) gerarMetas(false); else atualizarMetasAntigas();
-  const sem = projetarSemana();
-  const c = ciclo(); const tA = c.reduce((s,x)=>s+x.alvo,0), tF = c.reduce((s,x)=>s+Math.min(x.feito,x.alvo),0);
+    const c = ciclo(); const tA = c.reduce((s,x)=>s+x.alvo,0), tF = c.reduce((s,x)=>s+Math.min(x.feito,x.alvo),0);
   const restante = conteudoRestante(), ms = minSemana();
   let prev = '';
   if(ms && restante){ const semanas = restante/ms, fim = dataTermino(restante);
     prev = `Conteúdo restante: <b>${hm(restante)}</b> ≈ ${semanas.toFixed(1)} semanas no seu ritmo · término previsto do 1º ciclo de conteúdo: <b>${fim?br(fim):'—'}</b>${(S.config.pausas||[]).some(p=>p.ate>=hoje())?' (já descontando as pausas)':''}`;
     if(S.config.dataProva && fim && fim > S.config.dataProva) prev += ` <span class="tag bad">passa da data da prova</span> <button class="lk" onclick="ir('plano')">ajustar em Meu plano</button>`; }
-  let h = `<div class="card"><h2>Próximos 7 dias</h2><p class="mut" style="margin-top:-6px">Projeção automática supondo que você cumpra as metas. Ela se ajusta sozinha a cada meta concluída, ao seu acerto e às revisões.</p>
-    <div class="semana">${sem.map((d,i)=>{const tot=d.metas.reduce((s,x)=>s+x.min,0); const pd=parse(d.dia);
-      return `<div class="dia ${i===0?'hj':''}"><h4>${i===0?'Hoje':DIAS3[pd.getDay()]} <span class="mut">${br(d.dia).slice(0,5)}</span></h4><div class="mut">${capacidade(d.dia)?hm(tot)+' de '+hm(capacidade(d.dia)):pausaDe(d.dia)?'plano pausado':'descanso'}</div>
-      ${d.metas.map(x=>{ if(x.tipo==='fixa') return `<div class="bl fixa ${x.feita?'feita':''}"><b>${esc(curto(x.nome,30))}</b><div class="mut">Atividade fixa · ${hm(x.min)}</div></div>`;
-      const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!m||!t) return ''; return `<div class="bl ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''}"><b>${esc(curto(m.nome,24))}</b>${esc(curto(t.nome,48))}<div class="mut">${rotuloMeta(x)} · ${hm(x.min)}${t.aula && x.fase!=='questoes'?' · '+esc(t.aula):''}</div></div>`}).join('')}</div>`}).join('')}</div></div>`;
+  // semana de segunda a domingo: dias que já passaram mostram o que foi planejado e feito; de hoje em diante, a projeção
+  const seg0 = addDias(segunda(hoje()), 7*semOff), dom0 = addDias(seg0, 6);
+  const nProj = dom0 >= hoje() ? diff(hoje(), dom0) + 1 : 0, proj = {};
+  if(nProj) projetarSemana(nProj).forEach(d => proj[d.dia] = d.metas);
+  const dias = [0,1,2,3,4,5,6].map(k => { const dia = addDias(seg0, k); return {dia, passado: dia < hoje(), metas: dia < hoje() ? (S.metas[dia]||[]) : (proj[dia]||[])}; });
+  const blMeta = (x, passado) => { const nf = passado && !x.feita ? ' naofeita' : '';
+    if(x.tipo==='fixa') return `<div class="bl fixa ${x.feita?'feita':''}${nf}"><b>${esc(curto(x.nome,30))}</b><div class="mut">Atividade fixa · ${hm(x.minReal||x.min)}${nf?' · não feita':''}</div></div>`;
+    const m=mat(x.materiaId),t=topico(m,x.topicoId); if(!m||!t) return '';
+    return `<div class="bl ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''}${nf}"><b>${esc(curto(m.nome,24))}</b>${esc(curto(t.nome,48))}<div class="mut">${rotuloMeta(x)} · ${hm(x.feita&&x.minReal!=null?x.minReal:x.min)}${t.aula && x.fase!=='questoes'?' · '+esc(t.aula):''}${nf?' · não feita':''}</div></div>`; };
+  const estudado = dia => S.sessoes.filter(x => x.data === dia).reduce((t,x) => t + (+x.min||0), 0);
+  const titulo = semOff === 0 ? 'Esta semana' : semOff === -1 ? 'Semana passada' : semOff === 1 ? 'Próxima semana' : semOff < 0 ? `${-semOff} semanas atrás` : `Daqui a ${semOff} semanas`;
+  const totSem = dias.reduce((t,d) => t + (d.passado || d.dia === hoje() ? estudado(d.dia) : 0), 0);
+  let h = `<div class="card"><div class="inl" style="margin:0 0 6px;align-items:center;justify-content:space-between">
+      <h2 style="margin:0">${titulo} <span class="mut" style="font-weight:400;font-size:15px">seg ${br(seg0).slice(0,5)} a dom ${br(dom0).slice(0,5)}</span></h2>
+      <div class="inl" style="margin:0"><button class="g" onclick="semOff--;render()">← Semana anterior</button>${semOff?`<button class="g" onclick="semOff=0;render()">Esta semana</button>`:''}<button class="g" onclick="semOff++;render()" ${semOff>=8?'disabled':''}>Próxima semana →</button></div></div>
+    <p class="mut" style="margin-top:0">${dom0 < hoje() ? `Como foi a semana: metas planejadas e o que foi feito. Estudo registrado: <b>${hm(totSem)}</b>.` : seg0 > hoje() ? 'Projeção automática supondo que você cumpra as metas até lá. Ela se ajusta sozinha a cada meta concluída, ao seu acerto e às revisões.' : `Dias que já passaram mostram o que foi feito; de hoje em diante, a projeção supondo que você cumpra as metas. Estudo registrado na semana: <b>${hm(totSem)}</b>.`}</p>
+    <div class="semana">${dias.map(d => { const pd = parse(d.dia), hj = d.dia === hoje();
+      const plan = d.metas.reduce((s,x)=>s+x.min,0), feito = estudado(d.dia);
+      const info = d.passado ? (d.metas.length || feito ? `${hm(feito)} estudadas${plan?' de '+hm(plan)+' planejadas':''}` : pausaDe(d.dia) ? 'plano pausado' : 'sem metas registradas')
+        : capacidade(d.dia) ? hm(plan)+' de '+hm(capacidade(d.dia)) : pausaDe(d.dia) ? 'plano pausado' : 'descanso';
+      return `<div class="dia ${hj?'hj':''} ${d.passado?'passado':''}"><h4>${hj?'Hoje':DIAS3[pd.getDay()]} <span class="mut">${br(d.dia).slice(0,5)}</span></h4><div class="mut">${info}</div>
+      ${d.metas.filter(x => !x.descartada).map(x => blMeta(x, d.passado)).join('')}</div>`; }).join('')}</div></div>`;
   h += `<div class="card" style="margin-top:16px"><h2>Ciclo da semana <button class="g" onclick="confirmar('Zerar o progresso e iniciar um novo ciclo?').then(ok=>{if(ok){S.config.cicloTs=Date.now();save();render();}})">Iniciar novo ciclo</button></h2>
     <p class="mut">${prev}<br>Ciclo iniciado em ${br(iso(new Date(S.config.cicloTs)))} · ${hm(tF)} de ${hm(tA)} (= ${hm(ms)} líquidas por semana). Fatia de cada matéria = peso × dificuldade × desempenho; abaixo de ${S.config.limiar}% ganha mais tempo.</p>
     ${c.sort((a,b)=>b.alvo-a.alvo).map(x => `<div class="brow"><span>${esc(curto(x.m.nome,26))} ${x.fat>1?'<span class="tag bad" title="Acerto baixo: mais tempo">+</span>':x.fat<1?'<span class="tag ok" title="Acerto alto: menos tempo">−</span>':''}</span>
