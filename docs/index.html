@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="88">
+<meta name="versao" content="89">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -955,15 +955,18 @@ async function iniciarLivre(){
   S.timer = novoTimer(null, 'Estudo livre'); if(S.timer.modo!=='pomodoro'){ S.timer = {metaId:null, label:'Estudo livre', modo:'pomodoro', fase:'foco', faseInicio:Date.now(), faseFeito:0, focoAcum:0, feitos:0}; }
   somAviso(true); save(); render();
 }
+const rotuloBotaoTimer = () => { const t = S.timer; return t && t.fase==='esperaPausa' ? '☕ Começar pausa' : t && t.fase==='espera' ? '▶ Começar foco' : rodando() ? '⏸ Pausar' : '▶ Retomar'; };
 function pausarTimer(){
-  const t = S.timer; if(!t) return;
+  const t = S.timer; if(!t) return; somAviso(true);
   if(t.modo==='pomodoro'){
     if(t.fase==='espera'){ t.fase='foco'; t.faseFeito=0; t.faseInicio=Date.now(); }
+    else if(t.fase==='esperaPausa'){ t.fase='pausa'; t.faseFeito=0; t.faseInicio=Date.now(); }
     else if(t.faseInicio){ t.faseFeito = decorridoFase(t); t.faseInicio=null; } else t.faseInicio=Date.now();
   } else { if(t.inicio){ t.acum += Date.now()-t.inicio; t.inicio=null; } else t.inicio=Date.now(); }
   save(); render();
 }
-function pularPausa(){ const t=S.timer; if(!t||t.modo!=='pomodoro') return; t.fase='foco'; t.faseFeito=0; t.faseInicio=Date.now(); save(); render(); }
+function pularPausa(){ const t=S.timer; if(!t||t.modo!=='pomodoro') return; somAviso(true); t.fase='foco'; t.faseFeito=0; t.faseInicio=Date.now(); save(); render(); }
+function comecarPausa(){ const t=S.timer; if(!t||t.modo!=='pomodoro') return; somAviso(true); t.fase='pausa'; t.faseFeito=0; t.faseInicio=Date.now(); save(); render(); }
 async function pararTimer(){ if(S.timer && tempoTimer()>60000 && !(await confirmar('Descartar o tempo cronometrado?'))) return; S.timer=null; save(); render(); }
 function registrarLivre(){
   const min = Math.max(1, Math.round(tempoTimer()/60000)); S.timer = null; save();
@@ -978,12 +981,12 @@ function avancarPomodoro(){
     const fimFase = t.faseInicio + (durFase(t) - (t.faseFeito||0));
     if(t.fase==='foco'){
       t.focoAcum = (t.focoAcum||0) + durFase(t); t.feitos = (t.feitos||0)+1;
-      t.fase = 'pausa'; t.faseFeito = 0; t.faseInicio = fimFase;
+      t.fase = 'esperaPausa'; t.faseFeito = 0; t.faseInicio = null; // a pausa começa quando o aluno clicar
       const c = cfgPomo(), longa = t.feitos % c.ciclos === 0;
-      somAviso(); avisar(`Pomodoro ${t.feitos} concluído! Pausa ${longa?'longa':'curta'} de ${longa?c.longa:c.curta} min: levante, beba água, sem celular.`);
+      somAviso(); avisar(`Tempo de foco acabou! Pomodoro ${t.feitos} concluído. Clique em "Começar pausa" para a pausa ${longa?'longa':'curta'} de ${longa?c.longa:c.curta} min.`);
     } else {
       t.fase = 'espera'; t.faseFeito = 0; t.faseInicio = null;
-      somAviso(); avisar('Pausa terminada. Clique em "Começar foco" quando estiver pronta.');
+      somAviso(); avisar('Tempo de pausa acabou! Clique em "Começar foco" para o próximo pomodoro.');
     }
     mudou = true;
   }
@@ -996,22 +999,25 @@ function somAviso(soPreparar){
     audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
     if(audioCtx.state==='suspended') audioCtx.resume();
     if(soPreparar) return;
-    [0, .25, .5].forEach((d,i) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.frequency.value = i===2 ? 880 : 660; o.connect(g); g.connect(audioCtx.destination);
-      const t0 = audioCtx.currentTime + d; g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(.25,t0+.02); g.gain.exponentialRampToValueAtTime(.0001,t0+.2);
-      o.start(t0); o.stop(t0+.22); });
+    // sinal simples e rápido: dois bipes curtos
+    [0, .18].forEach(d => { const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = 880; o.connect(g); g.connect(audioCtx.destination);
+      const t0 = audioCtx.currentTime + d; g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(.3,t0+.015); g.gain.exponentialRampToValueAtTime(.0001,t0+.12);
+      o.start(t0); o.stop(t0+.14); });
   }catch(e){}
 }
 function textoTimer(){
   const t = S.timer; if(!t) return '';
   if(t.modo!=='pomodoro') return fmtRel(tempoTimer());
-  if(t.fase==='espera') return 'pronto para o foco';
+  if(t.fase==='espera') return 'pausa acabou';
+  if(t.fase==='esperaPausa') return 'foco acabou';
   return `${t.fase==='foco'?'Foco':'Pausa'} ${fmtMin(durFase(t)-decorridoFase(t))}`;
 }
 function desenharCron(){
   const el = document.getElementById('cron'); if(!el) return;
   const t = S.timer; if(!t){ el.innerHTML=''; return; }
-  const acao = t.modo==='pomodoro' && t.fase==='pausa' ? `<button onclick="pularPausa()">Pular pausa</button>`
+  const acao = t.modo==='pomodoro' && t.fase==='esperaPausa' ? `<button onclick="comecarPausa()">Começar pausa</button><button onclick="pularPausa()">Pular pausa</button>`
+             : t.modo==='pomodoro' && t.fase==='pausa' ? `<button onclick="pularPausa()">Pular pausa</button>`
              : t.modo==='pomodoro' && t.fase==='espera' ? `<button onclick="pausarTimer()">Começar foco</button>`
              : `<button onclick="pausarTimer()">${rodando()?'Pausar':'Retomar'}</button>`;
   const fim = t.metaId ? `<button onclick="caixaAberta='${t.metaId}';ir('hoje')">Concluir</button>` : `<button onclick="registrarLivre()">Registrar</button>`;
@@ -1019,17 +1025,19 @@ function desenharCron(){
 }
 function cardPomodoro(){
   const t = S.timer; if(!t || t.modo!=='pomodoro') return '';
-  const c = cfgPomo(), dur = durFase(t), feito = t.fase==='espera' ? 0 : decorridoFase(t);
-  const cor = t.fase==='foco' ? 'var(--acc)' : t.fase==='pausa' ? 'var(--ok)' : 'var(--mut)';
-  const fase = t.fase==='foco' ? `Foco ${ (t.feitos||0)+1 }` : t.fase==='pausa' ? ((t.feitos % c.ciclos === 0) ? 'Pausa longa' : 'Pausa curta') : 'Pausa encerrada';
-  return `<div class="card pomo"><div class="pomo-anel">${anel(dur?feito/dur:0, cor, 132, `<tspan id="pomo-t">${t.fase==='espera'?'--:--':fmtMin(dur-feito)}</tspan>`)}</div>
+  const c = cfgPomo(), esperando = t.fase==='espera' || t.fase==='esperaPausa', dur = durFase(t), feito = esperando ? 0 : decorridoFase(t);
+  const cor = t.fase==='foco' || t.fase==='esperaPausa' ? 'var(--acc)' : t.fase==='pausa' ? 'var(--ok)' : 'var(--mut)';
+  const longa = t.feitos % c.ciclos === 0;
+  const fase = t.fase==='foco' ? `Foco ${ (t.feitos||0)+1 }` : t.fase==='pausa' ? (longa ? 'Pausa longa' : 'Pausa curta') : t.fase==='esperaPausa' ? `Foco ${t.feitos} concluído · hora da pausa ${longa?'longa':'curta'} (${longa?c.longa:c.curta} min)` : 'Pausa encerrada · pronto para o próximo foco';
+  return `<div class="card pomo"><div class="pomo-anel">${anel(t.fase==='esperaPausa'?1:dur?feito/dur:0, cor, 132, `<tspan id="pomo-t">${esperando?'00:00':fmtMin(dur-feito)}</tspan>`)}</div>
     <div style="flex:1;min-width:200px"><div class="tipo ${t.fase==='pausa'?'extra':''}">${fase}</div>
       <div class="tit" style="margin-top:6px">${esc(t.label)}</div>
       <div class="mut">Pomodoros feitos: ${t.feitos||0} · tempo de foco: ${hm(tempoTimer()/60000)} · ${c.foco}/${c.curta} min, pausa longa a cada ${c.ciclos}</div>
       <div class="dots" style="margin-top:8px">${Array.from({length:c.ciclos},(_,i)=>`<i class="${i < ((t.feitos||0) % c.ciclos || (t.feitos && t.feitos % c.ciclos===0 && t.fase==='pausa' ? c.ciclos : 0)) ? 'on':''}"></i>`).join('')}</div>
       <div class="inl">${t.fase==='espera' ? `<button class="b" onclick="pausarTimer()">▶ Começar foco</button>`
+        : t.fase==='esperaPausa' ? `<button class="b" onclick="comecarPausa()">☕ Começar pausa</button><button class="g" onclick="pularPausa()">Pular pausa e seguir no foco</button>`
         : t.fase==='pausa' ? `<button class="g" onclick="pularPausa()">Pular pausa</button>`
-        : `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>`}
+        : `<button class="g" onclick="pausarTimer()">${rotuloBotaoTimer()}</button>`}
         ${t.metaId ? `<button class="b" onclick="caixaAberta='${t.metaId}';render()">Concluir meta</button>` : `<button class="b" onclick="registrarLivre()">Registrar estudo</button>`}
         <button class="g" onclick="pararTimer()">Parar</button></div></div></div>`;
 }
@@ -1487,7 +1495,7 @@ function cardFixa(x,i,dia){
       <div class="tit" style="margin-top:4px">${esc(x.nome)}${m?` <span class="mut">· ${esc(m.nome)}</span>`:''}</div>
       <div class="mut">Atividade que se repete no seu plano (ajuste em Meu plano → Atividades fixas).</div></div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${hm(x.minReal)}</b><div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div></div>`;
-  else { h += ativa ? `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>` : `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
+  else { h += ativa ? `<button class="g" onclick="pausarTimer()">${rotuloBotaoTimer()}</button>` : `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
     if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';render()">Concluir</button>`; }
   h += `</div>`;
   if(!x.feita && caixaAberta===x.id){ const minT = ativa ? Math.max(1, Math.round(tempoTimer()/60000)) : x.min;
@@ -1512,7 +1520,7 @@ function cardMeta(x,i,dia){
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`+
     (maisTempo!==x.id ? `<button class="g" onclick="maisTempo='${x.id}';render()">+ Adicionar tempo</button>` : '');
   else {
-    if(ativa) h += `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>`;
+    if(ativa) h += `<button class="g" onclick="pausarTimer()">${rotuloBotaoTimer()}</button>`;
     else h += `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
     if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';extraConcluir=0;extraQuando='hoje';render()">Concluir</button>`;
     if(x.atrasada && !dia && !ativa) h += replAberto === x.id
@@ -4417,7 +4425,7 @@ function vConfig(){
       <div><label for="pm_curta">Pausa curta (min)</label><input id="pm_curta" type="number" min="1" max="30" value="${cfgPomo().curta}" onchange="setPomo('curta',+this.value||5)"></div>
       <div><label for="pm_longa">Pausa longa (min)</label><input id="pm_longa" type="number" min="5" max="60" value="${cfgPomo().longa}" onchange="setPomo('longa',+this.value||15)"></div>
       <div><label for="pm_ciclos">Pausa longa a cada</label><input id="pm_ciclos" type="number" min="2" max="8" value="${cfgPomo().ciclos}" onchange="setPomo('ciclos',+this.value||4)"></div></div>
-    <p class="mut">No pomodoro, só o tempo de foco conta como estudo. As pausas começam sozinhas; o próximo foco espera você clicar.</p>
+    <p class="mut">No pomodoro, só o tempo de foco conta como estudo. Ao fim de cada foco e de cada pausa toca um sinal curto; a pausa e o próximo foco começam quando você clicar.</p>
     <h3>Revisões</h3>
     <div class="row"><div><label>Limiar de acerto (%)</label><input type="number" min="50" max="95" value="${c.limiar}" onchange="setCfg('limiar',+this.value||75)"></div>
       <div><label>Intervalos base (dias)</label><input value="${c.intervalos.join(', ')}" onchange="setInt(this.value)"></div></div>
