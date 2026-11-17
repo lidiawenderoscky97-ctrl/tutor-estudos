@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="85">
+<meta name="versao" content="86">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -153,6 +153,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .tp .arr{cursor:grab;color:var(--mut);font-size:15px;line-height:1;text-align:center;user-select:none;touch-action:none;padding:6px 0;border-radius:6px}
 .tp .arr:hover{color:var(--acc);background:var(--soft)}
 .tp.arrastando{opacity:.45}
+.pbar{margin:6px 0 4px;max-width:560px}.pbar-t{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--mut);margin-bottom:3px;flex-wrap:wrap}
+.pbar-b{position:relative;height:8px;border-radius:99px;background:var(--soft);overflow:hidden;border:1px solid var(--line)}
+.pbar-b i{position:absolute;left:0;top:0;bottom:0;background:var(--ok);border-radius:99px}.pbar-b em{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--acc) 55%,transparent) 0 6px,color-mix(in srgb,var(--acc) 35%,transparent) 6px 12px)}
 .tp.alvo-cima{box-shadow:inset 0 3px 0 var(--acc)}.tp.alvo-baixo{box-shadow:inset 0 -3px 0 var(--acc)}
 body.arrastando-top,body.arrastando-top *{cursor:grabbing!important;user-select:none}
 .tp select,.tp input[type=number]{padding:3px 6px;font-size:13px}
@@ -1183,10 +1186,26 @@ function acharMeta(id){
     const l = S.metas[dia] || [], meta = l.find(x => x.id === id); if(meta) return {dia, meta}; }
   return {dia:null, meta:null};
 }
-let extraConcluir = 0;
+let extraConcluir = 0, extraQuando = 'hoje';
+// andamento do assunto em tempo: feito até agora e quanto fica com esta meta concluída
+function progressoAssunto(m, t, x){
+  const bl = blocosTopico(m, t), tot = bl.reduce((a,b) => a + b.min, 0) || 1;
+  const nf = t.status === 'concluido' ? bl.length : Math.min(t.feitos||0, bl.length);
+  const feito = bl.slice(0, nf).reduce((a,b) => a + b.min, 0);
+  let ate = feito, ultimo = false;
+  if(x && x.tipo === 'conteudo' && !x.feita && t.status !== 'concluido'){
+    const k = bl.findIndex(b => b.fase === (x.fase||'teoria') && b.parte === x.parte);
+    if(k >= 0){ ate = bl.slice(0, Math.max(k + 1, nf)).reduce((a,b) => a + b.min, 0); ultimo = k === bl.length - 1; }
+  }
+  return {tot, feito, ate, pf: Math.round(feito / tot * 100), pa: Math.round(ate / tot * 100), ultimo};
+}
+// próximo dia de estudo da matéria (no ciclo A/B, o próximo dia do ciclo dela)
+function proxDiaMateria(materiaId){ for(let d = addDias(hoje(), 1), k = 0; k < 40; d = addDias(d, 1), k++) if(capacidade(d) > 0 && cabeNoDia({tipo:'conteudo', materiaId}, d)) return d; return addDias(hoje(), 1); }
+function escolherQuando(v){ extraQuando = v; document.querySelectorAll('[data-quando]').forEach(b => b.className = b.dataset.quando === v ? 'b' : 'g'); escolherExtra(extraConcluir); }
 // escolhe o tempo extra sem redesenhar a tela (mantém as questões e o tempo já digitados)
 function escolherExtra(v){ extraConcluir = v; document.querySelectorAll('[data-extra]').forEach(b => b.className = +b.dataset.extra === v ? 'b' : 'g');
-  const sv = document.getElementById('cx_salvar'); if(sv) sv.textContent = 'Salvar' + (v ? ' e acrescentar ' + v + ' min' : ''); }
+  const q = document.getElementById('cx_quando'); if(q) q.style.display = v ? '' : 'none';
+  const sv = document.getElementById('cx_salvar'); if(sv) sv.textContent = 'Salvar' + (v ? ' e acrescentar ' + v + ' min ' + (extraQuando === 'prox' ? 'no próximo dia' : 'hoje') : ''); }
 function concluirMeta(id){
   const {dia: diaMeta, meta} = acharMeta(id); if(!meta) return avisar('Não encontrei esta meta. Recarregue a página e tente de novo.');
   const diaReg = diaMeta < hoje() ? diaMeta : hoje(); // meta de um dia anterior: o estudo conta naquele dia
@@ -1222,7 +1241,13 @@ function concluirMeta(id){
     if(meta.tipo==='conteudo') S.metas[hoje()] = (S.metas[hoje()]||[]).filter(x => x.feita || x.atrasada !== diaMeta || x.origemId !== meta.id); }
   if(aviso) avisoHoje = aviso;
   caixaAberta = null;
-  if(extraConcluir){ const ex = extraConcluir; extraConcluir = 0; adicionarTempo(id, ex); if(aviso) avisoHoje = aviso + ' ' + avisoHoje; return; }
+  if(extraConcluir && extraQuando === 'prox'){ // meta extra no próximo dia de estudo da matéria (no ciclo A/B, o próximo dia do ciclo dela)
+    const ex = extraConcluir, d = proxDiaMateria(meta.materiaId); extraConcluir = 0; extraQuando = 'hoje';
+    S.config.filaAtr = S.config.filaAtr || [];
+    S.config.filaAtr.push({dia: d, meta: {id:uid(), origemId:uid(), tipo:'extra', origem: meta.tipo==='extra' ? meta.origem : meta.tipo, materiaId:meta.materiaId, topicoId:meta.topicoId, min:ex}});
+    avisoHoje = (aviso ? aviso + ' ' : '') + `Meta extra de ${ex} min neste assunto marcada para ${DIAS3[parse(d).getDay()]} ${br(d).slice(0,5)}${abAtivo() ? ' (Ciclo ' + cicloDoDia(d) + ')' : ''}. Ela entra na frente das metas daquele dia.`;
+    save(); render(); return; }
+  if(extraConcluir){ const ex = extraConcluir; extraConcluir = 0; extraQuando = 'hoje'; adicionarTempo(id, ex); if(aviso) avisoHoje = aviso + ' ' + avisoHoje; return; }
   save(); render();
 }
 async function desfazerMeta(id){
@@ -1460,7 +1485,8 @@ function cardMeta(x,i,dia){
   const ativa = S.timer && S.timer.metaId===x.id;
   let h = `<div class="meta ${x.fase==='questoes'?'questoes':x.tipo} ${x.feita?'feita':''} ${ativa?'ativa':''}"><div class="ck">${x.feita?'✓':i+1}</div>
     <div style="min-width:0"><div class="dia-m">Meta ${i+1} do dia ${br(dia||hoje()).slice(0,5)}${dia && dia < hoje() ? ' · atrasada' : ''}${x.feita?' · concluída ✓':''}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tipo ${x.fase==='questoes'?'questoes':x.tipo}">${rotuloMeta(x)}</span> <span class="pill">⏱ ${x.min} minutos de atividade</span> <span class="mut">${focos(x.min)}</span>${x.atrasada?` <span class="tag warn">atrasada de ${br(x.atrasada).slice(0,5)}</span>`:''}${x.adiantada?` <span class="tag rev">adiantada de ${br(x.adiantada).slice(0,5)}</span>`:''}</div>
-      <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>${temArtigos(t) ? descLeiHtml(t) : ''}
+      <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>${(() => { const pg = progressoAssunto(m, t, x); const mais = pg.pa > pg.pf;
+        return `<div class="pbar" title="Andamento do assunto pelo tempo planejado"><div class="pbar-t"><span>Assunto: <b>${pg.pf}%</b>${mais ? ` → <b style="color:var(--acc)">${pg.pa}%</b> ao concluir esta meta` : t.status==='concluido' ? ' · concluído' : ''}</span><span>${hm(mais ? pg.ate : pg.feito)} de ${hm(pg.tot)}</span></div><div class="pbar-b"><i style="width:${pg.pf}%"></i>${mais ? `<em style="left:${pg.pf}%;width:${pg.pa - pg.pf}%"></em>` : ''}</div></div>`; })()}${temArtigos(t) ? descLeiHtml(t) : ''}
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
       ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
       ${linkTec(m,t) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${(linksTecTop(t).length ? linksTecTop(t) : [linkTec(m,t)]).map((lk,i,arr) => `<a class="aula" style="text-decoration:none" href="${esc(lk)}" target="_blank" rel="noopener"><b style="color:var(--ok)">${arr.length>1?'Caderno '+(i+1)+' no TEC':'Abrir caderno no TEC'}</b>${linksTecTop(t).length && arr.length===1?' · deste assunto':''} ↗</a>`).join('')}</div>` : ''}
@@ -1470,7 +1496,7 @@ function cardMeta(x,i,dia){
   else {
     if(ativa) h += `<button class="g" onclick="pausarTimer()">${rodando()?'⏸ Pausar':'▶ Retomar'}</button>`;
     else h += `<button class="g" onclick="iniciarMeta('${x.id}')">▶ Iniciar</button>`;
-    if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';extraConcluir=0;render()">Concluir</button>`;
+    if(caixaAberta!==x.id) h += `<button class="b" onclick="caixaAberta='${x.id}';extraConcluir=0;extraQuando='hoje';render()">Concluir</button>`;
     if(x.atrasada && !dia && !ativa) h += replAberto === x.id
       ? `<select onchange="if(this.value)replanejarMeta('${x.id}',this.value)" style="max-width:170px"><option value="">Replanejar para…</option>${opcoesDiasEstudo(7, x).map(d => `<option value="${d}">${DIAS3[parse(d).getDay()]} ${br(d).slice(0,5)}${abAtivo()?' · Ciclo '+cicloDoDia(d):''}</option>`).join('')}</select>`
       : `<button class="g" onclick="replAberto='${x.id}';render()">Replanejar</button>`;
@@ -1492,9 +1518,12 @@ function cardMeta(x,i,dia){
       <div class="inl">${soTeoria ? '' : `<div><label>Questões feitas</label><input id="cq" type="number" min="0" inputmode="numeric"></div>
       <div><label>Acertos</label><input id="ca" type="number" min="0" inputmode="numeric" onkeydown="if(event.key==='Enter')concluirMeta('${x.id}')"></div>`}
       <div><label>Tempo real (min)</label><input id="cm" type="number" min="0" value="${minT}"></div></div>
-      <div style="margin-top:10px"><label>Precisa de mais tempo neste assunto? Acrescente uma meta extra hoje</label>
-        <div class="inl" style="margin:4px 0 0">${[0,15,30,45,60].map(v => `<button data-extra="${v}" class="${extraConcluir===v?'b':'g'}" onclick="escolherExtra(${v},'${x.id}')">${v?'+ '+v+' min':'Não precisa'}</button>`).join('')}</div></div>
-      <div class="inl"><button class="b" id="cx_salvar" onclick="concluirMeta('${x.id}')">Salvar${extraConcluir?' e acrescentar '+extraConcluir+' min':''}</button><button class="g" onclick="caixaAberta=null;extraConcluir=0;render()">Cancelar</button></div>
+      ${(() => { const pg = progressoAssunto(m, t, x), pd = proxDiaMateria(m.id);
+        return `<div style="margin-top:10px">${pg.ultimo ? `<div class="alert info" style="margin:0 0 6px;padding:7px 10px">Com esta meta o assunto chega a <b>100%</b> do tempo planejado.</div><label style="color:var(--ink);font-weight:600">Vai querer mais tempo para concluir este assunto? Por quanto tempo?</label>` : `<label>Precisa de mais tempo neste assunto? Acrescente uma meta extra</label>`}
+        <div class="inl" style="margin:4px 0 0">${[0,15,30,45,60].map(v => `<button data-extra="${v}" class="${extraConcluir===v?'b':'g'}" onclick="escolherExtra(${v},'${x.id}')">${v?'+ '+v+' min':'Não precisa'}</button>`).join('')}</div>
+        <div id="cx_quando" style="${extraConcluir?'':'display:none'};margin-top:8px"><label>Quando fazer o tempo extra?</label>
+          <div class="inl" style="margin:4px 0 0"><button data-quando="hoje" class="${extraQuando!=='prox'?'b':'g'}" onclick="escolherQuando('hoje')">Hoje mesmo</button><button data-quando="prox" class="${extraQuando==='prox'?'b':'g'}" onclick="escolherQuando('prox')">No próximo dia ${abAtivo()?'do ciclo ('+DIAS3[parse(pd).getDay()]+' '+br(pd).slice(0,5)+' · Ciclo '+cicloDoDia(pd)+')':'de estudo ('+DIAS3[parse(pd).getDay()]+' '+br(pd).slice(0,5)+')'}</button></div></div></div>`; })()}
+      <div class="inl"><button class="b" id="cx_salvar" onclick="concluirMeta('${x.id}')">Salvar${extraConcluir?' e acrescentar '+extraConcluir+' min '+(extraQuando==='prox'?'no próximo dia':'hoje'):''}</button><button class="g" onclick="caixaAberta=null;extraConcluir=0;render()">Cancelar</button></div>
       <p class="mut" style="margin:6px 0 0">${soTeoria ? 'As questões deste assunto entram nas metas quando toda a teoria estiver concluída.' : x.tipo==='revisao'?`Abaixo de ${S.config.limiar}% o assunto volta mais cedo; acima, o intervalo aumenta.`:'Seu acerto alimenta o índice do assunto e o ajuste do ciclo.'}${ativa?' Tempo preenchido pelo cronômetro.':''}</p></div>`;
   }
   return h + `</div>`;
