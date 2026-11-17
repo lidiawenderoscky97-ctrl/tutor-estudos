@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="86">
+<meta name="versao" content="87">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -3215,8 +3215,14 @@ function vEdital(){
   if(S.materias.some(m => m.topicos.some(temArtigos))){ if(LS.pronto && LS.sig !== lsAssinatura()) lsInvalidar(); if(!LS.pronto && !LS.preparando) lsPreparar(); }
   if(edAba === 'estat') return edAbas() + vAnalise();
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
-  let h = edAbas() + cardMeuEdital() + cardPdf() + cardEstrategia() + cardTecInc() + `<div class="card" style="margin-top:16px"><h2>Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
-    <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca.</p>`;
+  let h = edAbas() + cardMeuEdital() + cardPdf() + cardEstrategia() + cardTecInc() + `<div class="card" style="margin-top:16px"><div class="inl" style="margin:0;justify-content:space-between;align-items:center"><h2 style="margin:0">Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
+      <button class="${novaMatAberta?'g':'b'}" onclick="novaMatAberta=!novaMatAberta;render();setTimeout(()=>{const e=document.getElementById('vm_nome');if(e)e.focus()},50)">${novaMatAberta?'Cancelar':'+ Adicionar matéria'}</button></div>
+    <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca. Para incluir assuntos numa matéria, abra a matéria e use <b>Adicionar assuntos</b> no fim da lista.</p>
+    ${novaMatAberta ? `<div class="caixa" style="margin:0 0 12px"><b>Nova matéria</b>
+      <div class="row"><div><label for="vm_nome">Nome da matéria</label><input id="vm_nome" placeholder="Ex.: Direito Penal"></div><div><label for="vm_peso">Peso na prova (1–5)</label><select id="vm_peso">${[1,2,3,4,5].map(k=>`<option ${k===3?'selected':''}>${k}</option>`).join('')}</select></div></div>
+      <label for="vm_tops">Assuntos (opcional): um por linha, separados por ponto e vírgula ou numerados como no edital</label>
+      <textarea id="vm_tops" style="min-height:90px" placeholder="1. Princípios. 2. Aplicação da lei penal. 3. Crimes contra a administração pública.&#10;ou um assunto por linha"></textarea>
+      <div class="inl"><button class="b" onclick="addMatVert()">Adicionar matéria</button></div></div>` : ''}`;
   h += S.materias.map(m => {
     const mc = m.topicos.filter(t=>t.status==='concluido').length, st = stats(s=>s.materiaId===m.id);
     return `<details class="mat" ${abertas.has(m.id)?'open':''} ontoggle="this.open?abertas.add('${m.id}'):abertas.delete('${m.id}')"><summary><b style="flex:1;min-width:160px">${esc(m.nome)}</b>
@@ -3240,8 +3246,11 @@ function vEdital(){
         <select class="hide" onchange="setTop('${m.id}','${t.id}','incid',+this.value)">${[1,2,3].map(k=>`<option value="${k}" ${k==t.incid?'selected':''}>${INCID[k]}</option>`).join('')}</select>
         <span class="hide mut">${hm(tempoTopico(m,t).total)}</span>
         <button class="x" title="Excluir assunto" onclick="delTop('${m.id}','${t.id}')">✕</button></div>`}).join('')}
-      <div class="inl"><input id="nt_${m.id}" placeholder="Novo assunto" style="flex:1;width:auto" onkeydown="if(event.key==='Enter')addTop('${m.id}')"><button class="g" onclick="addTop('${m.id}')">Adicionar</button>
-      <button class="g" style="color:var(--bad)" onclick="delMat('${m.id}')">Excluir matéria</button></div></div></details>`;
+      <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)"><label for="nt_${m.id}"><b>Adicionar assuntos</b> · um ou vários (um por linha, separados por ponto e vírgula ou numerados como no edital)</label>
+      <div class="inl" style="margin-top:4px;align-items:flex-start"><textarea id="nt_${m.id}" rows="1" placeholder="Novo assunto" style="flex:1;width:auto;min-height:42px;resize:vertical" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTop('${m.id}')}"></textarea>
+        <select id="ntp_${m.id}" title="Onde colocar" style="max-width:220px"><option value="fim">No fim da lista</option><option value="inicio">No começo da lista</option>${m.topicos.map(t=>`<option value="${t.id}">Depois de: ${esc(curto(t.nome,40))}</option>`).join('')}</select>
+        <button class="b" onclick="addTop('${m.id}')">Adicionar</button></div>
+      <div class="inl"><button class="g" style="color:var(--bad)" onclick="delMat('${m.id}')">Excluir matéria</button></div></div></div></details>`;
   }).join('') || '<div class="empty">Nenhuma matéria cadastrada.</div>';
   h += `</div><div class="card" style="margin-top:16px" id="cardnovamat"><h2>Adicionar matérias do edital</h2>
     <p class="mut">Copie do edital e cole aqui, do jeito que vem: o nome da matéria, um traço (ou dois-pontos) e os assuntos numerados um ao lado do outro. Pode colar várias matérias de uma vez, uma depois da outra. Cada número vira um assunto.</p>
@@ -3396,7 +3405,33 @@ function arrastarTop(ev, mid, tid){
   };
   addEventListener('pointermove', mover); addEventListener('pointerup', soltar); addEventListener('pointercancel', soltar);
 }
-function addTop(mid){const i=document.getElementById('nt_'+mid), n=i.value.trim(); if(!n) return; mat(mid).topicos.push({id:uid(),nome:n,status:'nao',incid:2,paginas:0,feitos:0,aula:''}); abertas.add(mid); save(); render(); document.getElementById('nt_'+mid).focus();}
+// lista de assuntos digitada: numerada como no edital ("1. A. 2. B."), um por linha ou separada por ponto e vírgula
+function lerAssuntos(txt){
+  txt = String(txt||'').trim(); if(!txt) return [];
+  if(/(^|\s)\d{1,2}\s*[.)–-]\s+\S/.test(txt)){ const l = matsDoTextoEdital('Assuntos - ' + txt.replace(/\n+/g, ' ')); if(l.length && l[0].tops.length) return l[0].tops; }
+  return txt.split(/\n|;/).map(x => x.replace(/^[-•*\s]+/, '').replace(/[.\s]+$/, '').trim()).filter(Boolean);
+}
+const novoTopico = n => ({id:uid(), nome:n, status:'nao', incid:2, paginas:0, feitos:0, aula:''});
+let novaMatAberta = false;
+function addTop(mid){
+  const i = document.getElementById('nt_'+mid), m = mat(mid), nomes = lerAssuntos(i.value); if(!nomes.length || !m) return;
+  const onde = (document.getElementById('ntp_'+mid)||{}).value || 'fim', novos = nomes.filter(n => !m.topicos.some(t => norm(t.nome) === norm(n))).map(novoTopico);
+  if(!novos.length) return avisar('Esse assunto já está na matéria.');
+  if(onde === 'fim') m.topicos.push(...novos);
+  else { const k = onde === 'inicio' ? 0 : m.topicos.findIndex(t => t.id === onde) + 1; m.topicos.splice(k, 0, ...novos); m.ordemManual = true; }
+  abertas.add(mid); save(); render();
+  avisar(novos.length === 1 ? 'Assunto adicionado.' : `${novos.length} assuntos adicionados.`);
+  const el = document.getElementById('nt_'+mid); if(el) el.focus();
+}
+function addMatVert(){
+  const nome = document.getElementById('vm_nome').value.trim(), peso = +document.getElementById('vm_peso').value || 3, tops = lerAssuntos(document.getElementById('vm_tops').value);
+  if(!nome) return avisar('Digite o nome da matéria.');
+  let m = S.materias.find(x => norm(x.nome) === norm(nome));
+  if(m){ const novos = tops.filter(n => !m.topicos.some(t => norm(t.nome) === norm(n))).map(novoTopico); m.topicos.push(...novos); avisar(`A matéria ${m.nome} já existia: ${novos.length} assunto(s) acrescentado(s).`); }
+  else { m = {id:uid(), nome, peso, nivel:3, curso:'', topicos: tops.map(novoTopico)}; S.materias.push(m); avisar(`Matéria ${nome} adicionada${tops.length ? ' com ' + tops.length + ' assunto(s)' : ''}. ${tops.length ? '' : 'Abra a matéria para incluir os assuntos.'}`); }
+  if(!S.config.origemEdital) S.config.origemEdital = 'manual';
+  abertas.add(m.id); novaMatAberta = false; save(); render();
+}
 async function delTop(mid,tid){if(!(await confirmar('Excluir assunto e seu histórico?')))return; const m=mat(mid); m.topicos=m.topicos.filter(t=>t.id!==tid); S.revisoes=S.revisoes.filter(r=>r.topicoId!==tid); S.sessoes=S.sessoes.filter(s=>s.topicoId!==tid); save(); render();}
 async function delMat(id){if(!(await confirmar('Excluir a matéria e todo o seu histórico?')))return; S.materias=S.materias.filter(m=>m.id!==id); S.sessoes=S.sessoes.filter(s=>s.materiaId!==id); S.revisoes=S.revisoes.filter(r=>r.materiaId!==id); if(S.materias.length) gerarMetas(true); else delete S.metas[hoje()]; save(); render();}
 function importar(texto, silencioso){
