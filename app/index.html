@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="90">
+<meta name="versao" content="91">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -150,6 +150,8 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .mat .body{padding:4px 14px 12px;border-top:1px solid var(--line)}
 .tp{display:grid;grid-template-columns:18px 22px 1fr 70px 90px 64px 28px;gap:8px;align-items:center;padding:6px 0;font-size:14px;border-top:1px dashed var(--line)}
 .tp.hd{border-top:0;color:var(--mut);font-size:12px}
+.tp.editando .nm{grid-column:3 / -1}.tp.editando > input[type=number],.tp.editando > select,.tp.editando > .hide,.tp.editando > button.x{display:none}
+.tp .tpedit{width:100%;font:inherit;font-size:15px;line-height:1.45;padding:9px 12px;resize:none;overflow:hidden;min-height:44px;box-sizing:border-box}
 .tp .tpnome{cursor:text;border-bottom:1px dashed transparent}.tp .tpnome:hover{border-bottom-color:var(--mut)}.tp .tped{font-size:12px;opacity:.45;padding:0 2px;text-decoration:none}.tp:hover .tped{opacity:1}
 .tp .arr{cursor:grab;color:var(--mut);font-size:15px;line-height:1;text-align:center;user-select:none;touch-action:none;padding:6px 0;border-radius:6px}
 .tp .arr:hover{color:var(--acc);background:var(--soft)}
@@ -3332,8 +3334,9 @@ function vEdital(){
         ${m.tecLink?`<a class="g" style="text-decoration:none;padding:7px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink)" href="${esc(m.tecLink)}" target="_blank" rel="noopener">Abrir no TEC</a>`:''}</div>
       <div class="tp hd"><span></span><span></span><span>Assunto <span style="font-weight:400">(arraste ⠿ para mudar a ordem)</span></span><span>Páginas</span><span class="hide">Incidência</span><span class="hide">Tempo</span><span></span></div>
       ${m.ordemManual ? `<div class="alert info" style="margin:0 0 8px;padding:7px 10px">A ordem dos assuntos é a que você arrastou, e as metas seguem essa ordem. <button class="lk" onclick="ordemAuto('${m.id}')">voltar à ordem automática</button></div>` : ''}
-      ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp" data-tid="${t.id}"><span class="arr" title="Arraste para mudar a ordem" onpointerdown="arrastarTop(event,'${m.id}','${t.id}')">⠿</span><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
-        <span class="nm">${editTop===t.id ? `<span class="inl" style="margin:0 0 4px;gap:6px"><input id="et_${t.id}" value="${esc(t.nome)}" style="flex:1;min-width:180px" onkeydown="if(event.key==='Enter'){event.preventDefault();renomearTop('${m.id}','${t.id}')}else if(event.key==='Escape'){editTop=null;render()}"><button class="b" style="padding:6px 12px" onclick="renomearTop('${m.id}','${t.id}')">Salvar</button><button class="g" style="padding:6px 12px" onclick="editTop=null;render()">Cancelar</button></span>`
+      ${m.topicos.map(t => {const ix=indice(t.id); return `<div class="tp ${editTop===t.id?'editando':''}" data-tid="${t.id}"><span class="arr" title="Arraste para mudar a ordem" onpointerdown="arrastarTop(event,'${m.id}','${t.id}')">⠿</span><input type="checkbox" title="Concluído" ${t.status==='concluido'?'checked':''} onchange="setTop('${m.id}','${t.id}','status',this.checked?'concluido':(topico(mat('${m.id}'),'${t.id}').feitos?'estudando':'nao'))">
+        <span class="nm">${editTop===t.id ? `<span style="display:block;margin:0 0 6px"><textarea id="et_${t.id}" rows="1" class="tpedit" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onkeydown="if(event.key==='Enter'){event.preventDefault();renomearTop('${m.id}','${t.id}')}else if(event.key==='Escape'){editTop=null;render()}">${esc(t.nome)}</textarea>
+            <span class="inl" style="margin:6px 0 0;gap:6px"><button class="b" style="padding:6px 14px" onclick="renomearTop('${m.id}','${t.id}')">Salvar</button><button class="g" style="padding:6px 14px" onclick="editTop=null;render()">Cancelar</button><span class="mut" style="font-size:12.5px">Enter salva · Esc cancela</span></span></span>`
           : `<span class="tpnome" title="Clique para editar o nome" onclick="editarTop('${t.id}')">${esc(t.nome)}</span> <button class="lk tped" title="Editar o nome do assunto" onclick="editarTop('${t.id}')">✏️</button>`}<small>${[t.aula?'Estratégia: '+esc(t.aula):'', t.tecQ!=null?'TEC: '+t.tecQ+' questões'+(t.tecP!=null?' ('+String(t.tecP).replace('.',',')+'% da matéria)':''):'', t.estatP!=null?'Estratégia: '+String(t.estatP).replace('.',',')+'% de cobrança':'', t.status==='estudando'?'estudando':'', ix.p!=null?'índice '+pct(ix.p):''].filter(Boolean).join(' · ')}</small>${descLeiHtml(t)}
           ${(lks => lks.map((lk,i) => `<span class="tptec"><input value="${esc(lk)}" title="Caderno ${i+1} do TEC deste assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${i})"><a href="${esc(lk)}" target="_blank" rel="noopener">${lks.length>1?'Caderno '+(i+1):'Abrir no TEC'} ↗</a><button class="x" title="Tirar este caderno" onclick="setTopTec('${m.id}','${t.id}','',${i})">✕</button></span>`).join('')
             + `<span class="tptec"><input value="" placeholder="${lks.length?'+ Adicionar outro caderno do TEC':'Link do caderno no TEC deste assunto'}" title="Link de um caderno do TEC Concursos para este assunto" onchange="setTopTec('${m.id}','${t.id}',this.value,${lks.length})"></span>`)(linksTecTop(t))}</span>
@@ -3381,7 +3384,7 @@ function setTopTec(mid,tid,v,i){ v = String(v||'').trim(); if(v && !/^https:\/\/
 function setMatLink(id,v){ v = v.trim(); if(v && !/^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(v)){ avisar('Use um link do TEC Concursos (https://www.tecconcursos.com.br/...).'); render(); return; } mat(id).tecLink = v; save(); render(); }
 function setMat(id,k,v){const m=mat(id); if(k!=='nome') v=Math.min(5,Math.max(1,v||1)); m[k]=v; save(); render();}
 let editTop = null;
-function editarTop(tid){ editTop = tid; render(); const i = document.getElementById('et_'+tid); if(i){ i.focus(); i.select(); } }
+function editarTop(tid){ editTop = tid; render(); const i = document.getElementById('et_'+tid); if(i){ i.style.height = 'auto'; i.style.height = i.scrollHeight + 'px'; i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
 function renomearTop(mid, tid){
   const m = mat(mid), t = topico(m, tid), i = document.getElementById('et_'+tid); if(!t || !i) return;
   const n = i.value.trim().replace(/\s+/g, ' ');
