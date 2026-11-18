@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="92">
+<meta name="versao" content="93">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -1752,7 +1752,8 @@ function restaurarArquivo(nomes){ const volta = (S.matArquivo||[]).filter(m => n
 let BANCO = {lista:null, carregando:false, erro:'', busca:'', ver:null}, bancoPub = false;
 const bancoOnline = () => !!(ONLINE && ONLINE.tipo === 'firebase' && FB && FB.auth.currentUser && !ONLINE.somenteLeitura);
 function editalParaBanco(){
-  return S.materias.slice(0, 80).map(m => { const o = {nome:m.nome, peso:+m.peso||3, topicos:m.topicos.slice(0, 400).map(t => { const x = {nome:t.nome, incid:+t.incid||2}; if(t.aula) x.aula = t.aula; if(t.paginas) x.paginas = +t.paginas; return x; })};
+  return S.materias.slice(0, 80).map(m => { const o = {nome:m.nome, peso:+m.peso||3, topicos:m.topicos.slice(0, 400).map(t => { const x = {nome:t.nome, incid:+t.incid||2}; if(t.aula) x.aula = t.aula; if(t.paginas) x.paginas = +t.paginas; const tl = linksTecTop(t).slice(0, 5); if(tl.length) x.tec = tl; return x; })};
+    if(m.tecLink) o.tecLink = m.tecLink;
     if(m.curso) o.curso = m.curso; if(m.estCurso) o.estCurso = m.estCurso; if(m.estUrl) o.estUrl = m.estUrl; if(m.estFase) o.estFase = m.estFase;
     if(m.estAulas && typeof m.estAulas === 'object' && !Array.isArray(m.estAulas)) o.estAulas = m.estAulas; return o; });
 }
@@ -1786,7 +1787,9 @@ async function bancoUsar(id){
     m.peso = bm.peso || m.peso; if(bm.curso) m.curso = bm.curso;
     if(bm.estCurso){ m.estCurso = bm.estCurso; delete m.estUrl; } else if(bm.estUrl){ m.estUrl = bm.estUrl; delete m.estCurso; }
     if(bm.estAulas) m.estAulas = bm.estAulas; if(bm.estFase) m.estFase = bm.estFase;
-    (bm.topicos||[]).forEach(bt => { const t = m.topicos.find(x => norm(x.nome) === norm(bt.nome)); if(!t) return; if(bt.aula) t.aula = bt.aula; if(bt.incid) t.incid = bt.incid; if(bt.paginas && !t.paginas) t.paginas = bt.paginas; });
+    if(bm.tecLink && !m.tecLink) m.tecLink = bm.tecLink;
+    (bm.topicos||[]).forEach(bt => { const t = m.topicos.find(x => norm(x.nome) === norm(bt.nome)); if(!t) return; if(bt.aula) t.aula = bt.aula;
+      if(Array.isArray(bt.tec) && bt.tec.length && !linksTecTop(t).length){ t.tecLinks = bt.tec.slice(); delete t.tecLink; } if(bt.incid) t.incid = bt.incid; if(bt.paginas && !t.paginas) t.paginas = bt.paginas; });
     m.topicos.sort((a,b) => (bm.topicos||[]).findIndex(x => norm(x.nome) === norm(a.nome)) - (bm.topicos||[]).findIndex(x => norm(x.nome) === norm(b.nome)));
   });
   if(e.fase) S.config.fase = e.fase;
@@ -1804,7 +1807,8 @@ function cardBancoPub(){
   if(!bancoPub) return `<div class="inl" style="margin-top:10px"><button class="g" onclick="bancoPub=true;render()">📤 Compartilhar este edital no banco da comunidade</button><span class="mut" style="font-size:13px">${S.config.bancoNome ? 'Você já compartilhou como “' + esc(S.config.bancoNome) + '”: compartilhar de novo atualiza.' : 'Outros alunos poderão usar o seu edital pronto.'}</span></div>`;
   const c = S.config;
   return `<div class="caixa" style="margin-top:10px"><b>Compartilhar no banco de editais</b>
-    <p class="mut" style="margin:4px 0 8px">Vão juntos: matérias, assuntos e a ordem deles, pesos, incidência e as aulas do Estratégia ligadas. <b>Não vão</b>: o seu progresso, questões e acertos, cadernos do TEC, anotações e nada da sua conta.</p>
+    <p class="mut" style="margin:4px 0 8px">Vão juntos: matérias, assuntos e a ordem deles, pesos, incidência, as aulas do Estratégia e os links dos cadernos do TEC. <b>Não vão</b>: o seu progresso, questões e acertos, anotações e nada da sua conta.</p>
+    <div class="alert warn" style="margin:0 0 8px;padding:7px 10px;font-size:13.5px">Para os outros alunos conseguirem abrir os seus cadernos do TEC, compartilhe cada caderno lá no TEC (opção <b>Compartilhar</b> do caderno) e use aqui no edital o <b>link de compartilhamento</b>. O link comum do caderno só abre para você.</div>
     <div class="row"><div><label for="bp_nome">Nome do edital</label><input id="bp_nome" value="${esc(c.bancoNome || c.concurso || '')}" placeholder="Ex.: Bacen Auditor 2026"></div>
       <div><label for="bp_banca">Banca</label><input id="bp_banca" value="${esc(c.banca||'')}" placeholder="Ex.: Cebraspe"></div>
       <div><label for="bp_fase">Fase</label><select id="bp_fase"><option value="pre" ${posEdital()?'':'selected'}>Pré-edital</option><option value="pos" ${posEdital()?'selected':''}>Pós-edital</option></select></div></div>
@@ -1818,16 +1822,16 @@ function cardBanco(){
   const b = norm(BANCO.busca||''), lista = (BANCO.lista||[]).filter(e => !b || norm(e.nome + ' ' + (e.banca||'')).includes(b));
   const mostra = b ? lista : lista.slice(0, 8), me = FB.auth.currentUser.uid, mest = ehMestre();
   let h = `<div class="card" style="margin-bottom:16px"><h2>📚 Banco de editais da comunidade</h2>
-    <p class="mut" style="margin-top:-4px">Editais montados por outros alunos, prontos para usar: matérias, assuntos na ordem, pesos, incidência e aulas do Estratégia. Ao usar, o seu edital atual fica guardado.${S.materias.length ? '' : ' <b>Ainda sem edital? Comece por aqui.</b>'}</p>
+    <p class="mut" style="margin-top:-4px">Editais montados por outros alunos, prontos para usar: matérias, assuntos na ordem, pesos, incidência, aulas do Estratégia e cadernos do TEC. Ao usar, o seu edital atual fica guardado.${S.materias.length ? '' : ' <b>Ainda sem edital? Comece por aqui.</b>'}</p>
     <input placeholder="Buscar concurso (ex.: Bacen, TJ-SP, Polícia Federal)" value="${esc(BANCO.busca||'')}" oninput="BANCO.busca=this.value;clearTimeout(window.__bb);window.__bb=setTimeout(()=>{render();const i=document.querySelector('#bancoBusca');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)" id="bancoBusca">`;
   if(BANCO.erro) return h + `<div class="alert bad" style="margin-top:8px">Não consegui abrir o banco (${esc(BANCO.erro)}).${/permission/i.test(BANCO.erro) ? ' As regras do Firebase do banco de editais ainda não foram publicadas.' : ''} <button class="lk" onclick="bancoCarregar()">tentar de novo</button></div></div>`;
   if(!BANCO.lista) return h + `<p class="mut">Carregando…</p></div>`;
   if(!lista.length) return h + `<div class="empty">${b ? 'Nenhum edital com esse nome ainda.' : 'O banco ainda está vazio.'} Monte o seu e compartilhe em “Meu edital”.</div></div>`;
   h += mostra.map(e => { const nT = e.nTop || (e.materias||[]).reduce((t,m) => t + (m.topicos||[]).length, 0), aberto = BANCO.ver === e.id;
     return `<div class="item" style="flex-wrap:wrap"><div style="min-width:0;flex:1"><b>${esc(e.nome)}</b> <span class="tag ${e.fase==='pos'?'ok':''}">${e.fase==='pos'?'Pós-edital':'Pré-edital'}</span>
-      <div class="mut" style="font-size:13px">${e.banca ? esc(e.banca) + ' · ' : ''}${(e.materias||[]).length} matérias · ${nT} assuntos · ${e.usos||0} ${e.usos===1?'aluno usou':'alunos usaram'} · por ${esc(e.autor || 'Aluno')}${e.autorUid===me?' (você)':''} · ${br(new Date((e.atualizado||Date.now()) - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10))}</div></div>
+      <div class="mut" style="font-size:13px">${e.banca ? esc(e.banca) + ' · ' : ''}${(e.materias||[]).length} matérias · ${nT} assuntos${(c => c ? ' · ' + c + ' caderno' + (c>1?'s':'') + ' do TEC' : '')((e.materias||[]).reduce((k,m) => k + (m.tecLink?1:0) + (m.topicos||[]).filter(t => t.tec && t.tec.length).length, 0))} · ${e.usos||0} ${e.usos===1?'aluno usou':'alunos usaram'} · por ${esc(e.autor || 'Aluno')}${e.autorUid===me?' (você)':''} · ${br(new Date((e.atualizado||Date.now()) - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10))}</div></div>
       <div class="inl" style="margin:0"><button class="g" onclick="BANCO.ver=${aberto?'null':`'${e.id}'`};render()">${aberto?'Fechar':'Ver matérias'}</button><button class="b" onclick="bancoUsar('${e.id}')">Usar este edital</button>${e.autorUid===me || mest ? `<button class="x" title="Tirar do banco" onclick="bancoRemover('${e.id}')">✕</button>` : ''}</div>
-      ${aberto ? `<div style="flex-basis:100%;margin-top:8px">${(e.materias||[]).map(m => `<details class="mat"><summary><b style="flex:1">${esc(m.nome)}</b><span class="mut">peso ${m.peso||3} · ${(m.topicos||[]).length} assuntos${m.curso ? ' · ' + esc(curto(m.curso, 50)) : ''}</span></summary><div class="body"><ol style="margin:0;padding-left:20px">${(m.topicos||[]).map(t => `<li>${esc(t.nome)}${t.aula ? ` <span class="mut">· ${esc(t.aula)}</span>` : ''}${t.incid ? ` <span class="tag ${t.incid==3?'bad':t.incid==1?'':'warn'}" style="font-size:11px">${INCID[t.incid]}</span>` : ''}</li>`).join('')}</ol></div></details>`).join('')}</div>` : ''}</div>`; }).join('');
+      ${aberto ? `<div style="flex-basis:100%;margin-top:8px">${(e.materias||[]).map(m => `<details class="mat"><summary><b style="flex:1">${esc(m.nome)}</b><span class="mut">peso ${m.peso||3} · ${(m.topicos||[]).length} assuntos${m.curso ? ' · ' + esc(curto(m.curso, 50)) : ''}</span></summary><div class="body"><ol style="margin:0;padding-left:20px">${(m.topicos||[]).map(t => `<li>${esc(t.nome)}${t.aula ? ` <span class="mut">· ${esc(t.aula)}</span>` : ''}${t.tec && t.tec.length ? ` <span class="mut">· TEC ✓</span>` : ''}${t.incid ? ` <span class="tag ${t.incid==3?'bad':t.incid==1?'':'warn'}" style="font-size:11px">${INCID[t.incid]}</span>` : ''}</li>`).join('')}</ol></div></details>`).join('')}</div>` : ''}</div>`; }).join('');
   if(!b && lista.length > 8) h += `<p class="mut" style="margin:6px 0 0">Mostrando os 8 mais usados de ${lista.length}. Use a busca para achar outros.</p>`;
   return h + '</div>';
 }
