@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="91">
+<meta name="versao" content="92">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -3311,7 +3311,7 @@ function vEdital(){
   if(S.materias.some(m => m.topicos.some(temArtigos))){ if(LS.pronto && LS.sig !== lsAssinatura()) lsInvalidar(); if(!LS.pronto && !LS.preparando) lsPreparar(); }
   if(edAba === 'estat') return edAbas() + vAnalise();
   const tot = S.materias.reduce((s,m)=>s+m.topicos.length,0), conc = S.materias.reduce((s,m)=>s+m.topicos.filter(t=>t.status==='concluido').length,0);
-  let h = edAbas() + cardMeuEdital() + cardBanco() + cardPdf() + cardEstrategia() + cardTecInc() + `<div class="card" style="margin-top:16px"><div class="inl" style="margin:0;justify-content:space-between;align-items:center"><h2 style="margin:0">Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
+  let h = edAbas() + cardMeuEdital() + cardPdf() + cardEstrategia() + cardTecInc() + `<div class="card" style="margin-top:16px"><div class="inl" style="margin:0;justify-content:space-between;align-items:center"><h2 style="margin:0">Edital verticalizado <span class="mut">${conc}/${tot} assuntos concluídos (${pct(tot?conc/tot:null)})</span></h2>
       <button class="${novaMatAberta?'g':'b'}" onclick="novaMatAberta=!novaMatAberta;render();setTimeout(()=>{const e=document.getElementById('vm_nome');if(e)e.focus()},50)">${novaMatAberta?'Cancelar':'+ Adicionar matéria'}</button></div>
     <p class="mut">Marque ✓ quando dominar o assunto. Peso: importância da matéria na prova (1–5). Nível: seu domínio atual (1 = fraco, 5 = forte). Incidência: quanto cai na banca. Para incluir assuntos numa matéria, abra a matéria e use <b>Adicionar assuntos</b> no fim da lista.</p>
     ${novaMatAberta ? `<div class="caixa" style="margin:0 0 12px"><b>Nova matéria</b>
@@ -3355,7 +3355,7 @@ function vEdital(){
     <textarea id="nm" style="min-height:160px" placeholder="Noções de Direito Administrativo - 1. Noções de organização administrativa. 2. Administração direta e indireta, centralizada e descentralizada. 3. Desconcentração. 4. Princípios expressos e implícitos da administração pública.
 Noções de Direito Constitucional - 1. Constituição Federal de 1988. Princípios fundamentais. 2. Direitos e garantias fundamentais."></textarea>
     <div class="inl"><button class="b" onclick="addMat()">Adicionar ao edital</button><span class="mut" id="nmprev"></span></div></div>`;
-  return h;
+  return h + (bancoOnline() ? `<div style="margin-top:16px">${cardBanco()}</div>` : '');
 }
 // Link direto na área do aluno do Estratégia: a aula do assunto, o curso da matéria ou, sem curso definido, "Minhas Matrículas"
 const EST_BASE = 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos';
