@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="94">
+<meta name="versao" content="95">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -3378,6 +3378,9 @@ function vEdital(){
 Noções de Direito Constitucional - 1. Constituição Federal de 1988. Princípios fundamentais. 2. Direitos e garantias fundamentais."></textarea>
     <div class="inl"><button class="b" onclick="addMat()">Adicionar ao edital</button><span class="mut" id="nmprev"></span></div>
     <h3>Ou envie uma planilha</h3><p class="mut" style="margin-top:0">Arquivo .xlsx ou .csv com uma linha por assunto e as colunas <b>Disciplina</b> (ou Matéria) e <b>Tópico</b> (ou Assunto). Se tiver, as colunas <b>Peso</b> (1 a 5) e <b>Incidência</b> (1 a 3, ou Baixa/Média/Alta) também entram. As outras colunas são ignoradas.</p>
+    ${S.materias.length ? `<div class="inl" style="margin:6px 0 0;gap:14px">
+      <label style="display:flex;gap:6px;align-items:center;color:var(--ink);margin:0"><input type="radio" name="pl_modo" value="trocar" style="width:auto" ${planModo!=='somar'?'checked':''} onchange="planModo='trocar'"> <b>Substituir o edital atual</b> <span class="mut">(o atual fica em Editais guardados)</span></label>
+      <label style="display:flex;gap:6px;align-items:center;color:var(--ink);margin:0"><input type="radio" name="pl_modo" value="somar" style="width:auto" ${planModo==='somar'?'checked':''} onchange="planModo='somar'"> Acrescentar ao edital atual</label></div>` : ''}
     <div class="inl"><input type="file" accept=".xlsx,.xls,.csv" style="width:auto" onchange="edPlanilha(this)"></div></div>`;
   return h + (bancoOnline() ? `<div style="margin-top:16px">${cardBanco()}</div>` : '');
 }
@@ -3489,6 +3492,7 @@ function matsDoTextoEdital(texto){
 }
 /* ---------- Edital por planilha (.xlsx ou .csv): uma linha por assunto, com as colunas Disciplina (ou Matéria) e Tópico (ou Assunto).
    Colunas opcionais: Peso (1–5) da matéria e Incidência (1–3 ou Baixa/Média/Alta) do assunto. ---------- */
+let planModo = 'trocar';
 async function edPlanilha(inp){
   const f = inp.files && inp.files[0]; if(!f) return;
   try{
@@ -3513,7 +3517,19 @@ async function edPlanilha(inp){
     });
     const nT = mats.reduce((s,x) => s + x.tops.length, 0);
     if(!nT) throw new Error('a planilha não tem assuntos abaixo do cabeçalho');
-    if(!(await confirmar(`Adicionar ao edital ${mats.length} matéria(s) e ${nT} assunto(s) da planilha “${f.name}”?\n\nMatérias com o mesmo nome de uma que você já tem recebem os assuntos novos; os assuntos repetidos não são duplicados.`))) return;
+    if(S.materias.length && planModo !== 'somar'){
+      // substitui: o edital atual vai para Editais guardados; o que tiver o mesmo nome mantém o progresso
+      const nome = f.name.replace(/\.(xlsx|xls|csv)$/i, '').replace(/[_]+/g, ' ').trim();
+      if(!(await confirmar(`Substituir o edital atual pelo da planilha “${f.name}”?\n\n${mats.length} matéria(s) e ${nT} assunto(s).\nO edital atual${S.config.concurso ? ' (“' + S.config.concurso + '”)' : ''} fica guardado em Editais guardados e você pode voltar para ele. Matérias e assuntos com o mesmo nome mantêm o seu progresso; o resto sai do edital.`))) return;
+      aplicarEditalNovo(nome, S.config.banca || '', mats.map(x => ({nome:x.nome, tops:x.tops.map(y => y.t)})));
+      mats.forEach(x => { const m = S.materias.find(y => norm(y.nome) === norm(x.nome)); if(!m) return; if(x.peso) m.peso = x.peso;
+        x.tops.forEach(y => { const t = m.topicos.find(z => norm(z.nome) === norm(y.t)); if(t && y.i) t.incid = y.i; });
+        m.topicos.sort((a,b) => x.tops.findIndex(y => norm(y.t) === norm(a.nome)) - x.tops.findIndex(y => norm(y.t) === norm(b.nome))); });
+      delete S.metas[hoje()]; gerarMetas(false); save(); render();
+      avisar(`Edital substituído pela planilha: ${S.materias.length} matéria(s) e ${S.materias.reduce((t,m) => t + m.topicos.length, 0)} assunto(s). Confira o nome do concurso em Meu edital.`);
+      return;
+    }
+    if(!(await confirmar(`Acrescentar ao edital ${mats.length} matéria(s) e ${nT} assunto(s) da planilha “${f.name}”?\n\nMatérias com o mesmo nome de uma que você já tem recebem os assuntos novos; os assuntos repetidos não são duplicados.`))) return;
     const texto = mats.map(x => x.nome + (x.peso ? ' | '+x.peso : '') + '\n' + x.tops.map(y => '- ' + y.t + (y.i ? ' *'+y.i : '')).join('\n')).join('\n');
     importar(texto);
   }catch(e){ avisar('Não foi possível ler a planilha: ' + e.message); }
