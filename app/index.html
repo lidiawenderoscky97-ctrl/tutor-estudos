@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="95">
+<meta name="versao" content="96">
 <!-- TUTOR-ESTUDOS-APP -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estudo Guiado</title>
@@ -1499,7 +1499,7 @@ function cardMeta(x,i,dia){
       <div class="tit" style="margin-top:4px">${esc(m.nome)} › ${esc(t.nome)}</div>${(() => { const pg = progressoAssunto(m, t, x); const mais = pg.pa > pg.pf;
         return `<div class="pbar" title="Andamento do assunto pelo tempo planejado"><div class="pbar-t"><span>Assunto: <b>${pg.pf}%</b>${mais ? ` → <b style="color:var(--acc)">${pg.pa}%</b> ao concluir esta meta` : t.status==='concluido' ? ' · concluído' : ''}</span><span>${hm(mais ? pg.ate : pg.feito)} de ${hm(pg.tot)}</span></div><div class="pbar-b"><i style="width:${pg.pf}%"></i>${mais ? `<em style="left:${pg.pf}%;width:${pg.pa - pg.pf}%"></em>` : ''}</div></div>`; })()}${temArtigos(t) ? descLeiHtml(t) : ''}
       <div class="mut">${detalheMeta(x,m,t)}${ix.p!=null?` · <span class="tag ${cc}">${cl} ${pct(ix.p)}</span>`:''}</div>
-      ${(t.aula||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${m.estCurso?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
+      ${(t.aula||t.estLink||m.curso||S.config.concurso) && !(x.tipo==='conteudo' && x.fase==='questoes') ? `<div class="aula"><a href="${esc(linkEstrategia(m,t))}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="${(m.estCurso||m.estUrl||t.estLink)?'Abrir no Estratégia':'Defina o link do curso na tela Edital'}"><b style="color:var(--acc)">Estratégia</b> · ${m.curso?esc(curto(m.curso,60)):'curso de '+esc(m.nome)+(S.config.concurso?' para '+esc(curto(S.config.concurso,50)):'')}${t.aula?' · <b>'+esc(t.aula)+'</b>':''} ↗</a></div>`:''}
       ${linkTec(m,t) && (x.fase==='questoes' || x.tipo==='revisao' || x.tipo==='reforco') ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${(linksTecTop(t).length ? linksTecTop(t) : [linkTec(m,t)]).map((lk,i,arr) => `<a class="aula" style="text-decoration:none" href="${esc(lk)}" target="_blank" rel="noopener"><b style="color:var(--ok)">${arr.length>1?'Caderno '+(i+1)+' no TEC':'Abrir caderno no TEC'}</b>${linksTecTop(t).length && arr.length===1?' · deste assunto':''} ↗</a>`).join('')}</div>` : ''}
       <div><button class="aula" style="border:0;cursor:pointer;font:inherit;font-size:14.5px" onclick="abrirCaderno('${m.id}')"><b style="color:var(--rev)">Anotações</b> · caderno de ${esc(curto(m.nome,40))}${(S.cadernos[m.id]||'').length?'':' (vazio)'}</button></div></div><div class="acts">`;
   if(x.feita) h += `<div style="text-align:right"><b>${x.q?`${x.a}/${x.q} · ${pct(x.a/x.q)}`:'sem questões'}</b><div class="mut">${hm(x.minReal)}</div><button class="lk" onclick="desfazerMeta('${x.id}')">desfazer</button></div>`+
@@ -3359,7 +3359,7 @@ function vEdital(){
     <textarea id="nm" style="min-height:160px" placeholder="Noções de Direito Administrativo - 1. Noções de organização administrativa. 2. Administração direta e indireta, centralizada e descentralizada. 3. Desconcentração. 4. Princípios expressos e implícitos da administração pública.
 Noções de Direito Constitucional - 1. Constituição Federal de 1988. Princípios fundamentais. 2. Direitos e garantias fundamentais."></textarea>
     <div class="inl"><button class="b" onclick="addMat()">Adicionar ao edital</button><span class="mut" id="nmprev"></span></div>
-    <h3>Ou envie uma planilha</h3><p class="mut" style="margin-top:0">Arquivo .xlsx ou .csv com uma linha por assunto e as colunas <b>Disciplina</b> (ou Matéria) e <b>Tópico</b> (ou Assunto). Se tiver, as colunas <b>Peso</b> (1 a 5) e <b>Incidência</b> (1 a 3, ou Baixa/Média/Alta) também entram. As outras colunas são ignoradas.</p>
+    <h3>Ou envie uma planilha</h3><p class="mut" style="margin-top:0">Arquivo .xlsx ou .csv com uma linha por assunto e as colunas <b>Disciplina</b> (ou Matéria) e <b>Tópico</b> (ou Assunto). Se tiver, também entram as colunas <b>Peso</b> (1 a 5) e <b>Incidência</b> (1 a 3, ou Baixa/Média/Alta) e, para os links das metas, <b>Curso Estratégia</b> (link ou nome do curso da matéria), <b>Aula</b> (ex.: 03 ou Aula 03), <b>Link da aula</b> e <b>Caderno TEC</b>. Depois de importar, o app oferece ligar ao Estratégia as matérias que ficaram sem curso. As outras colunas são ignoradas.</p>
     ${S.materias.length ? `<div class="inl" style="margin:6px 0 0;gap:14px">
       <label style="display:flex;gap:6px;align-items:center;color:var(--ink);margin:0"><input type="radio" name="pl_modo" value="trocar" style="width:auto" ${planModo!=='somar'?'checked':''} onchange="planModo='trocar'"> <b>Substituir o edital atual</b> <span class="mut">(o atual fica em Editais guardados)</span></label>
       <label style="display:flex;gap:6px;align-items:center;color:var(--ink);margin:0"><input type="radio" name="pl_modo" value="somar" style="width:auto" ${planModo==='somar'?'checked':''} onchange="planModo='somar'"> Acrescentar ao edital atual</label></div>` : ''}
@@ -3369,6 +3369,7 @@ Noções de Direito Constitucional - 1. Constituição Federal de 1988. Princíp
 // Link direto na área do aluno do Estratégia: a aula do assunto, o curso da matéria ou, sem curso definido, "Minhas Matrículas"
 const EST_BASE = 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos';
 function linkEstrategia(m, t){
+  if(t && t.estLink) return t.estLink; // link da aula vindo da planilha do edital
   if(!m || (!m.estCurso && !m.estUrl)) return EST_BASE;
   const n = t && (String(t.aula||'').match(/\d+/) || [])[0], aula = n != null && m.estAulas ? m.estAulas[String(+n).padStart(2,'0')] : null;
   if(aula && /^https?:/i.test(aula)) return aula;
@@ -3473,7 +3474,8 @@ function matsDoTextoEdital(texto){
   return mats.map(m => ({nome: edMaius(m.nome) ? tituloMat(m.nome) : m.nome, tops: m.txt.trim() ? edItens(m.txt).flatMap(dividirArtigos) : []})).filter(m => m.nome);
 }
 /* ---------- Edital por planilha (.xlsx ou .csv): uma linha por assunto, com as colunas Disciplina (ou Matéria) e Tópico (ou Assunto).
-   Colunas opcionais: Peso (1–5) da matéria e Incidência (1–3 ou Baixa/Média/Alta) do assunto. ---------- */
+   Colunas opcionais: Peso (1–5) da matéria e Incidência (1–3 ou Baixa/Média/Alta) do assunto; e, para os links das metas,
+   Curso Estratégia (link ou nome do curso da matéria), Aula (nº ou nome da aula do assunto), Link da aula e Caderno TEC. ---------- */
 let planModo = 'trocar';
 async function edPlanilha(inp){
   const f = inp.files && inp.files[0]; if(!f) return;
@@ -3487,15 +3489,20 @@ async function edPlanilha(inp){
     if(!linhas) throw new Error('não achei as colunas "Disciplina" e "Tópico" (ou "Matéria" e "Assunto")');
     const cab = linhas[iCab], cM = cab.findIndex(ehMat), cT = cab.findIndex(ehTop);
     const cP = cab.findIndex(c => /^peso/i.test(String(c).trim())), cI = cab.findIndex(c => /^incid/i.test(String(c).trim()));
+    const cabN = cab.map(c => norm(String(c).trim())), cLA = cabN.findIndex(c => /^link\s*(da|de|do)?\s*aula/.test(c));
+    const cA = cabN.findIndex((c,i) => i !== cLA && /^aulas?\b/.test(c)), cC = cabN.findIndex((c,i) => i !== cLA && /curso|estrategia/.test(c)), cTec = cabN.findIndex(c => /\btec\b/.test(c));
+    const url = v => /^https?:\/\/\S+$/i.test(String(v ?? '').trim()) ? String(v).trim() : '';
     const limpa = s => String(s ?? '').replace(/\s+/g,' ').trim();
     const limpaTop = s => limpa(s).replace(/\[/g,'(').replace(/\]/g,')').replace(/#/g,'nº ').replace(/\*/g,'').replace(/%\s*(\d+)\s*$/,'$1%');
     const incid = v => { v = norm(limpa(v)); return /^[123]$/.test(v) ? +v : v.startsWith('alt') ? 3 : v.startsWith('med') ? 2 : v.startsWith('baix') ? 1 : null; };
     const mats = []; let ult = '';
     linhas.slice(iCab+1).forEach(r => {
       const m = limpa(r[cM]).replace(/\|/g,'/') || ult, t = limpaTop(r[cT]); if(!m || !t) return; ult = m;
-      let x = mats.find(y => norm(y.nome) === norm(m)); if(!x){ x = {nome:m, peso:null, tops:[]}; mats.push(x); }
+      let x = mats.find(y => norm(y.nome) === norm(m)); if(!x){ x = {nome:m, peso:null, curso:'', tops:[]}; mats.push(x); }
       if(cP >= 0 && +r[cP] >= 1 && +r[cP] <= 5 && !x.peso) x.peso = Math.round(+r[cP]);
-      if(!x.tops.some(y => norm(y.t) === norm(t))) x.tops.push({t, i: cI >= 0 ? incid(r[cI]) : null});
+      if(cC >= 0 && !x.curso && limpa(r[cC])) x.curso = limpa(r[cC]);
+      if(!x.tops.some(y => norm(y.t) === norm(t))) x.tops.push({t, i: cI >= 0 ? incid(r[cI]) : null,
+        aula: cA >= 0 ? limpa(r[cA]).replace(/[\[\]]/g,'') : '', link: cLA >= 0 ? url(r[cLA]) : '', tec: cTec >= 0 ? url(r[cTec]) : ''});
     });
     const nT = mats.reduce((s,x) => s + x.tops.length, 0);
     if(!nT) throw new Error('a planilha não tem assuntos abaixo do cabeçalho');
@@ -3507,15 +3514,43 @@ async function edPlanilha(inp){
       mats.forEach(x => { const m = S.materias.find(y => norm(y.nome) === norm(x.nome)); if(!m) return; if(x.peso) m.peso = x.peso;
         x.tops.forEach(y => { const t = m.topicos.find(z => norm(z.nome) === norm(y.t)); if(t && y.i) t.incid = y.i; });
         m.topicos.sort((a,b) => x.tops.findIndex(y => norm(y.t) === norm(a.nome)) - x.tops.findIndex(y => norm(y.t) === norm(b.nome))); });
+      const lk = linksPlanilha(mats);
       delete S.metas[hoje()]; gerarMetas(false); save(); render();
-      avisar(`Edital substituído pela planilha: ${S.materias.length} matéria(s) e ${S.materias.reduce((t,m) => t + m.topicos.length, 0)} assunto(s). Confira o nome do concurso em Meu edital.`);
+      await oferecerEstrategia(mats, `Edital substituído pela planilha: ${S.materias.length} matéria(s) e ${S.materias.reduce((t,m) => t + m.topicos.length, 0)} assunto(s)${lk}. Confira o nome do concurso em Meu edital.`);
       return;
     }
     if(!(await confirmar(`Acrescentar ao edital ${mats.length} matéria(s) e ${nT} assunto(s) da planilha “${f.name}”?\n\nMatérias com o mesmo nome de uma que você já tem recebem os assuntos novos; os assuntos repetidos não são duplicados.`))) return;
     const texto = mats.map(x => x.nome + (x.peso ? ' | '+x.peso : '') + '\n' + x.tops.map(y => '- ' + y.t + (y.i ? ' *'+y.i : '')).join('\n')).join('\n');
-    importar(texto);
+    importar(texto, true);
+    const lk = linksPlanilha(mats);
+    delete S.metas[hoje()]; gerarMetas(false); save(); render();
+    await oferecerEstrategia(mats, `Planilha acrescentada: ${mats.length} matéria(s) e ${nT} assunto(s)${lk}.`);
   }catch(e){ avisar('Não foi possível ler a planilha: ' + e.message); }
   finally{ inp.value = ''; }
+}
+// links das metas vindos da planilha: curso do Estratégia da matéria, aula e link da aula de cada assunto, cadernos do TEC
+function linksPlanilha(mats){
+  let nA = 0, nT = 0; const url = v => /^https?:\/\/\S+$/i.test(v) ? v : '';
+  mats.forEach(x => { const m = S.materias.find(y => norm(y.nome) === norm(x.nome)); if(!m) return;
+    if(x.curso){ const lk = url(x.curso), e = lk ? parseEstrategia(lk) : null;
+      if(lk && /estrategiaconcursos\.com\.br/i.test(lk) && e.id){ if(m.estCurso !== e.id){ m.estCurso = e.id; m.estAulas = {}; } delete m.estUrl; }
+      else if(lk && /estrategia/i.test(lk)){ m.estUrl = lk; delete m.estCurso; }
+      else if(!lk) m.curso = x.curso; }
+    x.tops.forEach(y => { const t = m.topicos.find(z => norm(z.nome) === norm(y.t)); if(!t) return;
+      if(y.aula) t.aula = /^\d{1,3}$/.test(y.aula) ? 'Aula ' + String(+y.aula).padStart(2,'0') : y.aula;
+      if(y.link) t.estLink = y.link;
+      if(y.aula || y.link) nA++;
+      if(y.tec && /^https:\/\/(www\.)?tecconcursos\.com\.br\//i.test(y.tec)){ const l = linksTecTop(t).slice(); if(!l.includes(y.tec)) l.push(y.tec); t.tecLinks = l; t.tecLink = l[0]; nT++; } }); });
+  return (nA ? `, ${nA} assunto(s) com aula do Estratégia` : '') + (nT ? `, ${nT} com caderno do TEC` : '');
+}
+// depois da planilha: oferece ligar ao Estratégia as matérias que ficaram sem curso (favorito no site do Estratégia)
+async function oferecerEstrategia(mats, msg){
+  const sem = S.materias.filter(m => mats.some(x => norm(x.nome) === norm(m.nome)) && !m.estCurso && !m.estUrl).length;
+  if(!sem) return avisar(msg);
+  if(await confirmar(`${msg}\n\n${sem} matéria(s) ainda sem curso do Estratégia. Quer ligar agora as matérias e os assuntos aos cursos e às aulas do Estratégia?\n\nConfirmar = abrir o passo a passo: você lê as aulas com o favorito no site do Estratégia e cola aqui. Assim cada meta abre a aula certa.`)){
+    edAba = 'vert'; aba = 'edital'; render();
+    setTimeout(() => { const e = document.getElementById('estTxt'); if(e){ e.scrollIntoView({behavior:'smooth', block:'center'}); e.focus(); } }, 80);
+  }
 }
 function addMat(){
   const el = document.getElementById('nm'), txt = el ? el.value.trim() : ''; if(!txt) return;
