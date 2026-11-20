@@ -1,0 +1,126 @@
+// TCE-RJ – Analista de Controle Externo (Controle Externo) · base: Edital nº 1 – TCE/RJ, de 21/01/2020 (Cebraspe)
+// P1 Conhecimentos Básicos: 100 itens certo/errado (mínimo 20 pontos). P2 Específicos: 100 itens (mínimo 30 pontos).
+// Discursiva: 1 questão de básicos (Dir. Adm., Dir. Const. e/ou Controle Externo), 2 questões e 1 peça técnica sobre achados de auditoria.
+// Matérias que aparecem nos básicos e nos específicos (Auditoria, Controle Externo, Análise de Dados) estão juntas.
+@concurso: TCE-RJ – Analista de Controle Externo (edital 2020)
+@banca: Cebraspe
+
+Língua Portuguesa | 3 | 3
+- Compreensão e interpretação de textos
+- Coesão textual
+- Ortografia
+- Morfossintaxe
+- Pontuação
+- Concordância
+- Regência
+- Crase
+- Colocação pronominal
+- Reescrita de frases e parágrafos
+
+Administração Pública | 2 | 3
+- Estado moderno e federalismo
+- Modelos de administração: patrimonialista, burocrática e gerencial
+- Reformas administrativas
+- Sistemas de governo
+- Governança no setor público: princípios, transparência e accountability
+
+Análise de Dados e Informações | 3 | 3
+- Dado, informação e conhecimento
+- Dados estruturados e dados abertos
+- Bancos de dados relacionais: tabelas, índices, chaves e metadados
+- Modelagem dimensional
+- Mineração de dados e CRISP-DM
+- Classificação, associação, clusterização e detecção de anomalias
+- Aprendizado de máquina
+- Mineração de texto
+- Big Data
+- Visualização de dados
+- Planilhas eletrônicas
+- SQL
+
+Auditoria Governamental | 5 | 3
+- Compliance aplicado à gestão pública
+- Controle interno
+- Auditoria de conformidade e auditoria operacional
+- Instrumentos de fiscalização: levantamento, auditoria, inspeção, acompanhamento e monitoramento
+- Planejamento de auditoria e plano baseado no risco
+- Risco de auditoria: inerente, de controle e de detecção
+- Evidências de auditoria
+- Técnicas de execução de auditoria
+- Achados de auditoria e matriz de achados
+- Relatórios e comunicação de resultados
+- Monitoramento
+- Supervisão e controle de qualidade
+- NBASP: níveis 1 a 3
+
+Controle Externo | 5 | 3
+- Controle da administração pública: conceito e espécies
+- Tribunais de Contas: natureza, competências e eficácia das decisões
+- Competências do TCE-RJ
+- Ministério Público de Contas
+- Prestação de contas de governo e de gestão
+- Fiscalização na Constituição Federal e na Constituição do Estado do RJ
+- Lei Orgânica do TCE-RJ
+- Regimento Interno do TCE-RJ
+- Lei Estadual nº 4.787/2006
+
+Direito Administrativo | 4 | 3
+- Regime jurídico-administrativo
+- Organização administrativa
+- Ato administrativo
+- Agentes públicos
+- Poderes da administração
+- Serviços públicos
+- Controle da administração
+- Processo administrativo (Lei 9.784/1999 e Lei Estadual 5.427/2009)
+
+Direito Constitucional | 4 | 3
+- Normas constitucionais
+- Princípios fundamentais
+- Direitos e garantias fundamentais
+- Organização do Estado
+- Poderes Legislativo, Executivo e Judiciário
+- Fiscalização contábil, financeira e orçamentária
+- Constituição do Estado do Rio de Janeiro
+
+Administração Financeira e Orçamentária | 4 | 3
+- Ciclo e processo orçamentário
+- PPA, LDO e LOA
+- Estrutura programática
+- Créditos adicionais
+- Execução orçamentária e financeira
+- Receita pública
+- Despesa pública
+- Dívida ativa
+- Restos a pagar
+- Suprimento de fundos
+- Transferências voluntárias
+- Lei de Responsabilidade Fiscal (LC 101/2000)
+- Lei 4.320/1964
+- Crimes contra as finanças públicas (Lei 10.028/2000)
+
+Contabilidade Pública | 4 | 3
+- Patrimônio público: conceito e composição
+- Receitas e despesas orçamentárias e extraorçamentárias
+- Variações patrimoniais
+- Mensuração de ativos e passivos
+- Balanço orçamentário
+- Balanço financeiro
+- Balanço patrimonial
+- Demonstração das variações patrimoniais (DVP)
+- Demonstração dos fluxos de caixa
+- Demonstração das mutações do patrimônio líquido
+- Notas explicativas e consolidação das demonstrações
+- Transações no setor público
+
+Licitações, Contratos e Convênios | 4 | 3
+- Lei 8.666/1993
+- Pregão (Lei 10.520/2002)
+- Sistema de Registro de Preços
+- RDC (Lei 12.462/2011)
+- PPPs e concessões
+- Lei das Estatais (Lei 13.303/2016)
+- Administração e fiscalização de contratos
+- Equilíbrio econômico-financeiro
+- Garantias, sanções e alterações contratuais
+- Convênios

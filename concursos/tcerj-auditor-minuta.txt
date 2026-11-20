@@ -1,0 +1,105 @@
+// TCE-RJ – Auditor de Controle Externo (área Controle Externo) · base: minuta de edital IBFC (jul/2025), não publicada
+// Objetiva: 30 questões de Conhecimentos Básicos (0,5 ponto) + 40 de Específicos (1,0 ponto). Mínimos: 9, 24 e 33 de 55 pontos.
+// Discursiva: 3 questões de básicos (10 a 15 linhas) + 1 peça técnica de específicos (30 a 50 linhas). Títulos: até 3 pontos.
+// Peso das matérias: específicos valem o dobro por questão. O conteúdo deve mudar com a nova banca.
+@concurso: TCE-RJ – Auditor de Controle Externo (minuta 2025)
+@banca: A definir (minuta IBFC)
+
+// Conhecimentos Básicos
+Língua Portuguesa | 2 | 3
+- Compreensão e interpretação de textos
+- Tipologia textual
+- Ortografia oficial
+- Acentuação gráfica
+- Classes de palavras
+- Emprego do sinal indicativo de crase
+- Sintaxe da oração e do período
+- Pontuação
+- Concordância nominal e verbal
+- Regência nominal e verbal
+- Significação das palavras
+- Redação oficial: aspectos gerais e pronomes de tratamento
+
+Administração Pública | 2 | 3
+- Estado, governo e administração pública: conceitos, poderes, natureza, fins e princípios
+- Organização administrativa do Estado
+- Administração direta e indireta
+- Agentes públicos: espécies, poderes, deveres e prerrogativas; cargo, emprego e função
+- Poderes administrativos
+- Atos administrativos: conceito, requisitos, atributos, classificação, espécies e invalidação
+- Controle e responsabilização: administrativo, judicial, legislativo; responsabilidade civil do Estado
+- Governabilidade, governança e accountability
+- Planejamento e controle governamentais
+- Gestão e avaliação de políticas públicas
+
+Ética no Serviço Público | 1 | 3
+- Código de Ética dos servidores do TCE-RJ (Resolução nº 335/2019 e alterações)
+
+Legislação TCE-RJ | 2 | 3
+- Regimento Interno do TCE-RJ (Deliberação nº 338/2023)
+- Lei Orgânica do TCE-RJ (LC nº 63/1990)
+- Quadro de pessoal e plano de carreiras do TCE-RJ (Lei nº 4.787/2006)
+- Estatuto dos servidores civis do RJ (Decreto-Lei nº 220/1975)
+- Regulamento do Estatuto (Decreto nº 2.479/1979)
+
+// Conhecimentos Específicos – Controle Externo
+Auditoria Governamental | 5 | 3
+- Normas de auditoria do TCU
+- Normas de auditoria do CFC
+- Técnicas de auditoria e fiscalização
+- Papéis de trabalho
+- Nota, relatório, registro das constatações, certificado e parecer
+- Amostragem (IN nº 01/2001 – SFC)
+- Controle externo no setor público federal
+- Avaliação de riscos e de controles internos
+- Comunicação com o auditado
+- Controle orçamentário na LRF (LC 101/2000) e na Lei 4.320/1964
+- Auditoria de contas patrimoniais e de resultado
+- Auditoria interna
+- Normas Brasileiras de Auditoria do Setor Público (NBASP)
+
+Contabilidade Pública | 4 | 3
+- Conceito, objeto e princípios (Lei 4.320/1964)
+- Instrumentos de planejamento orçamentário
+- Balanços públicos (orçamentário, financeiro, patrimonial, DVP)
+- Créditos adicionais
+- Restos a pagar
+- Despesas de exercícios anteriores
+- Conta Única do Tesouro
+- Tomadas e prestações de contas
+- Controladoria e auditoria no setor público
+- MCASP (10ª edição)
+- NBC TSP / NBCASP
+- Lei nº 10.180/2001
+- SIAFI
+
+Administração Financeira e Orçamentária | 4 | 3
+- Ciclo orçamentário
+- Orçamento-programa
+- PPA, LDO e LOA
+- Reserva de contingência
+- Contingenciamento (limitação de empenho)
+- Receita pública: estágios e classificações
+- Despesa pública: estágios e classificações
+- Fundos especiais
+- LRF: endividamento
+- LRF: transparência, fiscalização e relatórios (RREO e RGF)
+
+Controle Externo | 5 | 3
+- Transparência e accountability (ISSAI 20)
+- Sistema de controle da administração pública (arts. 70 a 74 da CF)
+- Natureza, eficácia e executoriedade das decisões dos Tribunais de Contas
+- Relação dos Tribunais de Contas com o Poder Legislativo
+- Ministério Público de Contas
+- Competências e fiscalização do TCE-RJ
+- Constituição do Estado do Rio de Janeiro (fiscalização e TCE)
+
+Licitações e Contratos | 4 | 3
+- Lei 14.133/2021: disposições gerais, princípios e agentes
+- Lei 14.133/2021: fase preparatória e ETP
+- Lei 14.133/2021: modalidades e critérios de julgamento
+- Lei 14.133/2021: contratação direta
+- Lei 14.133/2021: procedimentos auxiliares
+- Lei 14.133/2021: contratos (formalização, alteração, execução, extinção)
+- Lei 14.133/2021: sanções, impugnações, recursos e controle
+- Decreto nº 10.024/2019 (pregão eletrônico)

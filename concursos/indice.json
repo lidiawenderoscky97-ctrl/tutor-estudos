@@ -1,5 +1,50 @@
 [
   {
+    "nome": "TCE-RJ – Auditor de Controle Externo (minuta 2025)",
+    "orgao": "Tribunal de Contas do Estado do Rio de Janeiro",
+    "cargo": "Auditor de Controle Externo – área Controle Externo (nível superior)",
+    "banca": "A definir (minuta IBFC)",
+    "base": "Base: minuta de edital IBFC de jul/2025, não publicada; novo edital previsto para 2027",
+    "obs": "9 matérias e 79 assuntos. Pesos: específicos valem o dobro por questão (40 × 1,0 contra 30 × 0,5). Conteúdo sujeito a mudança com a nova banca.",
+    "palavras": [
+      "tce-rj",
+      "tcerj",
+      "tce rj",
+      "tce",
+      "tribunal de contas",
+      "rio de janeiro",
+      "auditor",
+      "analista",
+      "controle externo",
+      "ibfc",
+      "minuta"
+    ],
+    "arquivo": "tcerj-auditor-minuta.txt"
+  },
+  {
+    "nome": "TCE-RJ – Analista de Controle Externo (edital 2020)",
+    "orgao": "Tribunal de Contas do Estado do Rio de Janeiro",
+    "cargo": "Analista de Controle Externo – Controle Externo (nível superior), atual Auditor de Controle Externo",
+    "banca": "Cebraspe",
+    "base": "Base: Edital nº 1 – TCE/RJ, de 21/01/2020 (Cebraspe)",
+    "obs": "10 matérias e 100 assuntos do último edital publicado para o cargo. Útil como referência do que já foi cobrado.",
+    "palavras": [
+      "tce-rj",
+      "tcerj",
+      "tce rj",
+      "tce",
+      "tribunal de contas",
+      "rio de janeiro",
+      "auditor",
+      "analista",
+      "controle externo",
+      "cebraspe",
+      "cespe",
+      "2020"
+    ],
+    "arquivo": "tcerj-analista-2020.txt"
+  },
+  {
     "nome": "TJSP – Escrevente Técnico Judiciário",
     "orgao": "Tribunal de Justiça do Estado de São Paulo",
     "cargo": "Escrevente Técnico Judiciário (nível médio)",
