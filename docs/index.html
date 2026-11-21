@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="versao" content="96">
+<meta name="versao" content="97">
 <!-- TUTOR-ESTUDOS-APP -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
@@ -5445,9 +5445,40 @@ async function acessoVerificar(u){
   // troca de conta Google feita neste aparelho: o acesso passa para a conta nova
   let tr = ''; try{ tr = localStorage.getItem('eg-troca') || ''; }catch(e){}
   if(tr){ const r = await usarConvite(u, tr, true); try{ localStorage.removeItem('eg-troca'); }catch(e){} if(r === true) return true; }
+  // compra na Hotmart com o mesmo e-mail da conta Google: liberado sem convite (o Worker da Hotmart grava compras/<e-mail>)
+  const cp = await compraHotmart(u);
+  if(cp === 'ativa') return true;
   const cod = conviteGuardado();
-  return cod ? usarConvite(u, cod) : {msg:''};
+  if(cod) return usarConvite(u, cod);
+  return {msg: cp === 'cancelada' ? 'A compra feita com este e-mail na Hotmart consta como cancelada, reembolsada ou com assinatura encerrada, por isso o acesso foi suspenso. Se for engano, fale com o suporte.' : ''};
 }
+/* ---------- Venda na Hotmart ----------
+   O Worker (hotmart-worker/worker.js) recebe o Webhook da Hotmart e grava compras/<e-mail> e transacoes/<código>.
+   Mesmo e-mail da compra → acesso liberado. Outro e-mail → o aluno digita o código da transação (HP…), que libera uma conta só. */
+async function compraHotmart(u){
+  const e = String(u.email || '').trim().toLowerCase(); if(!e) return '';
+  try{ const d = await FB.fs.collection('compras').doc(e).get(); return d.exists ? (d.data().status || '') : ''; }catch(err){ return ''; }
+}
+const codigoTransacao = t => String(t || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+async function usarTransacao(u, tx){
+  tx = codigoTransacao(tx); if(!/^HP\d{6,}$/.test(tx) && tx.length < 8) return {msg:'Confira o código da transação: ele começa com HP e vem no e-mail de confirmação da Hotmart (ex.: HP1234567890123).'};
+  const ref = FB.fs.collection('transacoes').doc(tx); let d;
+  try{ d = await ref.get(); }catch(e){ return {msg:'Não consegui conferir o código agora ('+(e.code||e.message)+').'}; }
+  if(!d.exists) return {msg:'Não achei essa compra. Confira o código (ele vem no e-mail da Hotmart). Se a compra acabou de ser feita, espere alguns minutos e tente de novo.'};
+  const c = d.data() || {};
+  if(c.status !== 'ativa') return {msg:'Essa compra consta como cancelada, reembolsada ou com assinatura encerrada.'};
+  if(c.usadoPor && c.usadoPor !== u.uid) return {msg:'Esse código de compra já foi usado para liberar outra conta. Cada compra libera uma conta só.'};
+  const b = FB.fs.batch();
+  if(!c.usadoPor) b.update(ref, {usadoPor:u.uid, usadoEm:Date.now(), emailConta:u.email||''});
+  b.set(FB.fs.collection('acessos').doc(u.uid), {hotmartTx:tx, email:u.email||'', nome:u.displayName||'', desde:Date.now()});
+  try{ await b.commit(); return true; }catch(e){ return {msg:'Não consegui liberar com esse código ('+(e.code||e.message)+').'}; }
+}
+async function usarTransacaoManual(){
+  const u = FB.auth.currentUser; if(!u) return; const b = document.getElementById('hp_btn'); if(b){ b.disabled = true; b.textContent = 'Conferindo…'; }
+  const r = await usarTransacao(u, document.getElementById('hp_cod').value);
+  if(r === true) await entrarComConta(u); else telaSemAcesso(u, r.msg);
+}
+async function conferirCompraDeNovo(){ const u = FB.auth.currentUser; if(!u) return; const r = await acessoVerificar(u); if(r === true) await entrarComConta(u); else telaSemAcesso(u, r.msg || 'Ainda não chegou a confirmação da compra para ' + (u.email||'este e-mail') + '. O pagamento por boleto ou Pix pode levar alguns minutos (boleto: até 3 dias úteis).'); }
 // antes de trocar de conta: o acesso desta conta vira um convite de troca (T + id), que só a próxima conta a entrar usa
 async function trocaPreparar(){
   const u = FB.auth.currentUser, cod = 'T' + u.uid, b = FB.fs.batch();
@@ -5474,13 +5505,19 @@ async function usarConvite(u, cod, bruto){
 }
 function telaSemAcesso(u, msg){
   document.getElementById('menu').innerHTML = `<div class="logo"><i>✓</i>Estudo Guiado</div>`;
-  document.getElementById('titulo').textContent = 'Acesso por convite';
+  document.getElementById('titulo').textContent = 'Liberar acesso';
   ['cron','contagem','sync'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = ''; });
   document.getElementById('app').innerHTML = `<div class="card" style="max-width:600px">
     <h2>Seu acesso ainda não foi liberado</h2>
     <p>Você entrou como <b>${esc(u.displayName || '')}</b> (${esc(u.email || '')}).</p>
-    <p class="mut">O Estudo Guiado é usado só por convite. Abra o link de convite que você recebeu, ou cole o link (ou o código) aqui embaixo. Depois disso, é só entrar com esta mesma conta Google no celular, no tablet ou no computador.</p>
     ${msg ? `<div class="alert bad">${esc(msg)}</div>` : ''}
+    <h3 style="margin-top:14px">Comprou pela Hotmart?</h3>
+    <p class="mut" style="margin-top:0">Se você entrou com o <b>mesmo e-mail da compra</b>, o acesso é liberado sozinho assim que o pagamento é aprovado. <button class="lk" onclick="conferirCompraDeNovo()">Conferir de novo</button></p>
+    <p class="mut">Comprou com <b>outro e-mail</b>? Digite o <b>código da transação</b> (começa com HP e está no e-mail de confirmação da Hotmart). Ele libera uma conta só: esta com que você entrou.</p>
+    <label for="hp_cod">Código da transação da Hotmart</label><input id="hp_cod" placeholder="Ex.: HP1234567890123">
+    <div class="inl"><button class="b" id="hp_btn" onclick="usarTransacaoManual()">Liberar com o código</button></div>
+    <h3 style="margin-top:18px">Recebeu um convite?</h3>
+    <p class="mut" style="margin-top:0">Abra o link do convite ou cole o link (ou o código) aqui. Depois disso, é só entrar com esta mesma conta Google no celular, no tablet ou no computador.</p>
     <label for="cv_cod">Link ou código do convite</label><input id="cv_cod" placeholder="Ex.: https://estudoguiado.pages.dev/?convite=K7P2M9XQAB">
     <div class="inl"><button class="b" id="cv_btn" onclick="usarConviteManual()">Usar convite</button><button class="g" onclick="FB.auth.signOut()">Entrar com outra conta</button></div></div>`;
 }
@@ -5516,6 +5553,30 @@ async function admRemover(uidA){ const a = (ADM.acessos||[]).find(x => x.uid ===
   if(!(await confirmar(`Remover o acesso de ${a.nome || a.email}?\n\nA pessoa não consegue mais abrir o tutor. Os dados dela continuam guardados: se você mandar um convite novo, ela volta de onde parou.`))) return;
   try{ const b = FB.fs.batch(); b.delete(FB.fs.collection('acessos').doc(uidA)); if(a.convite) b.delete(FB.fs.collection('convites').doc(a.convite)); await b.commit(); avisar('Acesso removido.'); }
   catch(e){ avisar('Não consegui remover ('+(e.code||e.message)+').'); } admCarregar(); }
+let HOT = {lista:null, carregando:false, erro:'', busca:''};
+async function hotCarregar(){ HOT.carregando = true; HOT.erro = ''; render();
+  try{ const q = await FB.fs.collection('transacoes').get(); HOT.lista = q.docs.map(d => ({tx:d.id, ...d.data()})).sort((a,b) => String(b.atualizado||'').localeCompare(String(a.atualizado||''))); }
+  catch(e){ HOT.erro = e.code || e.message; }
+  HOT.carregando = false; if(aba === 'config') render(); }
+async function hotMudar(tx, status){ const c = (HOT.lista||[]).find(x => x.tx === tx); if(!c) return;
+  if(!(await confirmar(status === 'ativa' ? `Reativar a compra ${tx} (${c.email})?` : `Suspender o acesso da compra ${tx} (${c.email})?\n\nO e-mail da compra deixa de entrar e a conta liberada pelo código também.`))) return;
+  try{ const b = FB.fs.batch(); b.update(FB.fs.collection('transacoes').doc(tx), {status, evento:'MANUAL', atualizado:new Date().toISOString()});
+    if(c.email) b.set(FB.fs.collection('compras').doc(String(c.email).toLowerCase()), {status, evento:'MANUAL', transacao:tx, email:c.email, atualizado:new Date().toISOString()}, {merge:true});
+    if(status !== 'ativa' && c.usadoPor) b.delete(FB.fs.collection('acessos').doc(c.usadoPor));
+    await b.commit(); avisar(status === 'ativa' ? 'Compra reativada.' : 'Acesso suspenso.'); }
+  catch(e){ avisar('Não consegui mudar ('+(e.code||e.message)+').'); } hotCarregar(); }
+function cardComprasHotmart(){
+  if(!HOT.lista && !HOT.carregando && !HOT.erro) setTimeout(hotCarregar, 0);
+  const b = norm(HOT.busca||''), l = (HOT.lista||[]).filter(c => !b || norm(c.email + ' ' + c.tx + ' ' + (c.nome||'') + ' ' + (c.emailConta||'')).includes(b));
+  return `<h3>Vendas da Hotmart</h3><p class="mut" style="margin-top:-4px">Compras recebidas pelo Webhook. Compra ativa: o e-mail da compra entra sem convite; com outro e-mail, o aluno usa o código da transação (uma conta por compra).</p>
+    ${HOT.erro ? `<div class="alert ${/permission/i.test(HOT.erro)?'warn':'bad'}">${/permission/i.test(HOT.erro) ? 'As regras novas do Firebase (vendas da Hotmart) ainda não foram publicadas.' : 'Não consegui ler as vendas (' + esc(HOT.erro) + ').'}</div>` : ''}
+    ${HOT.lista ? (HOT.lista.length ? `<input placeholder="Buscar por e-mail, nome ou código" value="${esc(HOT.busca)}" oninput="HOT.busca=this.value;clearTimeout(window.__hb);window.__hb=setTimeout(()=>{render();const i=document.getElementById('hotBusca');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)" id="hotBusca">
+      ${l.slice(0, 40).map(c => `<div class="item"><div style="min-width:0"><b>${esc(c.nome || c.email)}</b> <span class="tag ${c.status==='ativa'?'ok':'bad'}">${c.status==='ativa'?'ativa':'cancelada'}</span>
+        <div class="mut" style="font-size:13px">${esc(c.email)} · ${esc(c.tx)}${c.emailConta ? ' · liberou a conta ' + esc(c.emailConta) : ''} · ${esc(String(c.evento||'').replace(/_/g,' ').toLowerCase())} · ${esc(String(c.atualizado||'').slice(0,10).split('-').reverse().join('/'))}</div></div>
+        ${c.status==='ativa' ? `<button class="g" style="color:var(--bad)" onclick="hotMudar('${esc(c.tx)}','cancelada')">Suspender</button>` : `<button class="g" onclick="hotMudar('${esc(c.tx)}','ativa')">Reativar</button>`}</div>`).join('')}
+      ${l.length > 40 ? `<p class="mut">Mostrando 40 de ${l.length}. Use a busca.</p>` : ''}` : '<p class="mut">Nenhuma venda recebida ainda.</p>') : (HOT.carregando ? '<p class="mut">Carregando…</p>' : '')}
+    <div class="inl"><button class="lk" onclick="hotCarregar()">atualizar vendas</button></div>`;
+}
 function cardConvites(){
   if(!ehMestre()) return '';
   if(!ADM.convites && !ADM.carregando && !ADM.erro) setTimeout(admCarregar, 0);
@@ -5532,6 +5593,7 @@ function cardConvites(){
         return `<div class="item"><div style="min-width:0"><b>${esc(a.nome || 'Sem nome')}</b>${c && c.para ? ` <span class="mut">· ${esc(c.para)}</span>` : c && c.tipo === 'troca' ? ' <span class="mut">· trocou de conta Google</span>' : ''}<div class="mut">${esc(a.email || '')} · desde ${quando(a.desde)}</div></div>
         <button class="g" style="color:var(--bad)" onclick="admRemover('${a.uid}')">Remover acesso</button></div>`; }).join('') : '<p class="mut">Ninguém ainda.</p>'}
       <div class="inl"><button class="lk" onclick="admCarregar()">atualizar lista</button></div>` : ''}
+    ${cardComprasHotmart()}
     <h3>Contas mestre</h3><p class="mut" style="margin-top:-4px">Podem gerar convites e remover alunos. ${ehDona(FB.auth.currentUser) ? 'Só você escolhe quem entra aqui.' : 'Só a dona do tutor muda esta lista.'}</p>
     <div class="item"><span><b>${esc(ADMIN_EMAILS[0])}</b> <span class="mut">· dona</span></span></div>
     ${MESTRES.map(e => `<div class="item"><span>${esc(e)}</span>${ehDona(FB.auth.currentUser) ? `<button class="x" title="Tirar das contas mestre" onclick="mestreDel('${esc(e)}')">✕</button>` : ''}</div>`).join('')}
